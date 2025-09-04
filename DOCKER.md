@@ -21,7 +21,6 @@ This guide explains how to run the Azure Terraform MCP Server in a Docker contai
      -e LOG_LEVEL=INFO \
      -v $(pwd)/logs:/app/logs \
      --restart unless-stopped \
-     tf-mcp-server
    ```
 
 3. **Check container status:**

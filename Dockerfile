@@ -48,9 +48,7 @@ RUN CONFTEST_VERSION=$(curl -s "https://api.github.com/repos/open-policy-agent/c
 WORKDIR /app
 
 # Copy project files
-COPY pyproject.toml uv.lock ./
-COPY src/ ./src/
-COPY policy/ ./policy/
+COPY . /app
 
 # Install UV package manager for faster dependency resolution
 RUN pip install uv
@@ -58,15 +56,11 @@ RUN pip install uv
 # Install Python dependencies using uv
 RUN uv sync
 
-# Install the tf-mcp-server package
-RUN uv run tf-mcp-server
-
 # Create directories for logs and health checks
 RUN mkdir -p /app/logs /app/health
 
 # Expose the default port (can be overridden with environment variables)
 EXPOSE 8000
 
-# Health check using file-based approach
-HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
-    CMD test -f /app/health/status && [ "$(cat /app/health/status 2>/dev/null)" = "healthy" ] || exit 1
+# Start the server
+CMD ["uv", "run", "tf-mcp-server"]

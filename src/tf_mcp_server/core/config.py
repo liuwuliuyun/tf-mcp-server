@@ -28,20 +28,11 @@ class AzureConfig(BaseModel):
     client_secret: Optional[str] = Field(default=None, description="Azure client secret")
 
 
-class TerraformConfig(BaseModel):
-    """Terraform-specific configuration settings."""
-    
-    working_directory: str = Field(default=".", description="Default working directory")
-    auto_init: bool = Field(default=True, description="Auto-initialize Terraform")
-    timeout: int = Field(default=300, description="Command timeout in seconds")
-
-
 class Config(BaseModel):
     """Main configuration class."""
     
     server: ServerConfig = Field(default_factory=ServerConfig)
     azure: AzureConfig = Field(default_factory=AzureConfig)
-    terraform: TerraformConfig = Field(default_factory=TerraformConfig)
     
     @classmethod
     def from_env(cls) -> "Config":
@@ -49,7 +40,7 @@ class Config(BaseModel):
         return cls(
             server=ServerConfig(
                 host=os.getenv("MCP_SERVER_HOST", "localhost"),
-                port=int(os.getenv("MCP_SERVER_PORT", "6801")),
+                port=int(os.getenv("MCP_SERVER_PORT", "8000")),
                 debug=os.getenv("MCP_DEBUG", "false").lower() in ("true", "1", "yes")
             ),
             azure=AzureConfig(
@@ -58,11 +49,6 @@ class Config(BaseModel):
                 client_id=os.getenv("ARM_CLIENT_ID"),
                 client_secret=os.getenv("ARM_CLIENT_SECRET")
             ),
-            terraform=TerraformConfig(
-                working_directory=os.getenv("TF_WORKING_DIR", "."),
-                auto_init=os.getenv("TF_AUTO_INIT", "true").lower() in ("true", "1", "yes"),
-                timeout=int(os.getenv("TF_TIMEOUT", "300"))
-            )
         )
     
     @classmethod

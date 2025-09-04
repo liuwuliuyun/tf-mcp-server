@@ -10,7 +10,7 @@ import sys
 # Add src to path for testing
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from tf_mcp_server.core.config import Config, ServerConfig, AzureConfig, TerraformConfig
+from tf_mcp_server.core.config import Config, ServerConfig, AzureConfig
 
 
 @pytest.fixture
