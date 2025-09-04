@@ -5,7 +5,7 @@ A Model Context Protocol (MCP) server for Azure Terraform operations, providing 
 ## Overview
 
 This MCP server provides support for Azure Terraform development, including:
-- Azure provider documentation retrieval (AzureRM and AzAPI)
+- Azure provider documentation retrieval of AzureRM, AzAPI and Azure Verified Module(AVM)
 - HCL code validation and static analysis with TFLint
 - Security scanning and compliance checking
 - Best practices guidance
@@ -13,11 +13,10 @@ This MCP server provides support for Azure Terraform development, including:
 
 ## Features
 
-## Features
-
 ### 🔍 Documentation & Discovery
 - **Azure Provider Docs**: Comprehensive documentation retrieval for AzureRM resources
 - **AzAPI Schema**: Schema lookup for Azure API resources
+- **Azure Verified Modules (AVM)**: Discovery and documentation for verified Terraform modules including module listings, versions, variables, and outputs
 - **Resource Documentation**: Detailed arguments, attributes, and examples
 
 ### 🛡️ Security & Compliance
@@ -141,6 +140,9 @@ go install github.com/open-policy-agent/conftest@latest
 export MCP_HOST=localhost          # Default: localhost
 export MCP_PORT=6801              # Default: 6801
 export MCP_DEBUG=false            # Default: false
+
+# Optional: GitHub token for AVM module access (to avoid rate limiting)
+export GITHUB_TOKEN=<your_github_token_here>
 ```
 
 ### Configuration File (.env.local)
@@ -149,6 +151,9 @@ Create a `.env.local` file in the project root for local configuration:
 MCP_HOST=localhost
 MCP_PORT=6801
 MCP_DEBUG=false
+
+# Optional: GitHub token for AVM module access (to avoid rate limiting)
+GITHUB_TOKEN=<your_github_token_here>
 ```
 
 ## Usage
@@ -175,6 +180,11 @@ The server provides the following MCP tools:
 #### Documentation Tools
 - **`azurerm_terraform_documentation_retriever`**: Retrieve specific AzureRM resource or data source documentation with optional argument/attribute lookup
 - **`azapi_terraform_documentation_retriever`**: Retrieve AzAPI resource schemas and documentation
+- **`get_avm_modules`**: Retrieve all available Azure Verified Modules with descriptions and source information
+- **`get_avm_latest_version`**: Get the latest version of a specific Azure Verified Module
+- **`get_avm_versions`**: Get all available versions of a specific Azure Verified Module
+- **`get_avm_variables`**: Retrieve the input variables schema for a specific AVM module version
+- **`get_avm_outputs`**: Retrieve the output definitions for a specific AVM module version
 
 #### Terraform Command Tools
 - **`run_terraform_command`**: Execute any Terraform command (init, plan, apply, destroy, validate, fmt) with provided HCL content
@@ -344,6 +354,49 @@ The server provides the following MCP tools:
 }
 ```
 
+#### Azure Verified Modules (AVM)
+```python
+# Get all available Azure Verified Modules
+{
+  "tool": "get_avm_modules",
+  "arguments": {}
+}
+
+# Get the latest version of a specific AVM module
+{
+  "tool": "get_avm_latest_version",
+  "arguments": {
+    "module_name": "avm-res-compute-virtualmachine"
+  }
+}
+
+# Get all available versions of an AVM module
+{
+  "tool": "get_avm_versions",
+  "arguments": {
+    "module_name": "avm-res-storage-storageaccount"
+  }
+}
+
+# Get input variables for a specific AVM module version
+{
+  "tool": "get_avm_variables",
+  "arguments": {
+    "module_name": "avm-res-compute-virtualmachine",
+    "module_version": "0.19.3"
+  }
+}
+
+# Get outputs for a specific AVM module version
+{
+  "tool": "get_avm_outputs",
+  "arguments": {
+    "module_name": "avm-res-compute-virtualmachine",
+    "module_version": "0.19.3"
+  }
+}
+```
+
 #### Analyze Azure Resources
 ```python
 # Analyze Terraform configuration for Azure resources
@@ -416,6 +469,7 @@ tf-mcp-server/
 │       │   └── utils.py            # Utility functions
 │       ├── tools/                  # Tool implementations
 │       │   ├── __init__.py
+│       │   ├── avm_docs_provider.py     # Azure Verified Modules documentation provider
 │       │   ├── azapi_docs_provider.py    # AzAPI documentation provider
 │       │   ├── azurerm_docs_provider.py # AzureRM documentation provider
 │       │   ├── best_practices.py   # Best practices provider
@@ -519,6 +573,15 @@ The server includes security scanning capabilities with built-in Azure security 
    ```bash
    # Install optional dependencies
    pip install beautifulsoup4
+   ```
+
+4. **AVM Module Access Issues**
+   ```bash
+   # If you encounter GitHub API rate limiting for AVM modules
+   export GITHUB_TOKEN=your_github_token_here
+   
+   # Clear AVM cache if modules seem outdated (cache expires after 24 hours)
+   rm -rf __avm_data_cache__
    ```
 
 ### Debug Mode
