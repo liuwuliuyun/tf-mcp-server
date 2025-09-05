@@ -141,10 +141,11 @@ The Docker image includes the following tools:
 
 | Tool | Version |
 |------|---------|
-| Terraform | 1.9.8 |
-| TFLint | 0.53.0 |
-| Conftest | 0.58.1 |
+| Terraform | latest |
+| TFLint | latest |
+| Conftest | latest |
 
+> **Note:** The Dockerfile installs the latest available versions of these tools at build time. Actual versions may differ from those listed above. For reproducibility, consider pinning tool versions in the Dockerfile.
 ## Health Checks
 
 The container includes built-in health checks that monitor:
