@@ -25,7 +25,9 @@ RUN tdnf update && tdnf install -y \
 
 # Install Terraform (latest version)
 RUN TERRAFORM_VERSION=$(curl -s "https://api.github.com/repos/hashicorp/terraform/releases/latest" | jq -r '.tag_name' | cut -c 2-) \
-    && curl -fsSL https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip -o terraform.zip \
+    && ARCH=$(uname -m) \
+    && if [ "$ARCH" = "x86_64" ]; then ARCH="amd64"; elif [ "$ARCH" = "aarch64" ]; then ARCH="arm64"; fi \
+    && curl -fsSL https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_${ARCH}.zip -o terraform.zip \
     && unzip terraform.zip \
     && mv terraform /usr/local/bin/ \
     && rm terraform.zip \
@@ -38,7 +40,8 @@ RUN tflint --version
 
 # Install Conftest (latest version)
 RUN CONFTEST_VERSION=$(curl -s "https://api.github.com/repos/open-policy-agent/conftest/releases/latest" | jq -r '.tag_name' | cut -c 2-) \
-    && ARCH=$(arch) \
+    && ARCH=$(uname -m) \
+    && if [ "$ARCH" = "x86_64" ]; then ARCH="x86_64"; elif [ "$ARCH" = "aarch64" ]; then ARCH="arm64"; fi \
     && SYSTEM=$(uname) \
     && wget "https://github.com/open-policy-agent/conftest/releases/download/v${CONFTEST_VERSION}/conftest_${CONFTEST_VERSION}_${SYSTEM}_${ARCH}.tar.gz" \
     && tar xzf conftest_${CONFTEST_VERSION}_${SYSTEM}_${ARCH}.tar.gz \
