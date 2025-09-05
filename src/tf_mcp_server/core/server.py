@@ -456,15 +456,18 @@ def create_server(config: Config) -> FastMCP:
     # CONFTEST AVM POLICY TOOLS
     # ==========================================
     
-    @mcp.tool("run_conftest_avm_validation")
-    async def run_conftest_avm_validation(
+    @mcp.tool("run_conftest_validation")
+    async def run_conftest_validation(
         hcl_content: str,
         policy_set: str = Field("all", description="Policy set: 'all', 'Azure-Proactive-Resiliency-Library-v2', 'avmsec'"),
         severity_filter: str = Field("", description="Severity filter for avmsec policies: 'high', 'medium', 'low', 'info'"),
         custom_policies: str = Field("", description="Comma-separated list of custom policy paths")
     ) -> Dict[str, Any]:
         """
-        Validate Terraform HCL content against Azure Verified Modules (AVM) policies using Conftest.
+        Validate Terraform HCL content against Azure security policies and best practices using Conftest.
+        
+        Supports validation of Azure resources using azurerm, azapi, and AVM (Azure Verified Modules) providers
+        with comprehensive security checks, compliance rules, and operational best practices.
         
         Args:
             hcl_content: Terraform HCL content to validate
