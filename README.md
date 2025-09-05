@@ -180,7 +180,6 @@ The server provides the following MCP tools:
 - **`run_terraform_command`**: Execute any Terraform command (init, plan, apply, destroy, validate, fmt) with provided HCL content
 
 #### Security Tools
-- **`run_azure_security_scan`**: Run security scans on Terraform configurations
 - **`run_conftest_avm_validation`**: Validate Terraform HCL against Azure Verified Modules policies using Conftest
 - **`run_conftest_avm_plan_validation`**: Validate Terraform plan JSON against Azure Verified Modules policies using Conftest
 
@@ -254,17 +253,6 @@ The server provides the following MCP tools:
   "arguments": {
     "resource_type_name": "virtual_machine",
     "doc_type": "data-source"
-  }
-}
-```
-
-#### Security Scanning
-```python
-# Run security scan on Terraform configuration
-{
-  "tool": "run_azure_security_scan",
-  "arguments": {
-    "hcl_content": "resource \"azurerm_storage_account\" \"example\" {\n  name = \"mystorageaccount\"\n  resource_group_name = \"myresourcegroup\"\n  location = \"East US\"\n  account_tier = \"Standard\"\n  account_replication_type = \"LRS\"\n  enable_https_traffic_only = false\n}"
   }
 }
 ```
@@ -373,7 +361,6 @@ tf-mcp-server/
 │       │   ├── __init__.py
 │       │   ├── azapi_docs_provider.py    # AzAPI documentation provider
 │       │   ├── azurerm_docs_provider.py # AzureRM documentation provider
-│       │   ├── security_rules.py   # Security validation rules
 │       │   └── terraform_runner.py # Terraform command runner
 │       └── data/                   # Data files
 │           └── azapi_schemas.json  # AzAPI schemas
