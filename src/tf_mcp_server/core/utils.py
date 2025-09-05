@@ -8,6 +8,24 @@ from typing import List, Dict, Any, Optional
 from pathlib import Path
 
 
+def strip_ansi_escape_sequences(text: Optional[str]) -> Optional[str]:
+    """
+    Remove ANSI escape sequences from text.
+    
+    Args:
+        text: Text that may contain ANSI escape sequences
+        
+    Returns:
+        Text with ANSI escape sequences removed
+    """
+    if not text:
+        return text
+    
+    # Pattern to match ANSI escape sequences
+    ansi_escape = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
+    return ansi_escape.sub('', text)
+
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
