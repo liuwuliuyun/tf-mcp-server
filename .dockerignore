@@ -80,4 +80,8 @@ Dockerfile
 .dockerignore
 docker-build.sh
 docker-build.ps1
+docker-compose.yml
 !docker-entrypoint.sh
+
+# GitHub
+.github/

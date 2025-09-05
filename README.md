@@ -133,6 +133,39 @@ go install github.com/open-policy-agent/conftest@latest
    pip install -e .
    ```
 
+### Docker Installation (Recommended for Production)
+
+The easiest way to run the Azure Terraform MCP Server is using Docker:
+
+1. **Using Docker with pre-built image:**
+   ```bash
+   # Run the server directly
+   docker run -d \
+     --name tf-mcp-server \
+     -p 8000:8000 \
+     -v ~/.azure:/home/mcpuser/.azure:ro \
+     ghcr.io/liuwuliuyun/tf-mcp-server:latest
+   ```
+
+2. **Using Docker Compose (Recommended):**
+   ```bash
+   # Download docker-compose.yml
+   curl -O https://raw.githubusercontent.com/liuwuliuyun/tf-mcp-server/main/docker-compose.yml
+   
+   # Start the service
+   docker-compose up -d
+   ```
+
+3. **Build from source:**
+   ```bash
+   git clone <repository-url>
+   cd tf-mcp-server
+   docker build -t tf-mcp-server .
+   docker run -d --name tf-mcp-server -p 8000:8000 tf-mcp-server
+   ```
+
+📖 **For detailed Docker usage, see [DOCKER.md](DOCKER.md)**
+
 ## Configuration
 
 ### Environment Variables

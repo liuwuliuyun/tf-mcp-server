@@ -4,14 +4,48 @@ This guide explains how to run the Azure Terraform MCP Server in a Docker contai
 
 ## Quick Start
 
-### Using Docker CLI
+### Using Pre-built Docker Image (Recommended)
 
-1. **Build the image:**
+The easiest way to get started is using the pre-built Docker image from GitHub Container Registry:
+
+1. **Run the container:**
+   ```bash
+   docker run -d \
+     --name tf-mcp-server \
+     -p 8000:8000 \
+     -e MCP_SERVER_HOST=0.0.0.0 \
+     -e MCP_SERVER_PORT=8000 \
+     -e LOG_LEVEL=INFO \
+     -v ~/.azure:/home/mcpuser/.azure:ro \
+     --restart unless-stopped \
+     ghcr.io/liuwuliuyun/tf-mcp-server:latest
+   ```
+
+2. **Using Docker Compose (Recommended):**
+   ```bash
+   # Download the docker-compose.yml file
+   curl -O https://raw.githubusercontent.com/liuwuliuyun/tf-mcp-server/main/docker-compose.yml
+   
+   # Start the service
+   docker-compose up -d
+   ```
+
+### Building from Source
+
+If you prefer to build the image yourself:
+
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/liuwuliuyun/tf-mcp-server.git
+   cd tf-mcp-server
+   ```
+
+2. **Build the image:**
    ```bash
    docker build -t tf-mcp-server .
    ```
 
-2. **Run the container:**
+3. **Run the container:**
    ```bash
    docker run -d \
      --name tf-mcp-server \
@@ -21,19 +55,40 @@ This guide explains how to run the Azure Terraform MCP Server in a Docker contai
      -e LOG_LEVEL=INFO \
      -v $(pwd)/logs:/app/logs \
      --restart unless-stopped \
+     tf-mcp-server
    ```
 
-3. **Check container status:**
+4. **Check container status:**
    ```bash
    docker ps
    docker logs tf-mcp-server
    ```
 
-4. **Stop the container:**
+5. **Stop the container:**
    ```bash
    docker stop tf-mcp-server
    docker rm tf-mcp-server
    ```
+
+## Container Management
+
+### Available Images
+
+- **Latest**: `ghcr.io/liuwuliuyun/tf-mcp-server:latest` - Latest stable version
+- **Specific version**: `ghcr.io/liuwuliuyun/tf-mcp-server:v1.0.0` - Tagged releases
+- **Branch builds**: `ghcr.io/liuwuliuyun/tf-mcp-server:main` - Latest from main branch
+
+### Health Checks
+
+The container includes health checks that verify the MCP server is running:
+
+```bash
+# Check health status
+docker inspect --format='{{.State.Health.Status}}' tf-mcp-server
+
+# View health logs
+docker inspect --format='{{range .State.Health.Log}}{{.Output}}{{end}}' tf-mcp-server
+```
 
 ## Configuration
 
