@@ -19,6 +19,8 @@ RUN tdnf update && tdnf install -y \
     ca-certificates \
     jq \
     tar \
+    net-tools \
+    shadow-utils \
     && tdnf clean all
 
 # Install Terraform (latest version)
@@ -44,6 +46,9 @@ RUN CONFTEST_VERSION=$(curl -s "https://api.github.com/repos/open-policy-agent/c
     && rm conftest_${CONFTEST_VERSION}_${SYSTEM}_${ARCH}.tar.gz \
     && conftest --version
 
+# Create non-root user for security
+RUN groupadd -r mcpuser && useradd -r -g mcpuser mcpuser
+
 # Set work directory
 WORKDIR /app
 
@@ -53,14 +58,25 @@ COPY . /app
 # Install UV package manager for faster dependency resolution
 RUN pip install uv
 
-# Install Python dependencies using uv
+# Create directories for logs and health checks
+RUN mkdir -p /app/logs /app/health /home/mcpuser/.azure
+
+# Set proper ownership and permissions for the app directory first
+RUN chown -R mcpuser:mcpuser /app /home/mcpuser \
+    && chmod 755 /app/logs /app/health
+
+# Switch to non-root user before installing dependencies
+USER mcpuser
+
+# Install Python dependencies using uv as the mcpuser
 RUN uv sync
 
-# Create directories for logs and health checks
-RUN mkdir -p /app/logs /app/health
-
 # Expose the default port (can be overridden with environment variables)
-EXPOSE 8000
+EXPOSE $MCP_SERVER_PORT
+
+# Add health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD netstat -an | grep :${MCP_SERVER_PORT:-8000} | grep LISTEN || exit 1
 
 # Start the server
 CMD ["uv", "run", "tf-mcp-server"]

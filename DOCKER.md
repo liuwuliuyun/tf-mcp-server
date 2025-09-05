@@ -35,46 +35,6 @@ This guide explains how to run the Azure Terraform MCP Server in a Docker contai
    docker rm tf-mcp-server
    ```
 
-### Using Build Scripts (Recommended)
-
-1. **Clone the repository and navigate to the project directory:**
-   ```bash
-   git clone <repository-url>
-   cd tf-mcp-server
-   ```
-
-2. **Build and run using scripts:**
-   
-   **Linux/macOS:**
-   ```bash
-   ./docker-build.sh build
-   ./docker-build.sh run
-   ```
-   
-   **Windows PowerShell:**
-   ```powershell
-   .\docker-build.ps1 build
-   .\docker-build.ps1 run
-   ```
-
-3. **Check service status:**
-   ```bash
-   # Linux/macOS
-   ./docker-build.sh logs
-   
-   # Windows PowerShell
-   .\docker-build.ps1 logs
-   ```
-
-4. **Stop the service:**
-   ```bash
-   # Linux/macOS
-   ./docker-build.sh stop
-   
-   # Windows PowerShell
-   .\docker-build.ps1 stop
-   ```
-
 ## Configuration
 
 ### Environment Variables
