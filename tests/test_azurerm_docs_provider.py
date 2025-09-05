@@ -8,8 +8,8 @@ import asyncio
 from unittest.mock import AsyncMock, patch, MagicMock
 from httpx import Response
 
-from src.tools.azurerm_docs_provider import AzureRMDocumentationProvider, get_azurerm_documentation_provider
-from src.core.models import TerraformAzureProviderDocsResult
+from tf_mcp_server.tools.azurerm_docs_provider import AzureRMDocumentationProvider, get_azurerm_documentation_provider
+from tf_mcp_server.core.models import TerraformAzureProviderDocsResult
 
 
 class TestAzureRMDocumentationProvider:
@@ -245,7 +245,7 @@ resource "azurerm_linux_virtual_machine" "example" {
 ```
 """
         
-        with patch('src.tools.azurerm_docs_provider.AsyncClient') as mock_client_class:
+        with patch('tf_mcp_server.tools.azurerm_docs_provider.AsyncClient') as mock_client_class:
             mock_client = AsyncMock()
             mock_client_class.return_value.__aenter__.return_value = mock_client
             mock_client.get.return_value = mock_response
@@ -293,7 +293,7 @@ Use this data source to access information about an existing Virtual Machine.
 * `location` - The Azure location.
 """
         
-        with patch('src.tools.azurerm_docs_provider.AsyncClient') as mock_client_class:
+        with patch('tf_mcp_server.tools.azurerm_docs_provider.AsyncClient') as mock_client_class:
             mock_client = AsyncMock()
             mock_client_class.return_value.__aenter__.return_value = mock_client
             # First call returns 404, second call returns 200
@@ -333,7 +333,7 @@ Use this data source to access information about an existing Virtual Machine.
     @pytest.mark.asyncio
     async def test_search_azurerm_provider_docs_exception(self):
         """Test handling when an exception occurs."""
-        with patch('src.tools.azurerm_docs_provider.AsyncClient') as mock_client_class:
+        with patch('tf_mcp_server.tools.azurerm_docs_provider.AsyncClient') as mock_client_class:
             mock_client = AsyncMock()
             mock_client_class.return_value.__aenter__.return_value = mock_client
             mock_client.get.side_effect = Exception("Network error")

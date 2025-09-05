@@ -4,7 +4,7 @@ Test both resource and data source summaries.
 """
 
 import asyncio
-from src.tools.azurerm_docs_provider import get_azurerm_documentation_provider
+from tf_mcp_server.tools.azurerm_docs_provider import get_azurerm_documentation_provider
 
 async def test_summaries():
     """Test both resource and data source summary generation."""

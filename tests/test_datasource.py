@@ -4,7 +4,7 @@ Quick test script to verify data source documentation functionality.
 """
 
 import asyncio
-from src.tools.azurerm_docs_provider import get_azurerm_documentation_provider
+from tf_mcp_server.tools.azurerm_docs_provider import get_azurerm_documentation_provider
 
 async def test_data_source_docs():
     """Test data source documentation retrieval."""
