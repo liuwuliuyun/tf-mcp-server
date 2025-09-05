@@ -188,9 +188,6 @@ The server provides the following MCP tools:
 - **`run_tflint_analysis`**: Run TFLint static analysis on Terraform configurations with Azure plugin support
 - **`check_tflint_installation`**: Check TFLint installation status and get version information
 
-#### Best Practices Tools
-- **`get_azure_best_practices`**: Get Azure-specific best practices by resource type and category
-
 #### Analysis Tools
 - **`analyze_azure_resources`**: Analyze Azure resources in Terraform configurations
 
@@ -303,36 +300,6 @@ The server provides the following MCP tools:
 }
 ```
 
-#### Get Best Practices
-```python
-# Get all best practices for storage accounts
-{
-  "tool": "get_azure_best_practices",
-  "arguments": {
-    "resource_type": "storage_account",
-    "category": "all"
-  }
-}
-
-# Get security-specific best practices
-{
-  "tool": "get_azure_best_practices",
-  "arguments": {
-    "resource_type": "storage_account",
-    "category": "security"
-  }
-}
-
-# Get performance best practices
-{
-  "tool": "get_azure_best_practices",
-  "arguments": {
-    "resource_type": "virtual_machine",
-    "category": "performance"
-  }
-}
-```
-
 #### AzAPI Documentation
 ```python
 # Get AzAPI resource schema
@@ -351,18 +318,6 @@ The server provides the following MCP tools:
   "tool": "analyze_azure_resources",
   "arguments": {
     "hcl_content": "resource \"azurerm_storage_account\" \"example\" {\n  name = \"mystorageaccount\"\n  resource_group_name = \"myresourcegroup\"\n}\n\nresource \"azurerm_virtual_machine\" \"example\" {\n  name = \"myvm\"\n  resource_group_name = \"myresourcegroup\"\n}"
-  }
-}
-```
-
-#### Get Best Practices
-```python
-# Using the MCP tool
-{
-  "tool": "get_azure_best_practices",
-  "arguments": {
-    "resource_type": "storage_account",
-    "category": "security"
   }
 }
 ```
@@ -418,7 +373,6 @@ tf-mcp-server/
 │       │   ├── __init__.py
 │       │   ├── azapi_docs_provider.py    # AzAPI documentation provider
 │       │   ├── azurerm_docs_provider.py # AzureRM documentation provider
-│       │   ├── best_practices.py   # Best practices provider
 │       │   ├── security_rules.py   # Security validation rules
 │       │   └── terraform_runner.py # Terraform command runner
 │       └── data/                   # Data files
