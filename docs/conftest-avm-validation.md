@@ -50,9 +50,11 @@ This tool supports comprehensive validation of Azure resources using azurerm, az
 - Summary with violation counts
 - Detailed violation information
 
-### 2. `run_conftest_avm_plan_validation`
+### 2. `run_conftest_plan_validation`
 
-Validate pre-generated Terraform plan JSON against Azure Verified Modules policies.
+Validate pre-generated Terraform plan JSON against Azure security policies and best practices using Conftest.
+
+This tool supports comprehensive validation of Azure resources using azurerm, azapi, and AVM (Azure Verified Modules) providers with security checks, compliance rules, and operational best practices.
 
 **Parameters:**
 - `terraform_plan_json` (required): Terraform plan in JSON format
@@ -240,7 +242,7 @@ If Terraform operations fail:
 These tools are automatically integrated into the Azure Terraform MCP Server and can be accessed via the MCP protocol. The tools are registered as:
 
 - `run_conftest_validation` 
-- `run_conftest_avm_plan_validation`
+- `run_conftest_plan_validation`
 
 ## Contributing
 

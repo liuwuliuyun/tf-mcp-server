@@ -181,7 +181,7 @@ The server provides the following MCP tools:
 
 #### Security Tools
 - **`run_conftest_validation`**: Validate Terraform HCL against Azure security policies and best practices using Conftest (supports azurerm, azapi, and AVM providers)
-- **`run_conftest_avm_plan_validation`**: Validate Terraform plan JSON against Azure Verified Modules policies using Conftest
+- **`run_conftest_plan_validation`**: Validate Terraform plan JSON against Azure security policies and best practices using Conftest
 
 #### Static Analysis Tools
 - **`run_tflint_analysis`**: Run TFLint static analysis on Terraform configurations with Azure plugin support
@@ -280,7 +280,7 @@ The server provides the following MCP tools:
 
 # Validate plan JSON directly
 {
-  "tool": "run_conftest_avm_plan_validation", 
+  "tool": "run_conftest_plan_validation", 
   "arguments": {
     "terraform_plan_json": "{\"planned_values\": {\"root_module\": {\"resources\": [...]}}}",
     "policy_set": "Azure-Proactive-Resiliency-Library-v2"
