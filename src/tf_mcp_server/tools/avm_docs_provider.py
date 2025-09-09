@@ -105,7 +105,7 @@ class AzureVerifiedModuleDocumentationProvider:
         
             # Extract the downloaded file
             with tarfile.open(download_path, "r:gz") as tar:
-                # Run this command to avoid Windows length limitation: Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem" -Name "LongPathsEnabled" -Value 1
+                # On Windows, extracting archives may fail due to path length limitations. See the Troubleshooting of README.md for details.
                 tar.extractall(path=extract_to)
             os.remove(download_path)
             

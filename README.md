@@ -558,6 +558,12 @@ The server includes security scanning capabilities with built-in Azure security 
    rm -rf __avm_data_cache__
    ```
 
+5. **Windows Path Length Limitations**
+   ```powershell
+   # If you encounter path length issues on Windows when extracting AVM modules
+   # Run this PowerShell command as Administrator to enable long paths:
+   Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem" -Name "LongPathsEnabled" -Value 1
+
 ### Debug Mode
 
 Enable debug logging:
