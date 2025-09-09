@@ -17,7 +17,7 @@ services:
       - ./terraform-workspace:/workspace
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "netstat", "-an", "|", "grep", ":8000", "|", "grep", "LISTEN"]
+      test: ["CMD", "sh", "-c", "netstat -an | grep :8000 | grep LISTEN"]
       interval: 30s
       timeout: 10s
       retries: 3
