@@ -59,7 +59,7 @@ def create_server(config: Config) -> FastMCP:
             return f'{str(e)}'
         except Exception as e:
             logger.error(f"Error: get_avm_modules: {str(e)}")
-            return "failed to retrieve avaialbe modules"
+            return "failed to retrieve available modules"
         
     
     @mcp.tool("get_avm_latest_version")

@@ -81,9 +81,12 @@ class AzureVerifiedModuleDocumentationProvider:
     
     @staticmethod
     def _source_from_repo_url(repo_url: str) -> str:
-        _, first_part, other_parts = repo_url.rsplit('/', 2)
-        _, third_part,second_part = other_parts.split('-', 2)
-        return f"{first_part}/{second_part}/{third_part}"
+        # Split https://github.com/Azure/terraform-azurerm-avm-res-apimanagement-service to get: ['https://github.com', 'Azure', 'terraform-azurerm-avm-res-apimanagement-service']
+        _, github_org, module_repo_name = repo_url.rsplit('/', 2)
+        # Split module name terraform-azurerm-avm-res-apimanagement-service to get: ['terraform', 'azurerm', 'avm-res-apimanagement-service'] 
+        _, module_org, module_name = module_repo_name.split('-', 2)
+        # Return format: "Azure/avm-res-apimanagement-service/azurerm"
+        return f"{github_org}/{module_name}/{module_org}"
     
     @staticmethod
     def _download_module_version(source_url: str, target_path: str):
