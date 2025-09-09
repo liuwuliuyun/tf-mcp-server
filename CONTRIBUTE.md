@@ -380,8 +380,6 @@ The server currently provides these MCP tools:
 - `run_terraform_command` - Execute any Terraform command (init, plan, apply, destroy, validate, fmt)
 
 **Security & Analysis Tools:**
-- `run_azure_security_scan` - Scan configurations for security issues
-- `get_azure_best_practices` - Get resource-specific best practices
 - `analyze_azure_resources` - Analyze resources in Terraform configurations
 
 When adding new tools, follow the established patterns and ensure they integrate well with existing functionality.

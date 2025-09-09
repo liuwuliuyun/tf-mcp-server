@@ -7,7 +7,7 @@ import json
 import subprocess
 import tempfile
 from typing import Dict, Any, Optional, List
-from ..core.utils import extract_hcl_from_markdown
+from ..core.utils import extract_hcl_from_markdown, strip_ansi_escape_sequences
 
 
 class ConftestAVMRunner:
@@ -180,6 +180,10 @@ class ConftestAVMRunner:
             
             success = result.returncode == 0
             
+            # Clean ANSI escape sequences from outputs
+            clean_stdout = strip_ansi_escape_sequences(result.stdout) if result.stdout else None
+            clean_stderr = strip_ansi_escape_sequences(result.stderr) if result.stderr else None
+            
             return {
                 'success': success,
                 'policy_set': policy_set,
@@ -192,8 +196,8 @@ class ConftestAVMRunner:
                     'warnings': warnings,
                     'policy_set_used': policy_set
                 },
-                'command_output': result.stdout if not success else None,
-                'command_error': result.stderr if result.stderr else None
+                'command_output': clean_stdout if not success else None,
+                'command_error': clean_stderr if clean_stderr else None
             }
             
         except subprocess.TimeoutExpired:
@@ -204,9 +208,10 @@ class ConftestAVMRunner:
                 'summary': {'total_violations': 0, 'failures': 0, 'warnings': 0}
             }
         except Exception as e:
+            error_message = strip_ansi_escape_sequences(str(e))
             return {
                 'success': False,
-                'error': f'Error running conftest: {str(e)}',
+                'error': f'Error running conftest: {error_message}',
                 'violations': [],
                 'summary': {'total_violations': 0, 'failures': 0, 'warnings': 0}
             }
@@ -362,9 +367,10 @@ exception contains rules if {
                                            timeout=120)
                 
                 if init_result.returncode != 0:
+                    error_message = strip_ansi_escape_sequences(init_result.stderr)
                     return {
                         'success': False,
-                        'error': f'Terraform init failed: {init_result.stderr}',
+                        'error': f'Terraform init failed: {error_message}',
                         'violations': [],
                         'summary': {'total_violations': 0, 'failures': 0, 'warnings': 0}
                     }
@@ -377,9 +383,10 @@ exception contains rules if {
                                            timeout=120)
                 
                 if plan_result.returncode != 0:
+                    error_message = strip_ansi_escape_sequences(plan_result.stderr)
                     return {
                         'success': False,
-                        'error': f'Terraform plan failed: {plan_result.stderr}',
+                        'error': f'Terraform plan failed: {error_message}',
                         'violations': [],
                         'summary': {'total_violations': 0, 'failures': 0, 'warnings': 0}
                     }
@@ -392,9 +399,10 @@ exception contains rules if {
                                            timeout=60)
                 
                 if show_result.returncode != 0:
+                    error_message = strip_ansi_escape_sequences(show_result.stderr)
                     return {
                         'success': False,
-                        'error': f'Terraform show failed: {show_result.stderr}',
+                        'error': f'Terraform show failed: {error_message}',
                         'violations': [],
                         'summary': {'total_violations': 0, 'failures': 0, 'warnings': 0}
                     }
@@ -415,9 +423,10 @@ exception contains rules if {
                 'summary': {'total_violations': 0, 'failures': 0, 'warnings': 0}
             }
         except Exception as e:
+            error_message = strip_ansi_escape_sequences(str(e))
             return {
                 'success': False,
-                'error': f'Error validating HCL with AVM policies: {str(e)}',
+                'error': f'Error validating HCL with AVM policies: {error_message}',
                 'violations': [],
                 'summary': {'total_violations': 0, 'failures': 0, 'warnings': 0}
             }

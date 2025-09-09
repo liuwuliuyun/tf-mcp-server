@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  tf-mcp-server:
+    image: ghcr.io/liuwuliuyun/tf-mcp-server:latest
+    container_name: tf-mcp-server
+    ports:
+      - "8000:8000"
+    environment:
+      - MCP_SERVER_HOST=0.0.0.0
+      - MCP_SERVER_PORT=8000
+      - LOG_LEVEL=INFO
+    volumes:
+      # Mount Azure credentials if needed
+      - ~/.azure:/home/mcpuser/.azure:ro
+      # Mount Terraform workspace if needed
+      - ./terraform-workspace:/workspace
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "sh", "-c", "netstat -an | grep :8000 | grep LISTEN"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  default:
+    name: tf-mcp-network

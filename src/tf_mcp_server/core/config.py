@@ -29,20 +29,11 @@ class AzureConfig(BaseModel):
     client_secret: Optional[str] = Field(default=None, description="Azure client secret")
 
 
-class TerraformConfig(BaseModel):
-    """Terraform-specific configuration settings."""
-    
-    working_directory: str = Field(default=".", description="Default working directory")
-    auto_init: bool = Field(default=True, description="Auto-initialize Terraform")
-    timeout: int = Field(default=300, description="Command timeout in seconds")
-
-
 class Config(BaseModel):
     """Main configuration class."""
     
     server: ServerConfig = Field(default_factory=ServerConfig)
     azure: AzureConfig = Field(default_factory=AzureConfig)
-    terraform: TerraformConfig = Field(default_factory=TerraformConfig)
     
     @classmethod
     def from_env(cls) -> "Config":
@@ -51,7 +42,7 @@ class Config(BaseModel):
             server=ServerConfig(
                 github_token=os.getenv("GITHUB_TOKEN", ""),
                 host=os.getenv("MCP_SERVER_HOST", "localhost"),
-                port=int(os.getenv("MCP_SERVER_PORT", "6801")),
+                port=int(os.getenv("MCP_SERVER_PORT", "8000")),
                 debug=os.getenv("MCP_DEBUG", "false").lower() in ("true", "1", "yes")
             ),
             azure=AzureConfig(
@@ -60,11 +51,6 @@ class Config(BaseModel):
                 client_id=os.getenv("ARM_CLIENT_ID"),
                 client_secret=os.getenv("ARM_CLIENT_SECRET")
             ),
-            terraform=TerraformConfig(
-                working_directory=os.getenv("TF_WORKING_DIR", "."),
-                auto_init=os.getenv("TF_AUTO_INIT", "true").lower() in ("true", "1", "yes"),
-                timeout=int(os.getenv("TF_TIMEOUT", "300"))
-            )
         )
     
     @classmethod
@@ -86,28 +72,46 @@ def get_data_dir() -> Path:
 
 
 def load_azapi_schema() -> Dict[str, Any]:
-    """Load AzAPI schema from data file or download from GitHub if not found."""
-    schema_file = get_data_dir() / "azapi_schemas.json"
+    """Load AzAPI schema from versioned data file or generate if not found."""
+    from .azapi_schema_generator import AzAPISchemaGenerator
     
-    # First try to load from local file
-    if schema_file.exists():
+    generator = AzAPISchemaGenerator()
+    
+    # First try to load the latest versioned schema file
+    latest_schema_file = generator.get_latest_schema_file()
+    if latest_schema_file and latest_schema_file.exists():
         try:
-            with open(schema_file, 'r', encoding='utf-8') as f:
-                return json.load(f)
+            with open(latest_schema_file, 'r', encoding='utf-8') as f:
+                schema_data = json.load(f)
+                print(f"Loaded AzAPI schemas from {latest_schema_file}")
+                return schema_data
         except json.JSONDecodeError as e:
-            print(f"Warning: Invalid JSON in {schema_file}: {e}")
+            print(f"Warning: Invalid JSON in {latest_schema_file}: {e}")
         except UnicodeDecodeError as e:
-            print(f"Warning: Encoding error in {schema_file}: {e}")
+            print(f"Warning: Encoding error in {latest_schema_file}: {e}")
     
-    # If local file doesn't exist or is invalid, try to download from GitHub
+    # If no versioned file exists, try to load or generate schemas
     try:
-        print(f"Local schema file not found at {schema_file}. Downloading from GitHub...")
+        print("No local versioned schema found. Checking for updates...")
+        schema_data = asyncio.run(generator.load_or_generate_schemas())
+        
+        if schema_data:
+            print(f"Successfully loaded/generated AzAPI schemas")
+            return schema_data
+    except Exception as e:
+        print(f"Warning: Failed to load/generate AzAPI schemas: {e}")
+    
+    # Fallback: try to download from GitHub
+    try:
+        print("Falling back to downloading schema from GitHub...")
         schema_data = asyncio.run(_download_azapi_schema())
         
         # Save the downloaded schema to local file for future use
         if schema_data:
-            _save_schema_to_file(schema_file, schema_data)
-            print(f"Successfully downloaded and saved schema to {schema_file}")
+            # Save with a fallback version name
+            fallback_file = get_data_dir() / "azapi_schemas_fallback.json"
+            _save_schema_to_file(fallback_file, schema_data)
+            print(f"Successfully downloaded and saved schema to {fallback_file}")
             return schema_data
     except Exception as e:
         print(f"Warning: Failed to download schema from GitHub: {e}")

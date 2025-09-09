@@ -1,14 +1,15 @@
-# Conftest Azure Verified Modules (AVM) Policy Validation
+# Conftest Azure Policy Validation
 
-This document describes the new Conftest AVM policy validation tools added to the Azure Terraform MCP Server.
+This document describes the Conftest Azure policy validation tools in the Azure Terraform MCP Server.
 
 ## Overview
 
-The Conftest AVM policy validation tools provide integration with the [Azure Policy Library for Azure Verified Modules](https://github.com/Azure/policy-library-avm), allowing you to validate your Terraform configurations against Azure best practices and security policies using Conftest.
+The Conftest Azure policy validation tools provide integration with Azure security policies and best practices, allowing you to validate your Terraform configurations against comprehensive policy sets using Conftest. This includes validation for azurerm, azapi, and AVM (Azure Verified Modules) providers.
 
 ## Features
 
-- **Azure Verified Modules Policy Validation**: Validate Terraform configurations against AVM policies
+- **Comprehensive Azure Policy Validation**: Validate Terraform configurations against Azure security policies and best practices
+- **Multiple Provider Support**: Works with azurerm, azapi, and AVM (Azure Verified Modules) providers
 - **Multiple Policy Sets**: Support for different policy sets including:
   - `all`: All available policies
   - `Azure-Proactive-Resiliency-Library-v2`: Resiliency-focused policies
@@ -31,9 +32,11 @@ The Conftest AVM policy validation tools provide integration with the [Azure Pol
 
 ## Available Tools
 
-### 1. `run_conftest_avm_validation`
+### 1. `run_conftest_validation`
 
-Validate Terraform HCL content against Azure Verified Modules policies.
+Validate Terraform HCL content against Azure security policies and best practices using Conftest.
+
+This tool supports comprehensive validation of Azure resources using azurerm, azapi, and AVM (Azure Verified Modules) providers with security checks, compliance rules, and operational best practices.
 
 **Parameters:**
 - `hcl_content` (required): Terraform HCL content to validate
@@ -47,9 +50,11 @@ Validate Terraform HCL content against Azure Verified Modules policies.
 - Summary with violation counts
 - Detailed violation information
 
-### 2. `run_conftest_avm_plan_validation`
+### 2. `run_conftest_plan_validation`
 
-Validate pre-generated Terraform plan JSON against Azure Verified Modules policies.
+Validate pre-generated Terraform plan JSON against Azure security policies and best practices using Conftest.
+
+This tool supports comprehensive validation of Azure resources using azurerm, azapi, and AVM (Azure Verified Modules) providers with security checks, compliance rules, and operational best practices.
 
 **Parameters:**
 - `terraform_plan_json` (required): Terraform plan in JSON format
@@ -58,7 +63,7 @@ Validate pre-generated Terraform plan JSON against Azure Verified Modules polici
 - `custom_policies` (optional): Comma-separated list of custom policy paths
 
 **Returns:**
-- Same as `run_conftest_avm_validation`
+- Same as `run_conftest_validation`
 
 ## Policy Sets
 
@@ -236,8 +241,8 @@ If Terraform operations fail:
 
 These tools are automatically integrated into the Azure Terraform MCP Server and can be accessed via the MCP protocol. The tools are registered as:
 
-- `run_conftest_avm_validation` 
-- `run_conftest_avm_plan_validation`
+- `run_conftest_validation` 
+- `run_conftest_plan_validation`
 
 ## Contributing
 

@@ -132,6 +132,39 @@ go install github.com/open-policy-agent/conftest@latest
    pip install -e .
    ```
 
+### Docker Installation (Recommended for Production)
+
+The easiest way to run the Azure Terraform MCP Server is using Docker:
+
+1. **Using Docker with pre-built image:**
+   ```bash
+   # Run the server directly
+   docker run -d \
+     --name tf-mcp-server \
+     -p 8000:8000 \
+     -v ~/.azure:/home/mcpuser/.azure:ro \
+     ghcr.io/liuwuliuyun/tf-mcp-server:latest
+   ```
+
+2. **Using Docker Compose (Recommended):**
+   ```bash
+   # Download docker-compose.yml
+   curl -O https://raw.githubusercontent.com/liuwuliuyun/tf-mcp-server/main/docker-compose.yml
+   
+   # Start the service
+   docker-compose up -d
+   ```
+
+3. **Build from source:**
+   ```bash
+   git clone <repository-url>
+   cd tf-mcp-server
+   docker build -t tf-mcp-server .
+   docker run -d --name tf-mcp-server -p 8000:8000 tf-mcp-server
+   ```
+
+📖 **For detailed Docker usage, see [DOCKER.md](DOCKER.md)**
+
 ## Configuration
 
 ### Environment Variables
@@ -190,16 +223,12 @@ The server provides the following MCP tools:
 - **`run_terraform_command`**: Execute any Terraform command (init, plan, apply, destroy, validate, fmt) with provided HCL content
 
 #### Security Tools
-- **`run_azure_security_scan`**: Run security scans on Terraform configurations
-- **`run_conftest_avm_validation`**: Validate Terraform HCL against Azure Verified Modules policies using Conftest
-- **`run_conftest_avm_plan_validation`**: Validate Terraform plan JSON against Azure Verified Modules policies using Conftest
+- **`run_conftest_validation`**: Validate Terraform HCL against Azure security policies and best practices using Conftest (supports azurerm, azapi, and AVM providers)
+- **`run_conftest_plan_validation`**: Validate Terraform plan JSON against Azure security policies and best practices using Conftest
 
 #### Static Analysis Tools
 - **`run_tflint_analysis`**: Run TFLint static analysis on Terraform configurations with Azure plugin support
 - **`check_tflint_installation`**: Check TFLint installation status and get version information
-
-#### Best Practices Tools
-- **`get_azure_best_practices`**: Get Azure-specific best practices by resource type and category
 
 #### Analysis Tools
 - **`analyze_azure_resources`**: Analyze Azure resources in Terraform configurations
@@ -271,31 +300,20 @@ The server provides the following MCP tools:
 }
 ```
 
-#### Security Scanning
+#### Azure Policy Validation
 ```python
-# Run security scan on Terraform configuration
+# Validate with all Azure policies
 {
-  "tool": "run_azure_security_scan",
-  "arguments": {
-    "hcl_content": "resource \"azurerm_storage_account\" \"example\" {\n  name = \"mystorageaccount\"\n  resource_group_name = \"myresourcegroup\"\n  location = \"East US\"\n  account_tier = \"Standard\"\n  account_replication_type = \"LRS\"\n  enable_https_traffic_only = false\n}"
-  }
-}
-```
-
-#### Azure Verified Modules Policy Validation
-```python
-# Validate with all AVM policies
-{
-  "tool": "run_conftest_avm_validation",
+  "tool": "run_conftest_validation",
   "arguments": {
     "hcl_content": "resource \"azurerm_storage_account\" \"example\" {\n  name = \"mystorageaccount\"\n  resource_group_name = \"myresourcegroup\"\n  location = \"East US\"\n  account_tier = \"Standard\"\n  account_replication_type = \"LRS\"\n}",
     "policy_set": "all"
   }
 }
 
-# Validate with high severity avmsec policies only
+# Validate with high severity security policies only
 {
-  "tool": "run_conftest_avm_validation",
+  "tool": "run_conftest_validation",
   "arguments": {
     "hcl_content": "resource \"azurerm_storage_account\" \"example\" {\n  name = \"mystorageaccount\"\n  resource_group_name = \"myresourcegroup\"\n  location = \"East US\"\n  account_tier = \"Standard\"\n  account_replication_type = \"LRS\"\n}",
     "policy_set": "avmsec",
@@ -305,40 +323,10 @@ The server provides the following MCP tools:
 
 # Validate plan JSON directly
 {
-  "tool": "run_conftest_avm_plan_validation", 
+  "tool": "run_conftest_plan_validation", 
   "arguments": {
     "terraform_plan_json": "{\"planned_values\": {\"root_module\": {\"resources\": [...]}}}",
     "policy_set": "Azure-Proactive-Resiliency-Library-v2"
-  }
-}
-```
-
-#### Get Best Practices
-```python
-# Get all best practices for storage accounts
-{
-  "tool": "get_azure_best_practices",
-  "arguments": {
-    "resource_type": "storage_account",
-    "category": "all"
-  }
-}
-
-# Get security-specific best practices
-{
-  "tool": "get_azure_best_practices",
-  "arguments": {
-    "resource_type": "storage_account",
-    "category": "security"
-  }
-}
-
-# Get performance best practices
-{
-  "tool": "get_azure_best_practices",
-  "arguments": {
-    "resource_type": "virtual_machine",
-    "category": "performance"
   }
 }
 ```
@@ -408,18 +396,6 @@ The server provides the following MCP tools:
 }
 ```
 
-#### Get Best Practices
-```python
-# Using the MCP tool
-{
-  "tool": "get_azure_best_practices",
-  "arguments": {
-    "resource_type": "storage_account",
-    "category": "security"
-  }
-}
-```
-
 #### TFLint Static Analysis
 ```python
 # Run TFLint analysis with Azure plugin
@@ -472,8 +448,6 @@ tf-mcp-server/
 │       │   ├── avm_docs_provider.py     # Azure Verified Modules documentation provider
 │       │   ├── azapi_docs_provider.py    # AzAPI documentation provider
 │       │   ├── azurerm_docs_provider.py # AzureRM documentation provider
-│       │   ├── best_practices.py   # Best practices provider
-│       │   ├── security_rules.py   # Security validation rules
 │       │   └── terraform_runner.py # Terraform command runner
 │       └── data/                   # Data files
 │           └── azapi_schemas.json  # AzAPI schemas

@@ -56,18 +56,6 @@ class TerraformExecutionResult(BaseModel):
     execution_time_seconds: float = Field(..., description="Execution time in seconds")
 
 
-class SecurityScanResult(BaseModel):
-    """Result structure for security scanning."""
-    
-    scan_type: str = Field(..., description="Type of security scan performed")
-    total_checks: int = Field(..., description="Total number of checks performed")
-    passed_checks: int = Field(..., description="Number of checks that passed")
-    failed_checks: int = Field(..., description="Number of checks that failed")
-    skipped_checks: int = Field(..., description="Number of checks that were skipped")
-    findings: List[Dict[str, Any]] = Field(default_factory=list, description="Detailed findings")
-    summary: str = Field(..., description="Summary of the scan results")
-
-
 class ValidationResult(BaseModel):
     """Result structure for HCL validation."""
     

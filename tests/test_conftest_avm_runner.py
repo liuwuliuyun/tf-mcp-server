@@ -6,7 +6,7 @@ import pytest
 import tempfile
 import os
 from unittest.mock import Mock, patch, AsyncMock
-from src.tf_mcp_server.tools.conftest_avm_runner import ConftestAVMRunner, get_conftest_avm_runner
+from tf_mcp_server.tools.conftest_avm_runner import ConftestAVMRunner, get_conftest_avm_runner
 
 
 class TestConftestAVMRunner:
