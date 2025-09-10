@@ -210,8 +210,3 @@ class TestAzureVerifiedModuleDocumentationProviderIntegration:
                 print(f"Result preview: {result[:200]}...")
         else:
             print(f"No outputs found for module '{test_module_name}' version '{latest_version}'")
-
-
-if __name__ == "__main__":
-    # Run basic tests
-    pytest.main([__file__, "-v"])
