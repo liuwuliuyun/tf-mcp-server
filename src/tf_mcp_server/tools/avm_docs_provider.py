@@ -117,7 +117,8 @@ class AzureVerifiedModuleDocumentationProvider:
                         shutil.move(os.path.join(src, entry), extract_to)
                     shutil.rmtree(src)
         except Exception as e:
-            shutil.rmtree(target_path)
+            if os.path.exists(target_path):
+                shutil.rmtree(target_path)
             raise_unexpected_exception(f"Failed to download module version from {source_url}: {e}")
     
     def _retrieve_version_info(self, module_name: str):
