@@ -89,7 +89,7 @@ class AzureVerifiedModuleDocumentationProvider:
         return f"{github_org}/{module_name}/{module_org}"
     
     @staticmethod
-    def _download_module_version(source_url: str, target_path: str):
+    def _download_module_version(source_url: str, target_path: str) -> None:
         try:
             response = requests.get(source_url, stream=True, headers=AzureVerifiedModuleDocumentationProvider._get_header())
             response.raise_for_status()
