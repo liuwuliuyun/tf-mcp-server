@@ -1,0 +1,4211 @@
+[
+  {
+    "api_version": "2017-04-01",
+    "api_path": "/PROVIDERS/MICROSOFT.AADIAM/DIAGNOSTICSETTINGS/{}",
+    "operation": "DELETE"
+  },
+  {
+    "api_version": "2017-04-01",
+    "api_path": "/PROVIDERS/MICROSOFT.AADIAM/DIAGNOSTICSETTINGS/{}",
+    "operation": "GET",
+    "properties": [
+      {
+        "addr": "properties/eventHubAuthorizationRuleId",
+        "app_property_maps": [
+          {
+            "name": "azurerm_monitor_aad_diagnostic_setting",
+            "addr": "/eventhub_authorization_rule_id"
+          }
+        ]
+      },
+      {
+        "addr": "properties/eventHubName",
+        "app_property_maps": [
+          {
+            "name": "azurerm_monitor_aad_diagnostic_setting",
+            "addr": "/eventhub_name"
+          }
+        ]
+      },
+      {
+        "addr": "properties/logs/category"
+      },
+      {
+        "addr": "properties/logs/enabled"
+      },
+      {
+        "addr": "properties/logs/retentionPolicy/days"
+      },
+      {
+        "addr": "properties/logs/retentionPolicy/enabled"
+      },
+      {
+        "addr": "properties/storageAccountId",
+        "app_property_maps": [
+          {
+            "name": "azurerm_monitor_aad_diagnostic_setting",
+            "addr": "/storage_account_id"
+          }
+        ]
+      },
+      {
+        "addr": "properties/workspaceId",
+        "app_property_maps": [
+          {
+            "name": "azurerm_monitor_aad_diagnostic_setting",
+            "addr": "/log_analytics_workspace_id"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "api_version": "2017-04-01",
+    "api_path": "/PROVIDERS/MICROSOFT.AADIAM/DIAGNOSTICSETTINGS/{}",
+    "operation": "PUT",
+    "properties": [
+      {
+        "addr": "properties/eventHubAuthorizationRuleId",
+        "app_property_maps": [
+          {
+            "name": "azurerm_monitor_aad_diagnostic_setting",
+            "addr": "/eventhub_authorization_rule_id"
+          }
+        ]
+      },
+      {
+        "addr": "properties/eventHubName",
+        "app_property_maps": [
+          {
+            "name": "azurerm_monitor_aad_diagnostic_setting",
+            "addr": "/eventhub_name"
+          }
+        ]
+      },
+      {
+        "addr": "properties/logs/category"
+      },
+      {
+        "addr": "properties/logs/enabled"
+      },
+      {
+        "addr": "properties/logs/retentionPolicy/days"
+      },
+      {
+        "addr": "properties/logs/retentionPolicy/enabled"
+      },
+      {
+        "addr": "properties/storageAccountId",
+        "app_property_maps": [
+          {
+            "name": "azurerm_monitor_aad_diagnostic_setting",
+            "addr": "/storage_account_id"
+          }
+        ]
+      },
+      {
+        "addr": "properties/workspaceId",
+        "app_property_maps": [
+          {
+            "name": "azurerm_monitor_aad_diagnostic_setting",
+            "addr": "/log_analytics_workspace_id"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "api_version": "2024-03-01",
+    "api_path": "/SUBSCRIPTIONS/{}/RESOURCEGROUPS/{}/PROVIDERS/MICROSOFT.COMPUTE/VIRTUALMACHINES/{}",
+    "operation": "DELETE"
+  },
+  {
+    "api_version": "2024-03-01",
+    "api_path": "/SUBSCRIPTIONS/{}/RESOURCEGROUPS/{}/PROVIDERS/MICROSOFT.COMPUTE/VIRTUALMACHINES/{}",
+    "operation": "GET",
+    "properties": [
+      {
+        "addr": "extendedLocation"
+      },
+      {
+        "addr": "id"
+      },
+      {
+        "addr": "identity"
+      },
+      {
+        "addr": "identity/principalId",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/identity/0/principal_id"
+          }
+        ]
+      },
+      {
+        "addr": "identity/tenantId",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/identity/0/tenant_id"
+          }
+        ]
+      },
+      {
+        "addr": "identity/type",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/identity/0/type"
+          }
+        ]
+      },
+      {
+        "addr": "identity/userAssignedIdentities"
+      },
+      {
+        "addr": "location",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/location"
+          },
+          {
+            "name": "azurerm_virtual_machine",
+            "addr": "/location"
+          },
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/location"
+          }
+        ]
+      },
+      {
+        "addr": "name"
+      },
+      {
+        "addr": "plan/name",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/plan/0/name"
+          },
+          {
+            "name": "azurerm_virtual_machine",
+            "addr": "/plan/0/name"
+          },
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/plan/0/name"
+          }
+        ]
+      },
+      {
+        "addr": "plan/product",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/plan/0/product"
+          },
+          {
+            "name": "azurerm_virtual_machine",
+            "addr": "/plan/0/product"
+          },
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/plan/0/product"
+          }
+        ]
+      },
+      {
+        "addr": "plan/publisher",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/plan/0/publisher"
+          },
+          {
+            "name": "azurerm_virtual_machine",
+            "addr": "/plan/0/publisher"
+          },
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/plan/0/publisher"
+          }
+        ]
+      },
+      {
+        "addr": "properties/additionalCapabilities/hibernationEnabled"
+      },
+      {
+        "addr": "properties/additionalCapabilities/ultraSSDEnabled",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/additional_capabilities/0/ultra_ssd_enabled"
+          }
+        ]
+      },
+      {
+        "addr": "properties/applicationProfile"
+      },
+      {
+        "addr": "properties/applicationProfile/galleryApplications/configurationReference"
+      },
+      {
+        "addr": "properties/applicationProfile/galleryApplications/enableAutomaticUpgrade"
+      },
+      {
+        "addr": "properties/applicationProfile/galleryApplications/order"
+      },
+      {
+        "addr": "properties/applicationProfile/galleryApplications/packageReferenceId"
+      },
+      {
+        "addr": "properties/applicationProfile/galleryApplications/tags"
+      },
+      {
+        "addr": "properties/applicationProfile/galleryApplications/treatFailureAsDeploymentFailure"
+      },
+      {
+        "addr": "properties/availabilitySet/id",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/availability_set_id"
+          },
+          {
+            "name": "azurerm_virtual_machine",
+            "addr": "/availability_set_id"
+          },
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/availability_set_id"
+          }
+        ]
+      },
+      {
+        "addr": "properties/billingProfile/maxPrice",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/max_bid_price"
+          },
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/max_bid_price"
+          }
+        ]
+      },
+      {
+        "addr": "properties/capacityReservation/capacityReservationGroup/id",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/capacity_reservation_group_id"
+          },
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/capacity_reservation_group_id"
+          }
+        ]
+      },
+      {
+        "addr": "properties/diagnosticsProfile/bootDiagnostics/enabled"
+      },
+      {
+        "addr": "properties/diagnosticsProfile/bootDiagnostics/storageUri",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/boot_diagnostics/0/storage_account_uri"
+          },
+          {
+            "name": "azurerm_virtual_machine",
+            "addr": "/boot_diagnostics/0/storage_uri"
+          },
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/boot_diagnostics/0/storage_account_uri"
+          }
+        ]
+      },
+      {
+        "addr": "properties/evictionPolicy",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/eviction_policy"
+          },
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/eviction_policy"
+          }
+        ]
+      },
+      {
+        "addr": "properties/extensionsTimeBudget",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/extensions_time_budget"
+          },
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/extensions_time_budget"
+          }
+        ]
+      },
+      {
+        "addr": "properties/hardwareProfile/vmSize",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/size"
+          },
+          {
+            "name": "azurerm_virtual_machine",
+            "addr": "/vm_size"
+          },
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/size"
+          }
+        ]
+      },
+      {
+        "addr": "properties/host/id",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/dedicated_host_id"
+          },
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/dedicated_host_id"
+          }
+        ]
+      },
+      {
+        "addr": "properties/hostGroup/id",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/dedicated_host_group_id"
+          },
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/dedicated_host_group_id"
+          }
+        ]
+      },
+      {
+        "addr": "properties/instanceView/statuses/code"
+      },
+      {
+        "addr": "properties/licenseType",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/license_type"
+          },
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/license_type"
+          }
+        ]
+      },
+      {
+        "addr": "properties/networkProfile/networkInterfaces/id"
+      },
+      {
+        "addr": "properties/networkProfile/networkInterfaces/properties/primary"
+      },
+      {
+        "addr": "properties/osProfile/adminPassword"
+      },
+      {
+        "addr": "properties/osProfile/adminUsername",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/admin_username"
+          },
+          {
+            "name": "azurerm_virtual_machine",
+            "addr": "/os_profile/0/admin_username"
+          },
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/admin_username"
+          }
+        ]
+      },
+      {
+        "addr": "properties/osProfile/allowExtensionOperations",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/allow_extension_operations"
+          }
+        ]
+      },
+      {
+        "addr": "properties/osProfile/computerName",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/computer_name"
+          },
+          {
+            "name": "azurerm_virtual_machine",
+            "addr": "/os_profile/0/computer_name"
+          },
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/computer_name"
+          }
+        ]
+      },
+      {
+        "addr": "properties/osProfile/customData",
+        "app_property_maps": [
+          {
+            "name": "azurerm_virtual_machine",
+            "addr": "/os_profile/0/custom_data"
+          }
+        ]
+      },
+      {
+        "addr": "properties/osProfile/linuxConfiguration/disablePasswordAuthentication",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/disable_password_authentication"
+          }
+        ]
+      },
+      {
+        "addr": "properties/osProfile/linuxConfiguration/enableVMAgentPlatformUpdates"
+      },
+      {
+        "addr": "properties/osProfile/linuxConfiguration/patchSettings/assessmentMode",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/patch_assessment_mode"
+          }
+        ]
+      },
+      {
+        "addr": "properties/osProfile/linuxConfiguration/patchSettings/automaticByPlatformSettings/bypassPlatformSafetyChecksOnUserSchedule",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/bypass_platform_safety_checks_on_user_schedule_enabled"
+          }
+        ]
+      },
+      {
+        "addr": "properties/osProfile/linuxConfiguration/patchSettings/automaticByPlatformSettings/rebootSetting",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/reboot_setting"
+          }
+        ]
+      },
+      {
+        "addr": "properties/osProfile/linuxConfiguration/patchSettings/patchMode",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/patch_mode"
+          }
+        ]
+      },
+      {
+        "addr": "properties/osProfile/linuxConfiguration/provisionVMAgent",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/provision_vm_agent"
+          }
+        ]
+      },
+      {
+        "addr": "properties/osProfile/linuxConfiguration/ssh/publicKeys/keyData"
+      },
+      {
+        "addr": "properties/osProfile/linuxConfiguration/ssh/publicKeys/path"
+      },
+      {
+        "addr": "properties/osProfile/secrets/sourceVault/id"
+      },
+      {
+        "addr": "properties/osProfile/secrets/vaultCertificates/certificateStore"
+      },
+      {
+        "addr": "properties/osProfile/secrets/vaultCertificates/certificateUrl"
+      },
+      {
+        "addr": "properties/osProfile/windowsConfiguration/additionalUnattendContent/componentName"
+      },
+      {
+        "addr": "properties/osProfile/windowsConfiguration/additionalUnattendContent/content"
+      },
+      {
+        "addr": "properties/osProfile/windowsConfiguration/additionalUnattendContent/passName"
+      },
+      {
+        "addr": "properties/osProfile/windowsConfiguration/additionalUnattendContent/settingName"
+      },
+      {
+        "addr": "properties/osProfile/windowsConfiguration/enableAutomaticUpdates"
+      },
+      {
+        "addr": "properties/osProfile/windowsConfiguration/enableVMAgentPlatformUpdates"
+      },
+      {
+        "addr": "properties/osProfile/windowsConfiguration/patchSettings/assessmentMode",
+        "app_property_maps": [
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/patch_assessment_mode"
+          }
+        ]
+      },
+      {
+        "addr": "properties/osProfile/windowsConfiguration/patchSettings/automaticByPlatformSettings/bypassPlatformSafetyChecksOnUserSchedule"
+      },
+      {
+        "addr": "properties/osProfile/windowsConfiguration/patchSettings/automaticByPlatformSettings/rebootSetting",
+        "app_property_maps": [
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/reboot_setting"
+          }
+        ]
+      },
+      {
+        "addr": "properties/osProfile/windowsConfiguration/patchSettings/enableHotpatching"
+      },
+      {
+        "addr": "properties/osProfile/windowsConfiguration/patchSettings/patchMode",
+        "app_property_maps": [
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/patch_mode"
+          }
+        ]
+      },
+      {
+        "addr": "properties/osProfile/windowsConfiguration/provisionVMAgent"
+      },
+      {
+        "addr": "properties/osProfile/windowsConfiguration/timeZone",
+        "app_property_maps": [
+          {
+            "name": "azurerm_virtual_machine",
+            "addr": "/os_profile_windows_config/0/timezone"
+          },
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/timezone"
+          }
+        ]
+      },
+      {
+        "addr": "properties/osProfile/windowsConfiguration/winRM/listeners/certificateUrl"
+      },
+      {
+        "addr": "properties/osProfile/windowsConfiguration/winRM/listeners/protocol"
+      },
+      {
+        "addr": "properties/platformFaultDomain",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/platform_fault_domain"
+          },
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/platform_fault_domain"
+          }
+        ]
+      },
+      {
+        "addr": "properties/priority",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/priority"
+          },
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/priority"
+          }
+        ]
+      },
+      {
+        "addr": "properties/proximityPlacementGroup/id",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/proximity_placement_group_id"
+          },
+          {
+            "name": "azurerm_virtual_machine",
+            "addr": "/proximity_placement_group_id"
+          },
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/proximity_placement_group_id"
+          }
+        ]
+      },
+      {
+        "addr": "properties/scheduledEventsProfile/osImageNotificationProfile/enable"
+      },
+      {
+        "addr": "properties/scheduledEventsProfile/osImageNotificationProfile/notBeforeTimeout",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/os_image_notification/0/timeout"
+          },
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/os_image_notification/0/timeout"
+          }
+        ]
+      },
+      {
+        "addr": "properties/scheduledEventsProfile/terminateNotificationProfile/enable",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/termination_notification/0/enabled"
+          }
+        ]
+      },
+      {
+        "addr": "properties/scheduledEventsProfile/terminateNotificationProfile/notBeforeTimeout",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/termination_notification/0/timeout"
+          },
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/termination_notification/0/timeout"
+          }
+        ]
+      },
+      {
+        "addr": "properties/securityProfile/encryptionAtHost",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/encryption_at_host_enabled"
+          }
+        ]
+      },
+      {
+        "addr": "properties/securityProfile/securityType"
+      },
+      {
+        "addr": "properties/securityProfile/uefiSettings/secureBootEnabled",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/secure_boot_enabled"
+          }
+        ]
+      },
+      {
+        "addr": "properties/securityProfile/uefiSettings/vTpmEnabled",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/vtpm_enabled"
+          }
+        ]
+      },
+      {
+        "addr": "properties/storageProfile/dataDisks"
+      },
+      {
+        "addr": "properties/storageProfile/dataDisks/caching"
+      },
+      {
+        "addr": "properties/storageProfile/dataDisks/createOption"
+      },
+      {
+        "addr": "properties/storageProfile/dataDisks/diskSizeGB"
+      },
+      {
+        "addr": "properties/storageProfile/dataDisks/lun"
+      },
+      {
+        "addr": "properties/storageProfile/dataDisks/managedDisk/id"
+      },
+      {
+        "addr": "properties/storageProfile/dataDisks/managedDisk/storageAccountType"
+      },
+      {
+        "addr": "properties/storageProfile/dataDisks/name"
+      },
+      {
+        "addr": "properties/storageProfile/dataDisks/sourceResource/id"
+      },
+      {
+        "addr": "properties/storageProfile/dataDisks/vhd/uri"
+      },
+      {
+        "addr": "properties/storageProfile/dataDisks/writeAcceleratorEnabled"
+      },
+      {
+        "addr": "properties/storageProfile/diskControllerType",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/disk_controller_type"
+          },
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/disk_controller_type"
+          }
+        ]
+      },
+      {
+        "addr": "properties/storageProfile/imageReference/communityGalleryImageId"
+      },
+      {
+        "addr": "properties/storageProfile/imageReference/id",
+        "app_property_maps": [
+          {
+            "name": "azurerm_virtual_machine",
+            "addr": "/storage_image_reference/0/id"
+          }
+        ]
+      },
+      {
+        "addr": "properties/storageProfile/imageReference/offer",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/source_image_reference/0/offer"
+          },
+          {
+            "name": "azurerm_virtual_machine",
+            "addr": "/storage_image_reference/0/offer"
+          }
+        ]
+      },
+      {
+        "addr": "properties/storageProfile/imageReference/publisher",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/source_image_reference/0/publisher"
+          },
+          {
+            "name": "azurerm_virtual_machine",
+            "addr": "/storage_image_reference/0/publisher"
+          }
+        ]
+      },
+      {
+        "addr": "properties/storageProfile/imageReference/sharedGalleryImageId",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/source_image_id"
+          },
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/source_image_id"
+          }
+        ]
+      },
+      {
+        "addr": "properties/storageProfile/imageReference/sku",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/source_image_reference/0/sku"
+          },
+          {
+            "name": "azurerm_virtual_machine",
+            "addr": "/storage_image_reference/0/sku"
+          }
+        ]
+      },
+      {
+        "addr": "properties/storageProfile/imageReference/version",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/source_image_reference/0/version"
+          },
+          {
+            "name": "azurerm_virtual_machine",
+            "addr": "/storage_image_reference/0/version"
+          }
+        ]
+      },
+      {
+        "addr": "properties/storageProfile/osDisk/caching",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/os_disk/0/caching"
+          },
+          {
+            "name": "azurerm_virtual_machine",
+            "addr": "/storage_os_disk/0/caching"
+          },
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/os_disk/0/caching"
+          }
+        ]
+      },
+      {
+        "addr": "properties/storageProfile/osDisk/createOption",
+        "app_property_maps": [
+          {
+            "name": "azurerm_virtual_machine",
+            "addr": "/storage_os_disk/0/create_option"
+          }
+        ]
+      },
+      {
+        "addr": "properties/storageProfile/osDisk/diffDiskSettings/option",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/os_disk/0/diff_disk_settings/0/option"
+          },
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/os_disk/0/diff_disk_settings/0/option"
+          }
+        ]
+      },
+      {
+        "addr": "properties/storageProfile/osDisk/diffDiskSettings/placement",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/os_disk/0/diff_disk_settings/0/placement"
+          },
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/os_disk/0/diff_disk_settings/0/placement"
+          }
+        ]
+      },
+      {
+        "addr": "properties/storageProfile/osDisk/diskSizeGB",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/os_disk/0/disk_size_gb"
+          },
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/os_disk/0/disk_size_gb"
+          }
+        ]
+      },
+      {
+        "addr": "properties/storageProfile/osDisk/image/uri",
+        "app_property_maps": [
+          {
+            "name": "azurerm_virtual_machine",
+            "addr": "/storage_os_disk/0/image_uri"
+          }
+        ]
+      },
+      {
+        "addr": "properties/storageProfile/osDisk/managedDisk/diskEncryptionSet/id"
+      },
+      {
+        "addr": "properties/storageProfile/osDisk/managedDisk/id",
+        "app_property_maps": [
+          {
+            "name": "azurerm_virtual_machine",
+            "addr": "/storage_os_disk/0/managed_disk_id"
+          }
+        ]
+      },
+      {
+        "addr": "properties/storageProfile/osDisk/managedDisk/securityProfile/diskEncryptionSet/id",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/os_disk/0/secure_vm_disk_encryption_set_id"
+          },
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/os_disk/0/secure_vm_disk_encryption_set_id"
+          }
+        ]
+      },
+      {
+        "addr": "properties/storageProfile/osDisk/managedDisk/securityProfile/securityEncryptionType",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/os_disk/0/security_encryption_type"
+          },
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/os_disk/0/security_encryption_type"
+          }
+        ]
+      },
+      {
+        "addr": "properties/storageProfile/osDisk/managedDisk/storageAccountType",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/os_disk/0/storage_account_type"
+          },
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/os_disk/0/storage_account_type"
+          }
+        ]
+      },
+      {
+        "addr": "properties/storageProfile/osDisk/name",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/os_disk/0/name"
+          },
+          {
+            "name": "azurerm_virtual_machine",
+            "addr": "/storage_os_disk/0/name"
+          },
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/os_disk/0/name"
+          }
+        ]
+      },
+      {
+        "addr": "properties/storageProfile/osDisk/osType",
+        "app_property_maps": [
+          {
+            "name": "azurerm_virtual_machine",
+            "addr": "/storage_os_disk/0/os_type"
+          }
+        ]
+      },
+      {
+        "addr": "properties/storageProfile/osDisk/vhd/uri",
+        "app_property_maps": [
+          {
+            "name": "azurerm_virtual_machine",
+            "addr": "/storage_os_disk/0/vhd_uri"
+          }
+        ]
+      },
+      {
+        "addr": "properties/storageProfile/osDisk/writeAcceleratorEnabled",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/os_disk/0/write_accelerator_enabled"
+          }
+        ]
+      },
+      {
+        "addr": "properties/userData",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/user_data"
+          },
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/user_data"
+          }
+        ]
+      },
+      {
+        "addr": "properties/virtualMachineScaleSet/id",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/virtual_machine_scale_set_id"
+          },
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/virtual_machine_scale_set_id"
+          }
+        ]
+      },
+      {
+        "addr": "properties/vmId",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/virtual_machine_id"
+          },
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/virtual_machine_id"
+          }
+        ]
+      },
+      {
+        "addr": "resources"
+      },
+      {
+        "addr": "tags"
+      },
+      {
+        "addr": "zones"
+      }
+    ]
+  },
+  {
+    "api_version": "2024-03-01",
+    "api_path": "/SUBSCRIPTIONS/{}/RESOURCEGROUPS/{}/PROVIDERS/MICROSOFT.COMPUTE/VIRTUALMACHINES/{}",
+    "operation": "PATCH",
+    "properties": [
+      {
+        "addr": "identity/principalId",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/identity/0/principal_id"
+          }
+        ]
+      },
+      {
+        "addr": "identity/tenantId",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/identity/0/tenant_id"
+          }
+        ]
+      },
+      {
+        "addr": "identity/type",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/identity/0/type"
+          }
+        ]
+      },
+      {
+        "addr": "identity/userAssignedIdentities"
+      },
+      {
+        "addr": "properties/additionalCapabilities/hibernationEnabled"
+      },
+      {
+        "addr": "properties/additionalCapabilities/ultraSSDEnabled",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/additional_capabilities/0/ultra_ssd_enabled"
+          }
+        ]
+      },
+      {
+        "addr": "properties/applicationProfile/galleryApplications/configurationReference"
+      },
+      {
+        "addr": "properties/applicationProfile/galleryApplications/enableAutomaticUpgrade"
+      },
+      {
+        "addr": "properties/applicationProfile/galleryApplications/order"
+      },
+      {
+        "addr": "properties/applicationProfile/galleryApplications/packageReferenceId"
+      },
+      {
+        "addr": "properties/applicationProfile/galleryApplications/tags"
+      },
+      {
+        "addr": "properties/applicationProfile/galleryApplications/treatFailureAsDeploymentFailure"
+      },
+      {
+        "addr": "properties/availabilitySet/id",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/availability_set_id"
+          },
+          {
+            "name": "azurerm_virtual_machine",
+            "addr": "/availability_set_id"
+          },
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/availability_set_id"
+          }
+        ]
+      },
+      {
+        "addr": "properties/billingProfile/maxPrice",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/max_bid_price"
+          },
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/max_bid_price"
+          }
+        ]
+      },
+      {
+        "addr": "properties/capacityReservation/capacityReservationGroup/id",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/capacity_reservation_group_id"
+          },
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/capacity_reservation_group_id"
+          }
+        ]
+      },
+      {
+        "addr": "properties/diagnosticsProfile/bootDiagnostics/enabled"
+      },
+      {
+        "addr": "properties/diagnosticsProfile/bootDiagnostics/storageUri",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/boot_diagnostics/0/storage_account_uri"
+          },
+          {
+            "name": "azurerm_virtual_machine",
+            "addr": "/boot_diagnostics/0/storage_uri"
+          },
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/boot_diagnostics/0/storage_account_uri"
+          }
+        ]
+      },
+      {
+        "addr": "properties/evictionPolicy",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/eviction_policy"
+          },
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/eviction_policy"
+          }
+        ]
+      },
+      {
+        "addr": "properties/extensionsTimeBudget",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/extensions_time_budget"
+          },
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/extensions_time_budget"
+          }
+        ]
+      },
+      {
+        "addr": "properties/hardwareProfile/vmSize",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/size"
+          },
+          {
+            "name": "azurerm_virtual_machine",
+            "addr": "/vm_size"
+          },
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/size"
+          }
+        ]
+      },
+      {
+        "addr": "properties/host/id",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/dedicated_host_id"
+          },
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/dedicated_host_id"
+          }
+        ]
+      },
+      {
+        "addr": "properties/hostGroup/id",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/dedicated_host_group_id"
+          },
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/dedicated_host_group_id"
+          }
+        ]
+      },
+      {
+        "addr": "properties/licenseType",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/license_type"
+          },
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/license_type"
+          }
+        ]
+      },
+      {
+        "addr": "properties/networkProfile/networkInterfaces/id"
+      },
+      {
+        "addr": "properties/networkProfile/networkInterfaces/properties/primary"
+      },
+      {
+        "addr": "properties/osProfile/adminUsername",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/admin_username"
+          },
+          {
+            "name": "azurerm_virtual_machine",
+            "addr": "/os_profile/0/admin_username"
+          },
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/admin_username"
+          }
+        ]
+      },
+      {
+        "addr": "properties/osProfile/allowExtensionOperations",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/allow_extension_operations"
+          }
+        ]
+      },
+      {
+        "addr": "properties/osProfile/computerName",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/computer_name"
+          },
+          {
+            "name": "azurerm_virtual_machine",
+            "addr": "/os_profile/0/computer_name"
+          },
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/computer_name"
+          }
+        ]
+      },
+      {
+        "addr": "properties/osProfile/linuxConfiguration/disablePasswordAuthentication",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/disable_password_authentication"
+          }
+        ]
+      },
+      {
+        "addr": "properties/osProfile/linuxConfiguration/enableVMAgentPlatformUpdates"
+      },
+      {
+        "addr": "properties/osProfile/linuxConfiguration/patchSettings/assessmentMode",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/patch_assessment_mode"
+          }
+        ]
+      },
+      {
+        "addr": "properties/osProfile/linuxConfiguration/patchSettings/automaticByPlatformSettings/bypassPlatformSafetyChecksOnUserSchedule",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/bypass_platform_safety_checks_on_user_schedule_enabled"
+          }
+        ]
+      },
+      {
+        "addr": "properties/osProfile/linuxConfiguration/patchSettings/automaticByPlatformSettings/rebootSetting",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/reboot_setting"
+          }
+        ]
+      },
+      {
+        "addr": "properties/osProfile/linuxConfiguration/patchSettings/patchMode",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/patch_mode"
+          }
+        ]
+      },
+      {
+        "addr": "properties/osProfile/linuxConfiguration/provisionVMAgent",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/provision_vm_agent"
+          }
+        ]
+      },
+      {
+        "addr": "properties/osProfile/linuxConfiguration/ssh/publicKeys/keyData"
+      },
+      {
+        "addr": "properties/osProfile/linuxConfiguration/ssh/publicKeys/path"
+      },
+      {
+        "addr": "properties/osProfile/secrets/sourceVault/id"
+      },
+      {
+        "addr": "properties/osProfile/secrets/vaultCertificates/certificateStore"
+      },
+      {
+        "addr": "properties/osProfile/secrets/vaultCertificates/certificateUrl"
+      },
+      {
+        "addr": "properties/osProfile/windowsConfiguration/additionalUnattendContent/settingName"
+      },
+      {
+        "addr": "properties/osProfile/windowsConfiguration/enableAutomaticUpdates"
+      },
+      {
+        "addr": "properties/osProfile/windowsConfiguration/enableVMAgentPlatformUpdates"
+      },
+      {
+        "addr": "properties/osProfile/windowsConfiguration/patchSettings/assessmentMode",
+        "app_property_maps": [
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/patch_assessment_mode"
+          }
+        ]
+      },
+      {
+        "addr": "properties/osProfile/windowsConfiguration/patchSettings/automaticByPlatformSettings/bypassPlatformSafetyChecksOnUserSchedule"
+      },
+      {
+        "addr": "properties/osProfile/windowsConfiguration/patchSettings/automaticByPlatformSettings/rebootSetting",
+        "app_property_maps": [
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/reboot_setting"
+          }
+        ]
+      },
+      {
+        "addr": "properties/osProfile/windowsConfiguration/patchSettings/enableHotpatching"
+      },
+      {
+        "addr": "properties/osProfile/windowsConfiguration/patchSettings/patchMode",
+        "app_property_maps": [
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/patch_mode"
+          }
+        ]
+      },
+      {
+        "addr": "properties/osProfile/windowsConfiguration/provisionVMAgent"
+      },
+      {
+        "addr": "properties/osProfile/windowsConfiguration/timeZone",
+        "app_property_maps": [
+          {
+            "name": "azurerm_virtual_machine",
+            "addr": "/os_profile_windows_config/0/timezone"
+          },
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/timezone"
+          }
+        ]
+      },
+      {
+        "addr": "properties/osProfile/windowsConfiguration/winRM/listeners/certificateUrl"
+      },
+      {
+        "addr": "properties/osProfile/windowsConfiguration/winRM/listeners/protocol"
+      },
+      {
+        "addr": "properties/platformFaultDomain",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/platform_fault_domain"
+          },
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/platform_fault_domain"
+          }
+        ]
+      },
+      {
+        "addr": "properties/priority",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/priority"
+          },
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/priority"
+          }
+        ]
+      },
+      {
+        "addr": "properties/proximityPlacementGroup/id",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/proximity_placement_group_id"
+          },
+          {
+            "name": "azurerm_virtual_machine",
+            "addr": "/proximity_placement_group_id"
+          },
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/proximity_placement_group_id"
+          }
+        ]
+      },
+      {
+        "addr": "properties/scheduledEventsProfile/osImageNotificationProfile/enable"
+      },
+      {
+        "addr": "properties/scheduledEventsProfile/osImageNotificationProfile/notBeforeTimeout",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/os_image_notification/0/timeout"
+          },
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/os_image_notification/0/timeout"
+          }
+        ]
+      },
+      {
+        "addr": "properties/scheduledEventsProfile/terminateNotificationProfile/enable",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/termination_notification/0/enabled"
+          }
+        ]
+      },
+      {
+        "addr": "properties/scheduledEventsProfile/terminateNotificationProfile/notBeforeTimeout",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/termination_notification/0/timeout"
+          },
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/termination_notification/0/timeout"
+          }
+        ]
+      },
+      {
+        "addr": "properties/securityProfile/encryptionAtHost",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/encryption_at_host_enabled"
+          }
+        ]
+      },
+      {
+        "addr": "properties/securityProfile/uefiSettings/secureBootEnabled",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/secure_boot_enabled"
+          }
+        ]
+      },
+      {
+        "addr": "properties/securityProfile/uefiSettings/vTpmEnabled",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/vtpm_enabled"
+          }
+        ]
+      },
+      {
+        "addr": "properties/storageProfile/diskControllerType",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/disk_controller_type"
+          },
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/disk_controller_type"
+          }
+        ]
+      },
+      {
+        "addr": "properties/storageProfile/imageReference/communityGalleryImageId"
+      },
+      {
+        "addr": "properties/storageProfile/imageReference/id",
+        "app_property_maps": [
+          {
+            "name": "azurerm_virtual_machine",
+            "addr": "/storage_image_reference/0/id"
+          }
+        ]
+      },
+      {
+        "addr": "properties/storageProfile/imageReference/offer",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/source_image_reference/0/offer"
+          },
+          {
+            "name": "azurerm_virtual_machine",
+            "addr": "/storage_image_reference/0/offer"
+          }
+        ]
+      },
+      {
+        "addr": "properties/storageProfile/imageReference/publisher",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/source_image_reference/0/publisher"
+          },
+          {
+            "name": "azurerm_virtual_machine",
+            "addr": "/storage_image_reference/0/publisher"
+          }
+        ]
+      },
+      {
+        "addr": "properties/storageProfile/imageReference/sharedGalleryImageId",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/source_image_id"
+          },
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/source_image_id"
+          }
+        ]
+      },
+      {
+        "addr": "properties/storageProfile/imageReference/sku",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/source_image_reference/0/sku"
+          },
+          {
+            "name": "azurerm_virtual_machine",
+            "addr": "/storage_image_reference/0/sku"
+          }
+        ]
+      },
+      {
+        "addr": "properties/storageProfile/imageReference/version",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/source_image_reference/0/version"
+          },
+          {
+            "name": "azurerm_virtual_machine",
+            "addr": "/storage_image_reference/0/version"
+          }
+        ]
+      },
+      {
+        "addr": "properties/storageProfile/osDisk/caching",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/os_disk/0/caching"
+          },
+          {
+            "name": "azurerm_virtual_machine",
+            "addr": "/storage_os_disk/0/caching"
+          },
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/os_disk/0/caching"
+          }
+        ]
+      },
+      {
+        "addr": "properties/storageProfile/osDisk/createOption",
+        "app_property_maps": [
+          {
+            "name": "azurerm_virtual_machine",
+            "addr": "/storage_os_disk/0/create_option"
+          }
+        ]
+      },
+      {
+        "addr": "properties/storageProfile/osDisk/diffDiskSettings/option",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/os_disk/0/diff_disk_settings/0/option"
+          },
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/os_disk/0/diff_disk_settings/0/option"
+          }
+        ]
+      },
+      {
+        "addr": "properties/storageProfile/osDisk/diffDiskSettings/placement",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/os_disk/0/diff_disk_settings/0/placement"
+          },
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/os_disk/0/diff_disk_settings/0/placement"
+          }
+        ]
+      },
+      {
+        "addr": "properties/storageProfile/osDisk/diskSizeGB",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/os_disk/0/disk_size_gb"
+          },
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/os_disk/0/disk_size_gb"
+          }
+        ]
+      },
+      {
+        "addr": "properties/storageProfile/osDisk/managedDisk/diskEncryptionSet/id"
+      },
+      {
+        "addr": "properties/storageProfile/osDisk/managedDisk/id",
+        "app_property_maps": [
+          {
+            "name": "azurerm_virtual_machine",
+            "addr": "/storage_os_disk/0/managed_disk_id"
+          }
+        ]
+      },
+      {
+        "addr": "properties/storageProfile/osDisk/managedDisk/securityProfile/diskEncryptionSet/id",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/os_disk/0/secure_vm_disk_encryption_set_id"
+          },
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/os_disk/0/secure_vm_disk_encryption_set_id"
+          }
+        ]
+      },
+      {
+        "addr": "properties/storageProfile/osDisk/managedDisk/securityProfile/securityEncryptionType",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/os_disk/0/security_encryption_type"
+          },
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/os_disk/0/security_encryption_type"
+          }
+        ]
+      },
+      {
+        "addr": "properties/storageProfile/osDisk/managedDisk/storageAccountType",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/os_disk/0/storage_account_type"
+          },
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/os_disk/0/storage_account_type"
+          }
+        ]
+      },
+      {
+        "addr": "properties/storageProfile/osDisk/name",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/os_disk/0/name"
+          },
+          {
+            "name": "azurerm_virtual_machine",
+            "addr": "/storage_os_disk/0/name"
+          },
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/os_disk/0/name"
+          }
+        ]
+      },
+      {
+        "addr": "properties/storageProfile/osDisk/osType",
+        "app_property_maps": [
+          {
+            "name": "azurerm_virtual_machine",
+            "addr": "/storage_os_disk/0/os_type"
+          }
+        ]
+      },
+      {
+        "addr": "properties/storageProfile/osDisk/writeAcceleratorEnabled",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/os_disk/0/write_accelerator_enabled"
+          }
+        ]
+      },
+      {
+        "addr": "properties/userData",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/user_data"
+          },
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/user_data"
+          }
+        ]
+      },
+      {
+        "addr": "properties/virtualMachineScaleSet/id",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/virtual_machine_scale_set_id"
+          },
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/virtual_machine_scale_set_id"
+          }
+        ]
+      },
+      {
+        "addr": "properties/vmId",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/virtual_machine_id"
+          },
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/virtual_machine_id"
+          }
+        ]
+      },
+      {
+        "addr": "tags"
+      }
+    ]
+  },
+  {
+    "api_version": "2024-03-01",
+    "api_path": "/SUBSCRIPTIONS/{}/RESOURCEGROUPS/{}/PROVIDERS/MICROSOFT.COMPUTE/VIRTUALMACHINES/{}",
+    "operation": "PUT",
+    "properties": [
+      {
+        "addr": "extendedLocation"
+      },
+      {
+        "addr": "id"
+      },
+      {
+        "addr": "identity"
+      },
+      {
+        "addr": "identity/principalId",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/identity/0/principal_id"
+          }
+        ]
+      },
+      {
+        "addr": "identity/tenantId",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/identity/0/tenant_id"
+          }
+        ]
+      },
+      {
+        "addr": "identity/type",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/identity/0/type"
+          }
+        ]
+      },
+      {
+        "addr": "identity/userAssignedIdentities"
+      },
+      {
+        "addr": "location",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/location"
+          },
+          {
+            "name": "azurerm_virtual_machine",
+            "addr": "/location"
+          },
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/location"
+          }
+        ]
+      },
+      {
+        "addr": "name"
+      },
+      {
+        "addr": "plan/name",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/plan/0/name"
+          },
+          {
+            "name": "azurerm_virtual_machine",
+            "addr": "/plan/0/name"
+          },
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/plan/0/name"
+          }
+        ]
+      },
+      {
+        "addr": "plan/product",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/plan/0/product"
+          },
+          {
+            "name": "azurerm_virtual_machine",
+            "addr": "/plan/0/product"
+          },
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/plan/0/product"
+          }
+        ]
+      },
+      {
+        "addr": "plan/publisher",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/plan/0/publisher"
+          },
+          {
+            "name": "azurerm_virtual_machine",
+            "addr": "/plan/0/publisher"
+          },
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/plan/0/publisher"
+          }
+        ]
+      },
+      {
+        "addr": "properties/additionalCapabilities/hibernationEnabled"
+      },
+      {
+        "addr": "properties/additionalCapabilities/ultraSSDEnabled",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/additional_capabilities/0/ultra_ssd_enabled"
+          }
+        ]
+      },
+      {
+        "addr": "properties/applicationProfile"
+      },
+      {
+        "addr": "properties/applicationProfile/galleryApplications/configurationReference"
+      },
+      {
+        "addr": "properties/applicationProfile/galleryApplications/enableAutomaticUpgrade"
+      },
+      {
+        "addr": "properties/applicationProfile/galleryApplications/order"
+      },
+      {
+        "addr": "properties/applicationProfile/galleryApplications/packageReferenceId"
+      },
+      {
+        "addr": "properties/applicationProfile/galleryApplications/tags"
+      },
+      {
+        "addr": "properties/applicationProfile/galleryApplications/treatFailureAsDeploymentFailure"
+      },
+      {
+        "addr": "properties/availabilitySet/id",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/availability_set_id"
+          },
+          {
+            "name": "azurerm_virtual_machine",
+            "addr": "/availability_set_id"
+          },
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/availability_set_id"
+          }
+        ]
+      },
+      {
+        "addr": "properties/billingProfile/maxPrice",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/max_bid_price"
+          },
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/max_bid_price"
+          }
+        ]
+      },
+      {
+        "addr": "properties/capacityReservation/capacityReservationGroup/id",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/capacity_reservation_group_id"
+          },
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/capacity_reservation_group_id"
+          }
+        ]
+      },
+      {
+        "addr": "properties/diagnosticsProfile/bootDiagnostics/enabled"
+      },
+      {
+        "addr": "properties/diagnosticsProfile/bootDiagnostics/storageUri",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/boot_diagnostics/0/storage_account_uri"
+          },
+          {
+            "name": "azurerm_virtual_machine",
+            "addr": "/boot_diagnostics/0/storage_uri"
+          },
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/boot_diagnostics/0/storage_account_uri"
+          }
+        ]
+      },
+      {
+        "addr": "properties/evictionPolicy",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/eviction_policy"
+          },
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/eviction_policy"
+          }
+        ]
+      },
+      {
+        "addr": "properties/extensionsTimeBudget",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/extensions_time_budget"
+          },
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/extensions_time_budget"
+          }
+        ]
+      },
+      {
+        "addr": "properties/hardwareProfile/vmSize",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/size"
+          },
+          {
+            "name": "azurerm_virtual_machine",
+            "addr": "/vm_size"
+          },
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/size"
+          }
+        ]
+      },
+      {
+        "addr": "properties/host/id",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/dedicated_host_id"
+          },
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/dedicated_host_id"
+          }
+        ]
+      },
+      {
+        "addr": "properties/hostGroup/id",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/dedicated_host_group_id"
+          },
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/dedicated_host_group_id"
+          }
+        ]
+      },
+      {
+        "addr": "properties/instanceView/statuses/code"
+      },
+      {
+        "addr": "properties/licenseType",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/license_type"
+          },
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/license_type"
+          }
+        ]
+      },
+      {
+        "addr": "properties/networkProfile/networkInterfaces/id"
+      },
+      {
+        "addr": "properties/networkProfile/networkInterfaces/properties/primary"
+      },
+      {
+        "addr": "properties/osProfile/adminPassword"
+      },
+      {
+        "addr": "properties/osProfile/adminUsername",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/admin_username"
+          },
+          {
+            "name": "azurerm_virtual_machine",
+            "addr": "/os_profile/0/admin_username"
+          },
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/admin_username"
+          }
+        ]
+      },
+      {
+        "addr": "properties/osProfile/allowExtensionOperations",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/allow_extension_operations"
+          }
+        ]
+      },
+      {
+        "addr": "properties/osProfile/computerName",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/computer_name"
+          },
+          {
+            "name": "azurerm_virtual_machine",
+            "addr": "/os_profile/0/computer_name"
+          },
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/computer_name"
+          }
+        ]
+      },
+      {
+        "addr": "properties/osProfile/customData",
+        "app_property_maps": [
+          {
+            "name": "azurerm_virtual_machine",
+            "addr": "/os_profile/0/custom_data"
+          }
+        ]
+      },
+      {
+        "addr": "properties/osProfile/linuxConfiguration/disablePasswordAuthentication",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/disable_password_authentication"
+          }
+        ]
+      },
+      {
+        "addr": "properties/osProfile/linuxConfiguration/enableVMAgentPlatformUpdates"
+      },
+      {
+        "addr": "properties/osProfile/linuxConfiguration/patchSettings/assessmentMode",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/patch_assessment_mode"
+          }
+        ]
+      },
+      {
+        "addr": "properties/osProfile/linuxConfiguration/patchSettings/automaticByPlatformSettings/bypassPlatformSafetyChecksOnUserSchedule",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/bypass_platform_safety_checks_on_user_schedule_enabled"
+          }
+        ]
+      },
+      {
+        "addr": "properties/osProfile/linuxConfiguration/patchSettings/automaticByPlatformSettings/rebootSetting",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/reboot_setting"
+          }
+        ]
+      },
+      {
+        "addr": "properties/osProfile/linuxConfiguration/patchSettings/patchMode",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/patch_mode"
+          }
+        ]
+      },
+      {
+        "addr": "properties/osProfile/linuxConfiguration/provisionVMAgent",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/provision_vm_agent"
+          }
+        ]
+      },
+      {
+        "addr": "properties/osProfile/linuxConfiguration/ssh/publicKeys/keyData"
+      },
+      {
+        "addr": "properties/osProfile/linuxConfiguration/ssh/publicKeys/path"
+      },
+      {
+        "addr": "properties/osProfile/secrets/sourceVault/id"
+      },
+      {
+        "addr": "properties/osProfile/secrets/vaultCertificates/certificateStore"
+      },
+      {
+        "addr": "properties/osProfile/secrets/vaultCertificates/certificateUrl"
+      },
+      {
+        "addr": "properties/osProfile/windowsConfiguration/additionalUnattendContent/componentName"
+      },
+      {
+        "addr": "properties/osProfile/windowsConfiguration/additionalUnattendContent/content"
+      },
+      {
+        "addr": "properties/osProfile/windowsConfiguration/additionalUnattendContent/passName"
+      },
+      {
+        "addr": "properties/osProfile/windowsConfiguration/additionalUnattendContent/settingName"
+      },
+      {
+        "addr": "properties/osProfile/windowsConfiguration/enableAutomaticUpdates"
+      },
+      {
+        "addr": "properties/osProfile/windowsConfiguration/enableVMAgentPlatformUpdates"
+      },
+      {
+        "addr": "properties/osProfile/windowsConfiguration/patchSettings/assessmentMode",
+        "app_property_maps": [
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/patch_assessment_mode"
+          }
+        ]
+      },
+      {
+        "addr": "properties/osProfile/windowsConfiguration/patchSettings/automaticByPlatformSettings/bypassPlatformSafetyChecksOnUserSchedule"
+      },
+      {
+        "addr": "properties/osProfile/windowsConfiguration/patchSettings/automaticByPlatformSettings/rebootSetting",
+        "app_property_maps": [
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/reboot_setting"
+          }
+        ]
+      },
+      {
+        "addr": "properties/osProfile/windowsConfiguration/patchSettings/enableHotpatching"
+      },
+      {
+        "addr": "properties/osProfile/windowsConfiguration/patchSettings/patchMode",
+        "app_property_maps": [
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/patch_mode"
+          }
+        ]
+      },
+      {
+        "addr": "properties/osProfile/windowsConfiguration/provisionVMAgent"
+      },
+      {
+        "addr": "properties/osProfile/windowsConfiguration/timeZone",
+        "app_property_maps": [
+          {
+            "name": "azurerm_virtual_machine",
+            "addr": "/os_profile_windows_config/0/timezone"
+          },
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/timezone"
+          }
+        ]
+      },
+      {
+        "addr": "properties/osProfile/windowsConfiguration/winRM/listeners/certificateUrl"
+      },
+      {
+        "addr": "properties/osProfile/windowsConfiguration/winRM/listeners/protocol"
+      },
+      {
+        "addr": "properties/platformFaultDomain",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/platform_fault_domain"
+          },
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/platform_fault_domain"
+          }
+        ]
+      },
+      {
+        "addr": "properties/priority",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/priority"
+          },
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/priority"
+          }
+        ]
+      },
+      {
+        "addr": "properties/proximityPlacementGroup/id",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/proximity_placement_group_id"
+          },
+          {
+            "name": "azurerm_virtual_machine",
+            "addr": "/proximity_placement_group_id"
+          },
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/proximity_placement_group_id"
+          }
+        ]
+      },
+      {
+        "addr": "properties/scheduledEventsProfile/osImageNotificationProfile/enable"
+      },
+      {
+        "addr": "properties/scheduledEventsProfile/osImageNotificationProfile/notBeforeTimeout",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/os_image_notification/0/timeout"
+          },
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/os_image_notification/0/timeout"
+          }
+        ]
+      },
+      {
+        "addr": "properties/scheduledEventsProfile/terminateNotificationProfile/enable",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/termination_notification/0/enabled"
+          }
+        ]
+      },
+      {
+        "addr": "properties/scheduledEventsProfile/terminateNotificationProfile/notBeforeTimeout",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/termination_notification/0/timeout"
+          },
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/termination_notification/0/timeout"
+          }
+        ]
+      },
+      {
+        "addr": "properties/securityProfile/encryptionAtHost",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/encryption_at_host_enabled"
+          }
+        ]
+      },
+      {
+        "addr": "properties/securityProfile/securityType"
+      },
+      {
+        "addr": "properties/securityProfile/uefiSettings/secureBootEnabled",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/secure_boot_enabled"
+          }
+        ]
+      },
+      {
+        "addr": "properties/securityProfile/uefiSettings/vTpmEnabled",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/vtpm_enabled"
+          }
+        ]
+      },
+      {
+        "addr": "properties/storageProfile/dataDisks"
+      },
+      {
+        "addr": "properties/storageProfile/dataDisks/caching"
+      },
+      {
+        "addr": "properties/storageProfile/dataDisks/createOption"
+      },
+      {
+        "addr": "properties/storageProfile/dataDisks/diskSizeGB"
+      },
+      {
+        "addr": "properties/storageProfile/dataDisks/lun"
+      },
+      {
+        "addr": "properties/storageProfile/dataDisks/managedDisk/id"
+      },
+      {
+        "addr": "properties/storageProfile/dataDisks/managedDisk/storageAccountType"
+      },
+      {
+        "addr": "properties/storageProfile/dataDisks/name"
+      },
+      {
+        "addr": "properties/storageProfile/dataDisks/sourceResource/id"
+      },
+      {
+        "addr": "properties/storageProfile/dataDisks/vhd/uri"
+      },
+      {
+        "addr": "properties/storageProfile/dataDisks/writeAcceleratorEnabled"
+      },
+      {
+        "addr": "properties/storageProfile/diskControllerType",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/disk_controller_type"
+          },
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/disk_controller_type"
+          }
+        ]
+      },
+      {
+        "addr": "properties/storageProfile/imageReference/communityGalleryImageId"
+      },
+      {
+        "addr": "properties/storageProfile/imageReference/id",
+        "app_property_maps": [
+          {
+            "name": "azurerm_virtual_machine",
+            "addr": "/storage_image_reference/0/id"
+          }
+        ]
+      },
+      {
+        "addr": "properties/storageProfile/imageReference/offer",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/source_image_reference/0/offer"
+          },
+          {
+            "name": "azurerm_virtual_machine",
+            "addr": "/storage_image_reference/0/offer"
+          }
+        ]
+      },
+      {
+        "addr": "properties/storageProfile/imageReference/publisher",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/source_image_reference/0/publisher"
+          },
+          {
+            "name": "azurerm_virtual_machine",
+            "addr": "/storage_image_reference/0/publisher"
+          }
+        ]
+      },
+      {
+        "addr": "properties/storageProfile/imageReference/sharedGalleryImageId",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/source_image_id"
+          },
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/source_image_id"
+          }
+        ]
+      },
+      {
+        "addr": "properties/storageProfile/imageReference/sku",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/source_image_reference/0/sku"
+          },
+          {
+            "name": "azurerm_virtual_machine",
+            "addr": "/storage_image_reference/0/sku"
+          }
+        ]
+      },
+      {
+        "addr": "properties/storageProfile/imageReference/version",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/source_image_reference/0/version"
+          },
+          {
+            "name": "azurerm_virtual_machine",
+            "addr": "/storage_image_reference/0/version"
+          }
+        ]
+      },
+      {
+        "addr": "properties/storageProfile/osDisk/caching",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/os_disk/0/caching"
+          },
+          {
+            "name": "azurerm_virtual_machine",
+            "addr": "/storage_os_disk/0/caching"
+          },
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/os_disk/0/caching"
+          }
+        ]
+      },
+      {
+        "addr": "properties/storageProfile/osDisk/createOption",
+        "app_property_maps": [
+          {
+            "name": "azurerm_virtual_machine",
+            "addr": "/storage_os_disk/0/create_option"
+          }
+        ]
+      },
+      {
+        "addr": "properties/storageProfile/osDisk/diffDiskSettings/option",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/os_disk/0/diff_disk_settings/0/option"
+          },
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/os_disk/0/diff_disk_settings/0/option"
+          }
+        ]
+      },
+      {
+        "addr": "properties/storageProfile/osDisk/diffDiskSettings/placement",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/os_disk/0/diff_disk_settings/0/placement"
+          },
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/os_disk/0/diff_disk_settings/0/placement"
+          }
+        ]
+      },
+      {
+        "addr": "properties/storageProfile/osDisk/diskSizeGB",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/os_disk/0/disk_size_gb"
+          },
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/os_disk/0/disk_size_gb"
+          }
+        ]
+      },
+      {
+        "addr": "properties/storageProfile/osDisk/image/uri",
+        "app_property_maps": [
+          {
+            "name": "azurerm_virtual_machine",
+            "addr": "/storage_os_disk/0/image_uri"
+          }
+        ]
+      },
+      {
+        "addr": "properties/storageProfile/osDisk/managedDisk/diskEncryptionSet/id"
+      },
+      {
+        "addr": "properties/storageProfile/osDisk/managedDisk/id",
+        "app_property_maps": [
+          {
+            "name": "azurerm_virtual_machine",
+            "addr": "/storage_os_disk/0/managed_disk_id"
+          }
+        ]
+      },
+      {
+        "addr": "properties/storageProfile/osDisk/managedDisk/securityProfile/diskEncryptionSet/id",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/os_disk/0/secure_vm_disk_encryption_set_id"
+          },
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/os_disk/0/secure_vm_disk_encryption_set_id"
+          }
+        ]
+      },
+      {
+        "addr": "properties/storageProfile/osDisk/managedDisk/securityProfile/securityEncryptionType",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/os_disk/0/security_encryption_type"
+          },
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/os_disk/0/security_encryption_type"
+          }
+        ]
+      },
+      {
+        "addr": "properties/storageProfile/osDisk/managedDisk/storageAccountType",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/os_disk/0/storage_account_type"
+          },
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/os_disk/0/storage_account_type"
+          }
+        ]
+      },
+      {
+        "addr": "properties/storageProfile/osDisk/name",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/os_disk/0/name"
+          },
+          {
+            "name": "azurerm_virtual_machine",
+            "addr": "/storage_os_disk/0/name"
+          },
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/os_disk/0/name"
+          }
+        ]
+      },
+      {
+        "addr": "properties/storageProfile/osDisk/osType",
+        "app_property_maps": [
+          {
+            "name": "azurerm_virtual_machine",
+            "addr": "/storage_os_disk/0/os_type"
+          }
+        ]
+      },
+      {
+        "addr": "properties/storageProfile/osDisk/vhd/uri",
+        "app_property_maps": [
+          {
+            "name": "azurerm_virtual_machine",
+            "addr": "/storage_os_disk/0/vhd_uri"
+          }
+        ]
+      },
+      {
+        "addr": "properties/storageProfile/osDisk/writeAcceleratorEnabled",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/os_disk/0/write_accelerator_enabled"
+          }
+        ]
+      },
+      {
+        "addr": "properties/userData",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/user_data"
+          },
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/user_data"
+          }
+        ]
+      },
+      {
+        "addr": "properties/virtualMachineScaleSet/id",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/virtual_machine_scale_set_id"
+          },
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/virtual_machine_scale_set_id"
+          }
+        ]
+      },
+      {
+        "addr": "properties/vmId",
+        "app_property_maps": [
+          {
+            "name": "azurerm_linux_virtual_machine",
+            "addr": "/virtual_machine_id"
+          },
+          {
+            "name": "azurerm_windows_virtual_machine",
+            "addr": "/virtual_machine_id"
+          }
+        ]
+      },
+      {
+        "addr": "resources"
+      },
+      {
+        "addr": "tags"
+      },
+      {
+        "addr": "zones"
+      }
+    ]
+  },
+  {
+    "api_version": "2024-05-01",
+    "api_path": "/SUBSCRIPTIONS/{}/RESOURCEGROUPS/{}/PROVIDERS/MICROSOFT.NETWORK/VIRTUALNETWORKS/{}/SUBNETS/{}",
+    "operation": "DELETE"
+  },
+  {
+    "api_version": "2024-05-01",
+    "api_path": "/SUBSCRIPTIONS/{}/RESOURCEGROUPS/{}/PROVIDERS/MICROSOFT.NETWORK/VIRTUALNETWORKS/{}/SUBNETS/{}",
+    "operation": "GET",
+    "properties": [
+      {
+        "addr": "id",
+        "app_property_maps": [
+          {
+            "name": "azurerm_subnet_network_security_group_association",
+            "addr": "/subnet_id"
+          },
+          {
+            "name": "azurerm_subnet_route_table_association",
+            "addr": "/subnet_id"
+          }
+        ]
+      },
+      {
+        "addr": "name"
+      },
+      {
+        "addr": "properties/addressPrefix"
+      },
+      {
+        "addr": "properties/addressPrefixes"
+      },
+      {
+        "addr": "properties/defaultOutboundAccess"
+      },
+      {
+        "addr": "properties/delegations/name"
+      },
+      {
+        "addr": "properties/delegations/properties/actions"
+      },
+      {
+        "addr": "properties/delegations/properties/serviceName"
+      },
+      {
+        "addr": "properties/ipamPoolPrefixAllocations/allocatedAddressPrefixes"
+      },
+      {
+        "addr": "properties/ipamPoolPrefixAllocations/numberOfIpAddresses"
+      },
+      {
+        "addr": "properties/ipamPoolPrefixAllocations/pool/id"
+      },
+      {
+        "addr": "properties/natGateway/id",
+        "app_property_maps": [
+          {
+            "name": "azurerm_subnet_nat_gateway_association",
+            "addr": "/nat_gateway_id"
+          }
+        ]
+      },
+      {
+        "addr": "properties/networkSecurityGroup/id",
+        "app_property_maps": [
+          {
+            "name": "azurerm_subnet_network_security_group_association",
+            "addr": "/network_security_group_id"
+          }
+        ]
+      },
+      {
+        "addr": "properties/privateEndpointNetworkPolicies",
+        "app_property_maps": [
+          {
+            "name": "azurerm_subnet",
+            "addr": "/private_endpoint_network_policies"
+          }
+        ]
+      },
+      {
+        "addr": "properties/privateLinkServiceNetworkPolicies"
+      },
+      {
+        "addr": "properties/provisioningState"
+      },
+      {
+        "addr": "properties/routeTable/id",
+        "app_property_maps": [
+          {
+            "name": "azurerm_subnet_route_table_association",
+            "addr": "/route_table_id"
+          }
+        ]
+      },
+      {
+        "addr": "properties/serviceEndpointPolicies/id"
+      },
+      {
+        "addr": "properties/serviceEndpoints/service"
+      }
+    ]
+  },
+  {
+    "api_version": "2024-05-01",
+    "api_path": "/SUBSCRIPTIONS/{}/RESOURCEGROUPS/{}/PROVIDERS/MICROSOFT.NETWORK/VIRTUALNETWORKS/{}/SUBNETS/{}",
+    "operation": "PUT",
+    "properties": [
+      {
+        "addr": "id",
+        "app_property_maps": [
+          {
+            "name": "azurerm_subnet_network_security_group_association",
+            "addr": "/subnet_id"
+          },
+          {
+            "name": "azurerm_subnet_route_table_association",
+            "addr": "/subnet_id"
+          }
+        ]
+      },
+      {
+        "addr": "name"
+      },
+      {
+        "addr": "properties/addressPrefix"
+      },
+      {
+        "addr": "properties/addressPrefixes"
+      },
+      {
+        "addr": "properties/defaultOutboundAccess"
+      },
+      {
+        "addr": "properties/delegations/name"
+      },
+      {
+        "addr": "properties/delegations/properties/actions"
+      },
+      {
+        "addr": "properties/delegations/properties/serviceName"
+      },
+      {
+        "addr": "properties/ipamPoolPrefixAllocations/allocatedAddressPrefixes"
+      },
+      {
+        "addr": "properties/ipamPoolPrefixAllocations/numberOfIpAddresses"
+      },
+      {
+        "addr": "properties/ipamPoolPrefixAllocations/pool/id"
+      },
+      {
+        "addr": "properties/natGateway/id",
+        "app_property_maps": [
+          {
+            "name": "azurerm_subnet_nat_gateway_association",
+            "addr": "/nat_gateway_id"
+          }
+        ]
+      },
+      {
+        "addr": "properties/networkSecurityGroup/id",
+        "app_property_maps": [
+          {
+            "name": "azurerm_subnet_network_security_group_association",
+            "addr": "/network_security_group_id"
+          }
+        ]
+      },
+      {
+        "addr": "properties/privateEndpointNetworkPolicies",
+        "app_property_maps": [
+          {
+            "name": "azurerm_subnet",
+            "addr": "/private_endpoint_network_policies"
+          }
+        ]
+      },
+      {
+        "addr": "properties/privateLinkServiceNetworkPolicies"
+      },
+      {
+        "addr": "properties/provisioningState"
+      },
+      {
+        "addr": "properties/routeTable/id",
+        "app_property_maps": [
+          {
+            "name": "azurerm_subnet_route_table_association",
+            "addr": "/route_table_id"
+          }
+        ]
+      },
+      {
+        "addr": "properties/serviceEndpointPolicies/id"
+      },
+      {
+        "addr": "properties/serviceEndpoints/service"
+      }
+    ]
+  },
+  {
+    "api_version": "2023-05-01",
+    "api_path": "/SUBSCRIPTIONS/{}/RESOURCEGROUPS/{}/PROVIDERS/MICROSOFT.STORAGE/STORAGEACCOUNTS/{}",
+    "operation": "DELETE"
+  },
+  {
+    "api_version": "2023-05-01",
+    "api_path": "/SUBSCRIPTIONS/{}/RESOURCEGROUPS/{}/PROVIDERS/MICROSOFT.STORAGE/STORAGEACCOUNTS/{}",
+    "operation": "GET",
+    "properties": [
+      {
+        "addr": "extendedLocation"
+      },
+      {
+        "addr": "identity/principalId"
+      },
+      {
+        "addr": "identity/tenantId"
+      },
+      {
+        "addr": "identity/type"
+      },
+      {
+        "addr": "identity/userAssignedIdentities"
+      },
+      {
+        "addr": "kind",
+        "app_property_maps": [
+          {
+            "name": "azurerm_storage_account",
+            "addr": "/account_kind"
+          }
+        ]
+      },
+      {
+        "addr": "location",
+        "app_property_maps": [
+          {
+            "name": "azurerm_storage_account",
+            "addr": "/location"
+          }
+        ]
+      },
+      {
+        "addr": "properties/accessTier",
+        "app_property_maps": [
+          {
+            "name": "azurerm_storage_account",
+            "addr": "/access_tier"
+          }
+        ]
+      },
+      {
+        "addr": "properties/allowBlobPublicAccess"
+      },
+      {
+        "addr": "properties/allowCrossTenantReplication"
+      },
+      {
+        "addr": "properties/allowSharedKeyAccess"
+      },
+      {
+        "addr": "properties/allowedCopyScope",
+        "app_property_maps": [
+          {
+            "name": "azurerm_storage_account",
+            "addr": "/allowed_copy_scope"
+          }
+        ]
+      },
+      {
+        "addr": "properties/azureFilesIdentityBasedAuthentication/activeDirectoryProperties/azureStorageSid",
+        "app_property_maps": [
+          {
+            "name": "azurerm_storage_account",
+            "addr": "/azure_files_authentication/0/active_directory/0/storage_sid"
+          }
+        ]
+      },
+      {
+        "addr": "properties/azureFilesIdentityBasedAuthentication/activeDirectoryProperties/domainGuid",
+        "app_property_maps": [
+          {
+            "name": "azurerm_storage_account",
+            "addr": "/azure_files_authentication/0/active_directory/0/domain_guid"
+          }
+        ]
+      },
+      {
+        "addr": "properties/azureFilesIdentityBasedAuthentication/activeDirectoryProperties/domainName",
+        "app_property_maps": [
+          {
+            "name": "azurerm_storage_account",
+            "addr": "/azure_files_authentication/0/active_directory/0/domain_name"
+          }
+        ]
+      },
+      {
+        "addr": "properties/azureFilesIdentityBasedAuthentication/activeDirectoryProperties/domainSid",
+        "app_property_maps": [
+          {
+            "name": "azurerm_storage_account",
+            "addr": "/azure_files_authentication/0/active_directory/0/domain_sid"
+          }
+        ]
+      },
+      {
+        "addr": "properties/azureFilesIdentityBasedAuthentication/activeDirectoryProperties/forestName",
+        "app_property_maps": [
+          {
+            "name": "azurerm_storage_account",
+            "addr": "/azure_files_authentication/0/active_directory/0/forest_name"
+          }
+        ]
+      },
+      {
+        "addr": "properties/azureFilesIdentityBasedAuthentication/activeDirectoryProperties/netBiosDomainName",
+        "app_property_maps": [
+          {
+            "name": "azurerm_storage_account",
+            "addr": "/azure_files_authentication/0/active_directory/0/netbios_domain_name"
+          }
+        ]
+      },
+      {
+        "addr": "properties/azureFilesIdentityBasedAuthentication/defaultSharePermission",
+        "app_property_maps": [
+          {
+            "name": "azurerm_storage_account",
+            "addr": "/azure_files_authentication/0/default_share_level_permission"
+          }
+        ]
+      },
+      {
+        "addr": "properties/azureFilesIdentityBasedAuthentication/directoryServiceOptions",
+        "app_property_maps": [
+          {
+            "name": "azurerm_storage_account",
+            "addr": "/azure_files_authentication/0/directory_type"
+          }
+        ]
+      },
+      {
+        "addr": "properties/customDomain/name",
+        "app_property_maps": [
+          {
+            "name": "azurerm_storage_account",
+            "addr": "/custom_domain/0/name"
+          }
+        ]
+      },
+      {
+        "addr": "properties/customDomain/useSubDomainName"
+      },
+      {
+        "addr": "properties/defaultToOAuthAuthentication"
+      },
+      {
+        "addr": "properties/dnsEndpointType",
+        "app_property_maps": [
+          {
+            "name": "azurerm_storage_account",
+            "addr": "/dns_endpoint_type"
+          }
+        ]
+      },
+      {
+        "addr": "properties/encryption/identity/federatedIdentityClientId"
+      },
+      {
+        "addr": "properties/encryption/identity/userAssignedIdentity"
+      },
+      {
+        "addr": "properties/encryption/keySource"
+      },
+      {
+        "addr": "properties/encryption/keyvaultproperties/keyname"
+      },
+      {
+        "addr": "properties/encryption/keyvaultproperties/keyvaulturi"
+      },
+      {
+        "addr": "properties/encryption/keyvaultproperties/keyversion"
+      },
+      {
+        "addr": "properties/encryption/requireInfrastructureEncryption"
+      },
+      {
+        "addr": "properties/encryption/services/blob/enabled"
+      },
+      {
+        "addr": "properties/encryption/services/blob/keyType"
+      },
+      {
+        "addr": "properties/encryption/services/file/enabled"
+      },
+      {
+        "addr": "properties/encryption/services/file/keyType"
+      },
+      {
+        "addr": "properties/encryption/services/queue/enabled"
+      },
+      {
+        "addr": "properties/encryption/services/queue/keyType",
+        "app_property_maps": [
+          {
+            "name": "azurerm_storage_account",
+            "addr": "/queue_encryption_key_type"
+          }
+        ]
+      },
+      {
+        "addr": "properties/encryption/services/table/enabled"
+      },
+      {
+        "addr": "properties/encryption/services/table/keyType",
+        "app_property_maps": [
+          {
+            "name": "azurerm_storage_account",
+            "addr": "/table_encryption_key_type"
+          }
+        ]
+      },
+      {
+        "addr": "properties/immutableStorageWithVersioning/enabled"
+      },
+      {
+        "addr": "properties/immutableStorageWithVersioning/immutabilityPolicy/allowProtectedAppendWrites"
+      },
+      {
+        "addr": "properties/immutableStorageWithVersioning/immutabilityPolicy/immutabilityPeriodSinceCreationInDays",
+        "app_property_maps": [
+          {
+            "name": "azurerm_storage_account",
+            "addr": "/immutability_policy/0/period_since_creation_in_days"
+          }
+        ]
+      },
+      {
+        "addr": "properties/immutableStorageWithVersioning/immutabilityPolicy/state",
+        "app_property_maps": [
+          {
+            "name": "azurerm_storage_account",
+            "addr": "/immutability_policy/0/state"
+          }
+        ]
+      },
+      {
+        "addr": "properties/isHnsEnabled"
+      },
+      {
+        "addr": "properties/isLocalUserEnabled"
+      },
+      {
+        "addr": "properties/isNfsV3Enabled"
+      },
+      {
+        "addr": "properties/isSftpEnabled"
+      },
+      {
+        "addr": "properties/keyPolicy"
+      },
+      {
+        "addr": "properties/largeFileSharesState"
+      },
+      {
+        "addr": "properties/minimumTlsVersion",
+        "app_property_maps": [
+          {
+            "name": "azurerm_storage_account",
+            "addr": "/min_tls_version"
+          }
+        ]
+      },
+      {
+        "addr": "properties/networkAcls/bypass",
+        "app_property_maps": [
+          {
+            "name": "azurerm_storage_account",
+            "addr": "/network_rules/0/bypass/0"
+          },
+          {
+            "name": "azurerm_storage_account_network_rules",
+            "addr": "/bypass/0"
+          }
+        ]
+      },
+      {
+        "addr": "properties/networkAcls/defaultAction",
+        "app_property_maps": [
+          {
+            "name": "azurerm_storage_account",
+            "addr": "/network_rules/0/default_action"
+          },
+          {
+            "name": "azurerm_storage_account_network_rules",
+            "addr": "/default_action"
+          }
+        ]
+      },
+      {
+        "addr": "properties/networkAcls/ipRules/action"
+      },
+      {
+        "addr": "properties/networkAcls/ipRules/value"
+      },
+      {
+        "addr": "properties/networkAcls/resourceAccessRules/resourceId"
+      },
+      {
+        "addr": "properties/networkAcls/resourceAccessRules/tenantId"
+      },
+      {
+        "addr": "properties/networkAcls/virtualNetworkRules/action"
+      },
+      {
+        "addr": "properties/networkAcls/virtualNetworkRules/id"
+      },
+      {
+        "addr": "properties/primaryEndpoints/blob",
+        "app_property_maps": [
+          {
+            "name": "azurerm_storage_account",
+            "addr": "/primary_blob_endpoint"
+          }
+        ]
+      },
+      {
+        "addr": "properties/primaryEndpoints/dfs",
+        "app_property_maps": [
+          {
+            "name": "azurerm_storage_account",
+            "addr": "/primary_dfs_endpoint"
+          }
+        ]
+      },
+      {
+        "addr": "properties/primaryEndpoints/file",
+        "app_property_maps": [
+          {
+            "name": "azurerm_storage_account",
+            "addr": "/primary_file_endpoint"
+          }
+        ]
+      },
+      {
+        "addr": "properties/primaryEndpoints/internetEndpoints/blob",
+        "app_property_maps": [
+          {
+            "name": "azurerm_storage_account",
+            "addr": "/primary_blob_internet_endpoint"
+          }
+        ]
+      },
+      {
+        "addr": "properties/primaryEndpoints/internetEndpoints/dfs",
+        "app_property_maps": [
+          {
+            "name": "azurerm_storage_account",
+            "addr": "/primary_dfs_internet_endpoint"
+          }
+        ]
+      },
+      {
+        "addr": "properties/primaryEndpoints/internetEndpoints/file",
+        "app_property_maps": [
+          {
+            "name": "azurerm_storage_account",
+            "addr": "/primary_file_internet_endpoint"
+          }
+        ]
+      },
+      {
+        "addr": "properties/primaryEndpoints/internetEndpoints/web",
+        "app_property_maps": [
+          {
+            "name": "azurerm_storage_account",
+            "addr": "/primary_web_internet_endpoint"
+          }
+        ]
+      },
+      {
+        "addr": "properties/primaryEndpoints/microsoftEndpoints/blob",
+        "app_property_maps": [
+          {
+            "name": "azurerm_storage_account",
+            "addr": "/primary_blob_microsoft_endpoint"
+          }
+        ]
+      },
+      {
+        "addr": "properties/primaryEndpoints/microsoftEndpoints/dfs",
+        "app_property_maps": [
+          {
+            "name": "azurerm_storage_account",
+            "addr": "/primary_dfs_microsoft_endpoint"
+          }
+        ]
+      },
+      {
+        "addr": "properties/primaryEndpoints/microsoftEndpoints/file",
+        "app_property_maps": [
+          {
+            "name": "azurerm_storage_account",
+            "addr": "/primary_file_microsoft_endpoint"
+          }
+        ]
+      },
+      {
+        "addr": "properties/primaryEndpoints/microsoftEndpoints/queue",
+        "app_property_maps": [
+          {
+            "name": "azurerm_storage_account",
+            "addr": "/primary_queue_microsoft_endpoint"
+          }
+        ]
+      },
+      {
+        "addr": "properties/primaryEndpoints/microsoftEndpoints/table",
+        "app_property_maps": [
+          {
+            "name": "azurerm_storage_account",
+            "addr": "/primary_table_microsoft_endpoint"
+          }
+        ]
+      },
+      {
+        "addr": "properties/primaryEndpoints/microsoftEndpoints/web",
+        "app_property_maps": [
+          {
+            "name": "azurerm_storage_account",
+            "addr": "/primary_web_microsoft_endpoint"
+          }
+        ]
+      },
+      {
+        "addr": "properties/primaryEndpoints/queue",
+        "app_property_maps": [
+          {
+            "name": "azurerm_storage_account",
+            "addr": "/primary_queue_endpoint"
+          }
+        ]
+      },
+      {
+        "addr": "properties/primaryEndpoints/table",
+        "app_property_maps": [
+          {
+            "name": "azurerm_storage_account",
+            "addr": "/primary_table_endpoint"
+          }
+        ]
+      },
+      {
+        "addr": "properties/primaryEndpoints/web",
+        "app_property_maps": [
+          {
+            "name": "azurerm_storage_account",
+            "addr": "/primary_web_endpoint"
+          }
+        ]
+      },
+      {
+        "addr": "properties/primaryLocation",
+        "app_property_maps": [
+          {
+            "name": "azurerm_storage_account",
+            "addr": "/primary_location"
+          }
+        ]
+      },
+      {
+        "addr": "properties/publicNetworkAccess"
+      },
+      {
+        "addr": "properties/routingPreference/publishInternetEndpoints"
+      },
+      {
+        "addr": "properties/routingPreference/publishMicrosoftEndpoints"
+      },
+      {
+        "addr": "properties/routingPreference/routingChoice",
+        "app_property_maps": [
+          {
+            "name": "azurerm_storage_account",
+            "addr": "/routing/0/choice"
+          }
+        ]
+      },
+      {
+        "addr": "properties/sasPolicy/expirationAction",
+        "app_property_maps": [
+          {
+            "name": "azurerm_storage_account",
+            "addr": "/sas_policy/0/expiration_action"
+          }
+        ]
+      },
+      {
+        "addr": "properties/sasPolicy/sasExpirationPeriod",
+        "app_property_maps": [
+          {
+            "name": "azurerm_storage_account",
+            "addr": "/sas_policy/0/expiration_period"
+          }
+        ]
+      },
+      {
+        "addr": "properties/secondaryEndpoints/blob",
+        "app_property_maps": [
+          {
+            "name": "azurerm_storage_account",
+            "addr": "/secondary_blob_endpoint"
+          }
+        ]
+      },
+      {
+        "addr": "properties/secondaryEndpoints/dfs",
+        "app_property_maps": [
+          {
+            "name": "azurerm_storage_account",
+            "addr": "/secondary_dfs_endpoint"
+          }
+        ]
+      },
+      {
+        "addr": "properties/secondaryEndpoints/file",
+        "app_property_maps": [
+          {
+            "name": "azurerm_storage_account",
+            "addr": "/secondary_file_endpoint"
+          }
+        ]
+      },
+      {
+        "addr": "properties/secondaryEndpoints/internetEndpoints/blob",
+        "app_property_maps": [
+          {
+            "name": "azurerm_storage_account",
+            "addr": "/secondary_blob_internet_endpoint"
+          }
+        ]
+      },
+      {
+        "addr": "properties/secondaryEndpoints/internetEndpoints/dfs",
+        "app_property_maps": [
+          {
+            "name": "azurerm_storage_account",
+            "addr": "/secondary_dfs_internet_endpoint"
+          }
+        ]
+      },
+      {
+        "addr": "properties/secondaryEndpoints/internetEndpoints/file",
+        "app_property_maps": [
+          {
+            "name": "azurerm_storage_account",
+            "addr": "/secondary_file_internet_endpoint"
+          }
+        ]
+      },
+      {
+        "addr": "properties/secondaryEndpoints/internetEndpoints/web",
+        "app_property_maps": [
+          {
+            "name": "azurerm_storage_account",
+            "addr": "/secondary_web_internet_endpoint"
+          }
+        ]
+      },
+      {
+        "addr": "properties/secondaryEndpoints/microsoftEndpoints/blob",
+        "app_property_maps": [
+          {
+            "name": "azurerm_storage_account",
+            "addr": "/secondary_blob_microsoft_endpoint"
+          }
+        ]
+      },
+      {
+        "addr": "properties/secondaryEndpoints/microsoftEndpoints/dfs",
+        "app_property_maps": [
+          {
+            "name": "azurerm_storage_account",
+            "addr": "/secondary_dfs_microsoft_endpoint"
+          }
+        ]
+      },
+      {
+        "addr": "properties/secondaryEndpoints/microsoftEndpoints/file",
+        "app_property_maps": [
+          {
+            "name": "azurerm_storage_account",
+            "addr": "/secondary_file_microsoft_endpoint"
+          }
+        ]
+      },
+      {
+        "addr": "properties/secondaryEndpoints/microsoftEndpoints/queue",
+        "app_property_maps": [
+          {
+            "name": "azurerm_storage_account",
+            "addr": "/secondary_queue_microsoft_endpoint"
+          }
+        ]
+      },
+      {
+        "addr": "properties/secondaryEndpoints/microsoftEndpoints/table",
+        "app_property_maps": [
+          {
+            "name": "azurerm_storage_account",
+            "addr": "/secondary_table_microsoft_endpoint"
+          }
+        ]
+      },
+      {
+        "addr": "properties/secondaryEndpoints/microsoftEndpoints/web",
+        "app_property_maps": [
+          {
+            "name": "azurerm_storage_account",
+            "addr": "/secondary_web_microsoft_endpoint"
+          }
+        ]
+      },
+      {
+        "addr": "properties/secondaryEndpoints/queue",
+        "app_property_maps": [
+          {
+            "name": "azurerm_storage_account",
+            "addr": "/secondary_queue_endpoint"
+          }
+        ]
+      },
+      {
+        "addr": "properties/secondaryEndpoints/table",
+        "app_property_maps": [
+          {
+            "name": "azurerm_storage_account",
+            "addr": "/secondary_table_endpoint"
+          }
+        ]
+      },
+      {
+        "addr": "properties/secondaryEndpoints/web",
+        "app_property_maps": [
+          {
+            "name": "azurerm_storage_account",
+            "addr": "/secondary_web_endpoint"
+          }
+        ]
+      },
+      {
+        "addr": "properties/secondaryLocation",
+        "app_property_maps": [
+          {
+            "name": "azurerm_storage_account",
+            "addr": "/secondary_location"
+          }
+        ]
+      },
+      {
+        "addr": "properties/supportsHttpsTrafficOnly"
+      },
+      {
+        "addr": "sku/name"
+      },
+      {
+        "addr": "sku/tier"
+      },
+      {
+        "addr": "tags"
+      }
+    ]
+  },
+  {
+    "api_version": "2023-05-01",
+    "api_path": "/SUBSCRIPTIONS/{}/RESOURCEGROUPS/{}/PROVIDERS/MICROSOFT.STORAGE/STORAGEACCOUNTS/{}",
+    "operation": "PATCH",
+    "properties": [
+      {
+        "addr": "properties/azureFilesIdentityBasedAuthentication/activeDirectoryProperties/azureStorageSid",
+        "app_property_maps": [
+          {
+            "name": "azurerm_storage_account",
+            "addr": "/azure_files_authentication/0/active_directory/0/storage_sid"
+          }
+        ]
+      },
+      {
+        "addr": "properties/azureFilesIdentityBasedAuthentication/activeDirectoryProperties/domainGuid",
+        "app_property_maps": [
+          {
+            "name": "azurerm_storage_account",
+            "addr": "/azure_files_authentication/0/active_directory/0/domain_guid"
+          }
+        ]
+      },
+      {
+        "addr": "properties/azureFilesIdentityBasedAuthentication/activeDirectoryProperties/domainName",
+        "app_property_maps": [
+          {
+            "name": "azurerm_storage_account",
+            "addr": "/azure_files_authentication/0/active_directory/0/domain_name"
+          }
+        ]
+      },
+      {
+        "addr": "properties/azureFilesIdentityBasedAuthentication/activeDirectoryProperties/domainSid",
+        "app_property_maps": [
+          {
+            "name": "azurerm_storage_account",
+            "addr": "/azure_files_authentication/0/active_directory/0/domain_sid"
+          }
+        ]
+      },
+      {
+        "addr": "properties/azureFilesIdentityBasedAuthentication/activeDirectoryProperties/forestName",
+        "app_property_maps": [
+          {
+            "name": "azurerm_storage_account",
+            "addr": "/azure_files_authentication/0/active_directory/0/forest_name"
+          }
+        ]
+      },
+      {
+        "addr": "properties/azureFilesIdentityBasedAuthentication/activeDirectoryProperties/netBiosDomainName",
+        "app_property_maps": [
+          {
+            "name": "azurerm_storage_account",
+            "addr": "/azure_files_authentication/0/active_directory/0/netbios_domain_name"
+          }
+        ]
+      },
+      {
+        "addr": "properties/azureFilesIdentityBasedAuthentication/defaultSharePermission",
+        "app_property_maps": [
+          {
+            "name": "azurerm_storage_account",
+            "addr": "/azure_files_authentication/0/default_share_level_permission"
+          }
+        ]
+      },
+      {
+        "addr": "properties/azureFilesIdentityBasedAuthentication/directoryServiceOptions",
+        "app_property_maps": [
+          {
+            "name": "azurerm_storage_account",
+            "addr": "/azure_files_authentication/0/directory_type"
+          }
+        ]
+      },
+      {
+        "addr": "properties/encryption/identity/federatedIdentityClientId"
+      },
+      {
+        "addr": "properties/encryption/identity/userAssignedIdentity"
+      },
+      {
+        "addr": "properties/encryption/keySource"
+      },
+      {
+        "addr": "properties/encryption/keyvaultproperties/keyname"
+      },
+      {
+        "addr": "properties/encryption/keyvaultproperties/keyvaulturi"
+      },
+      {
+        "addr": "properties/encryption/keyvaultproperties/keyversion"
+      },
+      {
+        "addr": "properties/encryption/services/blob/enabled"
+      },
+      {
+        "addr": "properties/encryption/services/file/enabled"
+      },
+      {
+        "addr": "properties/networkAcls/bypass",
+        "app_property_maps": [
+          {
+            "name": "azurerm_storage_account",
+            "addr": "/network_rules/0/bypass/0"
+          },
+          {
+            "name": "azurerm_storage_account_network_rules",
+            "addr": "/bypass/0"
+          }
+        ]
+      },
+      {
+        "addr": "properties/networkAcls/defaultAction",
+        "app_property_maps": [
+          {
+            "name": "azurerm_storage_account",
+            "addr": "/network_rules/0/default_action"
+          },
+          {
+            "name": "azurerm_storage_account_network_rules",
+            "addr": "/default_action"
+          }
+        ]
+      },
+      {
+        "addr": "properties/networkAcls/ipRules"
+      },
+      {
+        "addr": "properties/networkAcls/ipRules/action"
+      },
+      {
+        "addr": "properties/networkAcls/ipRules/value"
+      },
+      {
+        "addr": "properties/networkAcls/resourceAccessRules"
+      },
+      {
+        "addr": "properties/networkAcls/resourceAccessRules/resourceId"
+      },
+      {
+        "addr": "properties/networkAcls/resourceAccessRules/tenantId"
+      },
+      {
+        "addr": "properties/networkAcls/virtualNetworkRules"
+      },
+      {
+        "addr": "properties/networkAcls/virtualNetworkRules/action"
+      },
+      {
+        "addr": "properties/networkAcls/virtualNetworkRules/id"
+      }
+    ]
+  },
+  {
+    "api_version": "2023-05-01",
+    "api_path": "/SUBSCRIPTIONS/{}/RESOURCEGROUPS/{}/PROVIDERS/MICROSOFT.STORAGE/STORAGEACCOUNTS/{}",
+    "operation": "PUT",
+    "properties": [
+      {
+        "addr": "extendedLocation"
+      },
+      {
+        "addr": "identity/principalId"
+      },
+      {
+        "addr": "identity/tenantId"
+      },
+      {
+        "addr": "identity/type"
+      },
+      {
+        "addr": "identity/userAssignedIdentities"
+      },
+      {
+        "addr": "kind",
+        "app_property_maps": [
+          {
+            "name": "azurerm_storage_account",
+            "addr": "/account_kind"
+          }
+        ]
+      },
+      {
+        "addr": "location",
+        "app_property_maps": [
+          {
+            "name": "azurerm_storage_account",
+            "addr": "/location"
+          }
+        ]
+      },
+      {
+        "addr": "properties/accessTier",
+        "app_property_maps": [
+          {
+            "name": "azurerm_storage_account",
+            "addr": "/access_tier"
+          }
+        ]
+      },
+      {
+        "addr": "properties/allowBlobPublicAccess"
+      },
+      {
+        "addr": "properties/allowCrossTenantReplication"
+      },
+      {
+        "addr": "properties/allowSharedKeyAccess"
+      },
+      {
+        "addr": "properties/allowedCopyScope",
+        "app_property_maps": [
+          {
+            "name": "azurerm_storage_account",
+            "addr": "/allowed_copy_scope"
+          }
+        ]
+      },
+      {
+        "addr": "properties/azureFilesIdentityBasedAuthentication/activeDirectoryProperties/azureStorageSid",
+        "app_property_maps": [
+          {
+            "name": "azurerm_storage_account",
+            "addr": "/azure_files_authentication/0/active_directory/0/storage_sid"
+          }
+        ]
+      },
+      {
+        "addr": "properties/azureFilesIdentityBasedAuthentication/activeDirectoryProperties/domainGuid",
+        "app_property_maps": [
+          {
+            "name": "azurerm_storage_account",
+            "addr": "/azure_files_authentication/0/active_directory/0/domain_guid"
+          }
+        ]
+      },
+      {
+        "addr": "properties/azureFilesIdentityBasedAuthentication/activeDirectoryProperties/domainName",
+        "app_property_maps": [
+          {
+            "name": "azurerm_storage_account",
+            "addr": "/azure_files_authentication/0/active_directory/0/domain_name"
+          }
+        ]
+      },
+      {
+        "addr": "properties/azureFilesIdentityBasedAuthentication/activeDirectoryProperties/domainSid",
+        "app_property_maps": [
+          {
+            "name": "azurerm_storage_account",
+            "addr": "/azure_files_authentication/0/active_directory/0/domain_sid"
+          }
+        ]
+      },
+      {
+        "addr": "properties/azureFilesIdentityBasedAuthentication/activeDirectoryProperties/forestName",
+        "app_property_maps": [
+          {
+            "name": "azurerm_storage_account",
+            "addr": "/azure_files_authentication/0/active_directory/0/forest_name"
+          }
+        ]
+      },
+      {
+        "addr": "properties/azureFilesIdentityBasedAuthentication/activeDirectoryProperties/netBiosDomainName",
+        "app_property_maps": [
+          {
+            "name": "azurerm_storage_account",
+            "addr": "/azure_files_authentication/0/active_directory/0/netbios_domain_name"
+          }
+        ]
+      },
+      {
+        "addr": "properties/azureFilesIdentityBasedAuthentication/defaultSharePermission",
+        "app_property_maps": [
+          {
+            "name": "azurerm_storage_account",
+            "addr": "/azure_files_authentication/0/default_share_level_permission"
+          }
+        ]
+      },
+      {
+        "addr": "properties/azureFilesIdentityBasedAuthentication/directoryServiceOptions",
+        "app_property_maps": [
+          {
+            "name": "azurerm_storage_account",
+            "addr": "/azure_files_authentication/0/directory_type"
+          }
+        ]
+      },
+      {
+        "addr": "properties/customDomain/name",
+        "app_property_maps": [
+          {
+            "name": "azurerm_storage_account",
+            "addr": "/custom_domain/0/name"
+          }
+        ]
+      },
+      {
+        "addr": "properties/customDomain/useSubDomainName"
+      },
+      {
+        "addr": "properties/defaultToOAuthAuthentication"
+      },
+      {
+        "addr": "properties/dnsEndpointType",
+        "app_property_maps": [
+          {
+            "name": "azurerm_storage_account",
+            "addr": "/dns_endpoint_type"
+          }
+        ]
+      },
+      {
+        "addr": "properties/encryption/identity/userAssignedIdentity"
+      },
+      {
+        "addr": "properties/encryption/keySource"
+      },
+      {
+        "addr": "properties/encryption/keyvaultproperties/keyname"
+      },
+      {
+        "addr": "properties/encryption/keyvaultproperties/keyvaulturi"
+      },
+      {
+        "addr": "properties/encryption/keyvaultproperties/keyversion"
+      },
+      {
+        "addr": "properties/encryption/requireInfrastructureEncryption"
+      },
+      {
+        "addr": "properties/encryption/services/blob/enabled"
+      },
+      {
+        "addr": "properties/encryption/services/blob/keyType"
+      },
+      {
+        "addr": "properties/encryption/services/file/enabled"
+      },
+      {
+        "addr": "properties/encryption/services/file/keyType"
+      },
+      {
+        "addr": "properties/encryption/services/queue/enabled"
+      },
+      {
+        "addr": "properties/encryption/services/queue/keyType",
+        "app_property_maps": [
+          {
+            "name": "azurerm_storage_account",
+            "addr": "/queue_encryption_key_type"
+          }
+        ]
+      },
+      {
+        "addr": "properties/encryption/services/table/enabled"
+      },
+      {
+        "addr": "properties/encryption/services/table/keyType",
+        "app_property_maps": [
+          {
+            "name": "azurerm_storage_account",
+            "addr": "/table_encryption_key_type"
+          }
+        ]
+      },
+      {
+        "addr": "properties/immutableStorageWithVersioning/enabled"
+      },
+      {
+        "addr": "properties/immutableStorageWithVersioning/immutabilityPolicy/allowProtectedAppendWrites"
+      },
+      {
+        "addr": "properties/immutableStorageWithVersioning/immutabilityPolicy/immutabilityPeriodSinceCreationInDays",
+        "app_property_maps": [
+          {
+            "name": "azurerm_storage_account",
+            "addr": "/immutability_policy/0/period_since_creation_in_days"
+          }
+        ]
+      },
+      {
+        "addr": "properties/immutableStorageWithVersioning/immutabilityPolicy/state",
+        "app_property_maps": [
+          {
+            "name": "azurerm_storage_account",
+            "addr": "/immutability_policy/0/state"
+          }
+        ]
+      },
+      {
+        "addr": "properties/isHnsEnabled"
+      },
+      {
+        "addr": "properties/isLocalUserEnabled"
+      },
+      {
+        "addr": "properties/isNfsV3Enabled"
+      },
+      {
+        "addr": "properties/isSftpEnabled"
+      },
+      {
+        "addr": "properties/keyPolicy"
+      },
+      {
+        "addr": "properties/largeFileSharesState"
+      },
+      {
+        "addr": "properties/minimumTlsVersion",
+        "app_property_maps": [
+          {
+            "name": "azurerm_storage_account",
+            "addr": "/min_tls_version"
+          }
+        ]
+      },
+      {
+        "addr": "properties/networkAcls/bypass",
+        "app_property_maps": [
+          {
+            "name": "azurerm_storage_account",
+            "addr": "/network_rules/0/bypass/0"
+          },
+          {
+            "name": "azurerm_storage_account_network_rules",
+            "addr": "/bypass/0"
+          }
+        ]
+      },
+      {
+        "addr": "properties/networkAcls/defaultAction",
+        "app_property_maps": [
+          {
+            "name": "azurerm_storage_account",
+            "addr": "/network_rules/0/default_action"
+          },
+          {
+            "name": "azurerm_storage_account_network_rules",
+            "addr": "/default_action"
+          }
+        ]
+      },
+      {
+        "addr": "properties/networkAcls/ipRules/action"
+      },
+      {
+        "addr": "properties/networkAcls/ipRules/value"
+      },
+      {
+        "addr": "properties/networkAcls/resourceAccessRules/resourceId"
+      },
+      {
+        "addr": "properties/networkAcls/resourceAccessRules/tenantId"
+      },
+      {
+        "addr": "properties/networkAcls/virtualNetworkRules/action"
+      },
+      {
+        "addr": "properties/networkAcls/virtualNetworkRules/id"
+      },
+      {
+        "addr": "properties/publicNetworkAccess"
+      },
+      {
+        "addr": "properties/routingPreference/publishInternetEndpoints"
+      },
+      {
+        "addr": "properties/routingPreference/publishMicrosoftEndpoints"
+      },
+      {
+        "addr": "properties/routingPreference/routingChoice",
+        "app_property_maps": [
+          {
+            "name": "azurerm_storage_account",
+            "addr": "/routing/0/choice"
+          }
+        ]
+      },
+      {
+        "addr": "properties/sasPolicy/expirationAction",
+        "app_property_maps": [
+          {
+            "name": "azurerm_storage_account",
+            "addr": "/sas_policy/0/expiration_action"
+          }
+        ]
+      },
+      {
+        "addr": "properties/sasPolicy/sasExpirationPeriod",
+        "app_property_maps": [
+          {
+            "name": "azurerm_storage_account",
+            "addr": "/sas_policy/0/expiration_period"
+          }
+        ]
+      },
+      {
+        "addr": "properties/supportsHttpsTrafficOnly"
+      },
+      {
+        "addr": "sku/name"
+      },
+      {
+        "addr": "sku/tier"
+      },
+      {
+        "addr": "tags"
+      }
+    ]
+  }
+]
