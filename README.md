@@ -208,6 +208,7 @@ The server provides the following MCP tools:
 #### Documentation Tools
 - **`azurerm_terraform_documentation_retriever`**: Retrieve specific AzureRM resource or data source documentation with optional argument/attribute lookup
 - **`azapi_terraform_documentation_retriever`**: Retrieve AzAPI resource schemas and documentation
+- **`check_azurerm_resource_support`**: Check if a specific Azure resource type and property path is supported by the Terraform AzureRM provider
 
 #### Terraform Command Tools
 - **`run_terraform_command`**: Execute any Terraform command (init, plan, apply, destroy, validate, fmt) with provided HCL content
@@ -275,6 +276,44 @@ The server provides the following MCP tools:
     "doc_type": "resource",
     "argument_name": "account_tier"
   }
+}
+```
+
+#### Check AzureRM Resource Support
+```python
+# Check if a specific Azure resource type and property is supported in Terraform
+{
+  "tool": "check_azurerm_resource_support",
+  "arguments": {
+    "resource_type": "Microsoft.Compute/virtualMachines",
+    "property_path": "properties.storageProfile.osDisk.caching"
+  }
+}
+
+# Check subnet properties support
+{
+  "tool": "check_azurerm_resource_support",
+  "arguments": {
+    "resource_type": "Microsoft.Network/virtualNetworks/subnets",
+    "property_path": "properties.addressPrefix"
+  }
+}
+
+# Example response for supported property:
+{
+  "resource_type": "Microsoft.Compute/virtualMachines",
+  "property_path": "properties.storageProfile.osDisk.caching",
+  "is_supported": true,
+  "provider": "azurerm",
+  "status": "success",
+  "azurerm_mappings": [
+    {
+      "azurerm_resource": "azurerm_virtual_machine",
+      "azurerm_property": "storage_os_disk/caching",
+      "api_property": "properties.storageProfile.osDisk.caching"
+    }
+  ],
+  "message": "Property path 'properties.storageProfile.osDisk.caching' found in API definition with 1 azurerm mapping(s)"
 }
 ```
 
@@ -389,6 +428,7 @@ tf-mcp-server/
 │       │   ├── models.py           # Data models
 │       │   ├── server.py           # FastMCP server implementation
 │       │   ├── terraform_executor.py    # Terraform execution utilities
+│       │   ├── tf.json             # Azure resource coverage data (demo/testing)
 │       │   └── utils.py            # Utility functions
 │       ├── tools/                  # Tool implementations
 │       │   ├── __init__.py
@@ -412,6 +452,63 @@ tf-mcp-server/
 ├── README.md                       # This file
 └── CONTRIBUTE.md                   # Contributing guidelines
 ```
+
+## Azure Resource Coverage Data (tf.json)
+
+The `src/tf_mcp_server/core/tf.json` file contains Azure REST API to Terraform AzureRM provider coverage mapping data. This file is used by the `check_azurerm_resource_support` tool to determine if specific Azure resource types and properties are supported in the Terraform AzureRM provider.
+
+### Important Note
+
+⚠️ **The current tf.json file is for demonstration and testing purposes only.** It contains a minimal subset of Azure resources to support the test cases.
+
+For production use, this file should be replaced with the comprehensive coverage data from:
+**https://github.com/magodo/azure-rest-api-cov-terraform-reports/blob/main/tf.json**
+
+### File Structure
+
+The tf.json file contains an array of objects with the following structure:
+```json
+[
+  {
+    "api_version": "2021-01-01",
+    "api_path": "/SUBSCRIPTIONS/{}/RESOURCEGROUPS/{}/PROVIDERS/MICROSOFT.COMPUTE/VIRTUALMACHINES/{}",
+    "operation": "PUT",
+    "properties": [
+      {
+        "addr": "properties/storageProfile/osDisk/caching",
+        "app_property_maps": [
+          {
+            "name": "azurerm_virtual_machine",
+            "addr": "/storage_os_disk/caching"
+          }
+        ]
+      }
+    ]
+  }
+]
+```
+
+- **api_version**: The Azure REST API version
+- **api_path**: The Azure REST API path pattern
+- **operation**: HTTP operation (GET, PUT, POST, DELETE, PATCH)
+- **properties**: Array of supported properties
+  - **addr**: The Azure API property path
+  - **app_property_maps**: Mappings to Terraform AzureRM provider resources
+    - **name**: The AzureRM resource type (e.g., "azurerm_virtual_machine")
+    - **addr**: The corresponding Terraform property path
+
+### Updating for Production
+
+To use the full coverage data:
+
+1. Download the latest tf.json from the coverage reports repository:
+   ```bash
+   curl -o src/tf_mcp_server/core/tf.json https://raw.githubusercontent.com/magodo/azure-rest-api-cov-terraform-reports/main/tf.json
+   ```
+
+2. The file will be automatically loaded by the `check_azurerm_resource_support` tool
+
+3. This will provide coverage information for all Azure resource types and properties that have Terraform AzureRM provider support
 
 ## Development
 
@@ -530,4 +627,12 @@ For issues and questions:
 - [FastMCP Framework](https://github.com/jlowin/fastmcp)
 - [Azure Terraform Provider](https://github.com/hashicorp/terraform-provider-azurerm)
 - [AzAPI Provider](https://github.com/Azure/terraform-provider-azapi)
+- [Azure REST API Coverage Reports](https://github.com/magodo/azure-rest-api-cov-terraform-reports) - Source of comprehensive tf.json data
 - [Model Context Protocol](https://modelcontextprotocol.io)
+
+## Additional Documentation
+
+- [Check AzureRM Resource Support Tool](docs/check-azurerm-resource-support.md) - Detailed guide for the resource support checking tool
+- [Conftest AVM Validation](docs/conftest-avm-validation.md) - Azure security policy validation
+- [Docker Quickstart](docs/docker-quickstart.md) - Quick setup with Docker
+- [GitHub Registry Setup](docs/github-registry-setup.md) - MCP registry configuration

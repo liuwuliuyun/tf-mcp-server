@@ -3,6 +3,8 @@ Main server implementation for Azure Terraform MCP Server.
 """
 
 import logging
+import json
+import os
 from typing import Dict, Any
 from pydantic import Field
 from fastmcp import FastMCP
@@ -13,6 +15,7 @@ from ..tools.azapi_docs_provider import get_azapi_documentation_provider
 from ..tools.terraform_runner import get_terraform_runner
 from ..tools.tflint_runner import get_tflint_runner
 from ..tools.conftest_avm_runner import get_conftest_avm_runner
+from ..tools.azurerm_support_checker import get_azurerm_support_checker
 
 logger = logging.getLogger(__name__)
 
@@ -35,6 +38,7 @@ def create_server(config: Config) -> FastMCP:
     terraform_runner = get_terraform_runner()
     tflint_runner = get_tflint_runner()
     conftest_avm_runner = get_conftest_avm_runner()
+    azurerm_support_checker = get_azurerm_support_checker()
     
     # ==========================================
     # DOCUMENTATION TOOLS
@@ -209,6 +213,22 @@ def create_server(config: Config) -> FastMCP:
             logger.error(f"Error retrieving AzAPI documentation: {e}")
             return f"Error retrieving AzAPI documentation for {resource_type_name}: {str(e)}"
     
+    @mcp.tool("check_azurerm_resource_support")
+    async def check_azurerm_resource_support(
+        resource_type: str = Field(..., description="The Azure resource type (e.g., 'Microsoft.Compute/virtualMachines')"),
+        property_path: str = Field(..., description="The property path to check (e.g., 'properties.storageProfile.osDisk.caching')")
+    ) -> Dict[str, Any]:
+        """
+        Check if a specific Azure resource type and property path is supported by the Terraform AzureRM provider.
+        
+        Args:
+            resource_type: The Azure resource type to check
+            property_path: The property path within the resource to verify support for
+            
+        Returns:
+            JSON object indicating whether the resource type and property path are supported
+        """
+        return await azurerm_support_checker.check_azurerm_resource_support(resource_type, property_path)
 
     
     # ==========================================
