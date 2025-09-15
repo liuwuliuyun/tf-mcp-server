@@ -10,6 +10,7 @@ from pydantic import Field
 from fastmcp import FastMCP
 
 from .config import Config
+from ..tools.avm_docs_provider import get_avm_documentation_provider, ExpectedException
 from ..tools.azurerm_docs_provider import get_azurerm_documentation_provider
 from ..tools.azapi_docs_provider import get_azapi_documentation_provider
 from ..tools.terraform_runner import get_terraform_runner
@@ -33,6 +34,7 @@ def create_server(config: Config) -> FastMCP:
     mcp = FastMCP("Azure Terraform MCP Server", version="0.1.0")
     
     # Get service instances
+    avm_doc_provider = get_avm_documentation_provider()
     azurerm_doc_provider = get_azurerm_documentation_provider()
     azapi_doc_provider = get_azapi_documentation_provider()
     terraform_runner = get_terraform_runner()
@@ -43,6 +45,101 @@ def create_server(config: Config) -> FastMCP:
     # ==========================================
     # DOCUMENTATION TOOLS
     # ==========================================
+
+    @mcp.tool("get_avm_modules")
+    def get_avm_modules() -> str:
+        """Retrieves all available Azure verified modules.
+
+        Returns:
+            A list of Azure verified modules. Each item in the list contains the following fields:
+            - module_name: The name of the Azure verified module, which is typically used as the input parameter of other tools.
+            - description: A brief description of the module.
+            - source: The value of `source` field in the module's definition. (e.g., `source = "Azure/avm-res-apimanagement-service/azurerm"`)
+        """
+
+        try:
+            return avm_doc_provider.available_modules()
+        except ExpectedException as e:
+            return f'{str(e)}'
+        except Exception as e:
+            logger.error(f"Error: get_avm_modules: {str(e)}")
+            return "failed to retrieve available modules"
+        
+    
+    @mcp.tool("get_avm_latest_version")
+    def get_avm_latest_version(module_name: str) -> str:
+        """Retrieves the latest version of a specified Azure verified module.
+
+        Args:
+            module_name (str): The name of the Azure verified module, which is typically in the format of `avm-res-<provider>-<resource>`. (e.g., avm-res-apimanagement-service, avm-res-app-containerapp.)
+
+        Returns:
+            The latest version of the specified module.
+        """
+        try:
+            return avm_doc_provider.latest_module_version(module_name)
+        except ExpectedException as e:
+            return f'{str(e)}'
+        except Exception as e:
+            logger.error(f"Error: get_avm_latest_version({module_name}): {str(e)}")
+            return "failed to retrieve the latest module version"
+        
+    @mcp.tool("get_avm_versions")
+    def get_avm_versions(module_name: str) -> str:
+        """Retrieves all available versions of a specified Azure verified module.
+
+        Args:
+            module_name (str): The name of the Azure verified module, which is typically in the format of `avm-res-<provider>-<resource>`. (e.g., avm-res-apimanagement-service, avm-res-app-containerapp.)
+
+        Returns:
+            A list of available versions of the specified module.
+        """
+        try:
+            return avm_doc_provider.module_versions(module_name)
+        except ExpectedException as e:
+            return f'{str(e)}'
+        except Exception as e:
+            logger.error(f"Error: get_avm_versions({module_name}): {str(e)}")
+            return "failed to retrieve available module versions"
+    
+    @mcp.tool("get_avm_variables")
+    def get_avm_variables(module_name: str, module_version: str) -> str:
+        """Retrieves the variables of a specified Azure verified module. The variables describe the schema of the module's configuration.
+    
+        Args:
+            module_name (str): The name of the Azure verified module, which is typically in the format of `avm-res-<provider>-<resource>`. (e.g., avm-res-apimanagement-service, avm-res-app-containerapp.)
+            module_version (str): The version of the Azure verified module, which is the value of `version` field in the module's `.tf` file.
+        
+        Returns:
+            str: A string containing the variables of the specified module.
+        """
+        try:
+            return avm_doc_provider.module_variables(module_name, module_version)
+        except ExpectedException as e:
+            return f'{str(e)}'
+        except Exception as e:
+            logger.error(f"Error: get_avm_variables({module_name}, {module_version}): {str(e)}")
+            return "failed to retrieve module variables"
+    
+    @mcp.tool("get_avm_outputs")
+    def get_avm_outputs(module_name: str, module_version: str) -> str:
+        """Retrieves the outputs of a specified Azure verified module. The outputs can be used to assign values to other resources or modules in Terraform.
+    
+        Args:
+            module_name (str): The name of the Azure verified module. (e.g., avm-res-apimanagement-service, avm-res-app-containerapp, etc.)
+            module_version (str): The version of the Azure verified module, which is the value of `version` field in the module's `.tf` file.
+        
+        Returns:
+            str: A string containing the outputs of the specified module.
+        """
+        try:
+            return avm_doc_provider.module_outputs(module_name, module_version)
+        except ExpectedException as e:
+            return f'{str(e)}'
+        except Exception as e:
+            logger.error(f"Error: get_avm_outputs({module_name}, {module_version}): {str(e)}")
+            return "failed to retrieve module outputs"
+
     
     @mcp.tool("azurerm_terraform_documentation_retriever")
     async def retrieve_azurerm_docs(

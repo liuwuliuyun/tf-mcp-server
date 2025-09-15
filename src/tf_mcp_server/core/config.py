@@ -14,6 +14,7 @@ from httpx import AsyncClient
 class ServerConfig(BaseModel):
     """Server configuration settings."""
     
+    github_token: str = Field(default="", description="GitHub token for accessing repositories")
     host: str = Field(default="localhost", description="Server host")
     port: int = Field(default=6801, description="Server port")
     debug: bool = Field(default=False, description="Enable debug mode")
@@ -39,6 +40,7 @@ class Config(BaseModel):
         """Create configuration from environment variables."""
         return cls(
             server=ServerConfig(
+                github_token=os.getenv("GITHUB_TOKEN", ""),
                 host=os.getenv("MCP_SERVER_HOST", "localhost"),
                 port=int(os.getenv("MCP_SERVER_PORT", "8000")),
                 debug=os.getenv("MCP_DEBUG", "false").lower() in ("true", "1", "yes")
