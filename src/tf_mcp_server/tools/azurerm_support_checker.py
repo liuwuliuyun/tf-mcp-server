@@ -8,7 +8,7 @@ are supported by the Terraform AzureRM provider by analyzing tf.json support dat
 import json
 import logging
 import os
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -50,7 +50,7 @@ class AzureRMSupportChecker:
             return ""
 
         # Extract everything after the last /PROVIDERS/
-        providers_part = upper_path[providers_index + len("/PROVIDERS/") :]
+        providers_part = upper_path[providers_index + len("/PROVIDERS/"):]
 
         # Remove placeholders and clean up
         cleaned_path = providers_part.replace("{}", "").strip("/")
@@ -169,7 +169,7 @@ class AzureRMSupportChecker:
 
     def _check_property_support(
         self, matching_entries: List[Dict[str, Any]], property_path: str
-    ) -> tuple[bool, List[Dict[str, Any]]]:
+    ) -> Tuple[bool, List[Dict[str, Any]]]:
         """
         Check if a property path is supported in the matching entries.
 

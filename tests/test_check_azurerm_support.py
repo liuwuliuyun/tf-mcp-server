@@ -64,7 +64,7 @@ def sample_tf_json_data():
                 },
                 {
                     "addr": "properties/hardwareProfile/vmSize"
-                    # Note: No app_property_maps for this property
+                    # Note: No AzureRM mappings for this property
                 },
             ],
         },
@@ -89,7 +89,7 @@ def sample_tf_json_data():
                 },
                 {
                     "addr": "properties/delegations"
-                    # Note: No app_property_maps for this property
+                    # Note: No AzureRM mappings for this property
                 },
             ],
         },
