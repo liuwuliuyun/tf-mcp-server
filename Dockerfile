@@ -49,6 +49,10 @@ RUN CONFTEST_VERSION=$(curl -s "https://api.github.com/repos/open-policy-agent/c
     && rm conftest_${CONFTEST_VERSION}_${SYSTEM}_${ARCH}.tar.gz \
     && conftest --version
 
+# Install Azure CLI
+RUN curl -sL https://aka.ms/InstallAzureCLIDeb | bash \
+    && az --version
+
 # Create non-root user for security
 RUN groupadd -r mcpuser && useradd -r -g mcpuser mcpuser
 
