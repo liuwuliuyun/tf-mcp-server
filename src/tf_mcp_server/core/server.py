@@ -13,6 +13,7 @@ from ..tools.azapi_docs_provider import get_azapi_documentation_provider
 from ..tools.terraform_runner import get_terraform_runner
 from ..tools.tflint_runner import get_tflint_runner
 from ..tools.conftest_avm_runner import get_conftest_avm_runner
+from ..tools.aztfexport_runner import get_aztfexport_runner
 
 logger = logging.getLogger(__name__)
 
@@ -35,6 +36,7 @@ def create_server(config: Config) -> FastMCP:
     terraform_runner = get_terraform_runner()
     tflint_runner = get_tflint_runner()
     conftest_avm_runner = get_conftest_avm_runner()
+    aztfexport_runner = get_aztfexport_runner()
     
     # ==========================================
     # DOCUMENTATION TOOLS
@@ -556,6 +558,96 @@ def create_server(config: Config) -> FastMCP:
                 }
             }
     
+    # ==========================================
+    # AZTFEXPORT TOOLS (DYNAMIC HELP APPROACH)
+    # ==========================================
+    
+    @mcp.tool("get_aztfexport_help")
+    async def get_aztfexport_help(
+        command: str = Field("", description="Optional command to get help for. Leave empty for main help showing all available commands. Valid commands: 'config', 'rg' (resource-group), 'res' (resource), 'query', 'map' (mapping-file)")
+    ) -> Dict[str, Any]:
+        """
+        Get dynamic help information directly from the aztfexport tool.
+        
+        This tool fetches live help information from aztfexport, ensuring documentation 
+        is always current and accurate. Use this before executing aztfexport commands.
+        
+        Recommended workflow:
+        1. Call get_aztfexport_help() to see available commands
+        2. Call get_aztfexport_help(command="rg") to see specific command options
+        3. Use run_aztfexport() with the appropriate arguments
+        
+        Args:
+            command: Optional command to get detailed help for:
+                - "" (empty): Main help with all available commands
+                - "config": Configuration management help
+                - "rg" or "resource-group": Resource group export help  
+                - "res" or "resource": Individual resource export help
+                - "query": Azure Resource Graph query export help
+                - "map" or "mapping-file": Mapping file export help (includes required JSON format)
+                
+        Returns:
+            Live help text from aztfexport tool with all current options and usage.
+            For mapping file commands, includes enhanced format specification with:
+            - Required JSON structure (resource_type, resource_name, resource_id)
+            - Complete examples with real Azure resource IDs
+        """
+        try:
+            result = aztfexport_runner.get_help(command)
+            return result
+        except Exception as e:
+            logger.error(f"Error getting aztfexport help: {e}")
+            return {
+                'success': False,
+                'error': f'Failed to get aztfexport help: {str(e)}',
+                'help_text': '',
+                'command': command
+            }
+        
+    @mcp.tool("run_aztfexport")
+    async def run_aztfexport(
+        command_args: str = Field(..., description="Complete aztfexport command arguments as you would type in terminal. Use get_aztfexport_help() first to see available commands and options. Examples: 'rg myResourceGroup', 'res /subscriptions/.../resource', 'query \"type=~\\'Microsoft.Storage.*\\'\"'"),
+        client_working_directory: str = Field("", description="Client's working directory path. REQUIRED when using relative paths (like -o ./output) to resolve them relative to client directory instead of server directory.")
+    ) -> Dict[str, Any]:
+        """
+        Execute aztfexport with the specified command arguments.
+        
+        IMPORTANT: Use get_aztfexport_help() tool first to get current command syntax and options.
+        
+        This tool preserves two key features:
+        1. Automatic aztfexport executable detection and validation
+        2. Client working directory resolution for relative paths (like -o ./output)
+        
+        Workflow:
+        1. Call get_aztfexport_help() to see available commands
+        2. Call get_aztfexport_help(command="rg") for specific command help
+        3. Use this tool with the correct command_args
+        
+        Path Handling:
+        - Relative paths (./output, ../terraform) work with or without client_working_directory
+        - WITH client_working_directory: Relative paths resolved relative to client directory
+        - WITHOUT client_working_directory: Relative paths resolved relative to server directory (with warning)
+        - Absolute paths always work regardless of client_working_directory
+        
+        Args:
+            command_args: Raw aztfexport command arguments (everything after 'aztfexport')
+            client_working_directory: Client's working directory for resolving relative paths
+            
+        Returns:
+            Command execution results with stderr, returncode, and success status
+        """
+        try:
+            result = aztfexport_runner.run_raw_command(command_args, client_working_directory)
+            return result
+        except Exception as e:
+            logger.error(f"Error running aztfexport: {e}")
+            return {
+                'success': False,
+                'error': f'aztfexport execution failed: {str(e)}',
+                'stderr': str(e),
+                'returncode': -1
+            }
+
     return mcp
 
 
