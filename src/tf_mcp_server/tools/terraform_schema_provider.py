@@ -25,7 +25,7 @@ class TerraformSchemaProvider:
     """Provider for Terraform schema operations using terraform command."""
     
     def __init__(self):
-        self.supported_providers = ["azurerm", "azapi", "aws", "google", "kubernetes"]
+        self.supported_providers = ["azurerm", "azapi"]
     
     async def query_schema(
         self, 
