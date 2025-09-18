@@ -311,96 +311,48 @@ The server provides the following MCP tools:
 
 ```
 tf-mcp-server/
-├── src/                            # Main package
+├── src/                            # Main source code
+│   ├── data/                       # Data files and schemas
+│   │   └── azapi_schemas_v2.6.1.json # AzAPI resource schemas
 │   └── tf_mcp_server/              # Core package
 │       ├── __init__.py
-│       ├── __main__.py             # Package entry point
+│       ├── __main__.py             # Package entry point  
 │       ├── launcher.py             # Server launcher
 │       ├── core/                   # Core functionality
 │       │   ├── __init__.py
+│       │   ├── azapi_schema_generator.py # AzAPI schema generation
 │       │   ├── config.py           # Configuration management
-│       │   ├── models.py           # Data models
-│       │   ├── server.py           # FastMCP server implementation
-│       │   ├── terraform_executor.py    # Terraform execution utilities
-│       │   └── utils.py            # Utility functions
-│       ├── tools/                  # Tool implementations
-│       │   ├── __init__.py
-│       │   ├── avm_docs_provider.py     # Azure Verified Modules documentation provider
-│       │   ├── azapi_docs_provider.py    # AzAPI documentation provider
-│       │   ├── azurerm_docs_provider.py # AzureRM documentation provider
-│       │   └── terraform_runner.py # Terraform command runner
-│       └── data/                   # Data files
-│           └── azapi_schemas.json  # AzAPI schemas
+│       │   ├── models.py           # Data models and types
+│       │   ├── server.py           # FastMCP server with all MCP tools
+│       │   ├── terraform_executor.py # Terraform execution utilities
+│       │   └── utils.py            # Shared utility functions
+│       └── tools/                  # Tool implementations
+│           ├── __init__.py
+│           ├── avm_docs_provider.py     # Azure Verified Modules provider
+│           ├── azapi_docs_provider.py   # AzAPI documentation provider  
+│           ├── azurerm_docs_provider.py # AzureRM documentation provider
+│           ├── conftest_avm_runner.py   # Conftest policy validation
+│           ├── terraform_runner.py      # Terraform command execution
+│           └── tflint_runner.py         # TFLint static analysis
 ├── tests/                          # Test suite
 │   ├── __init__.py
-│   ├── conftest.py
-│   ├── test_azurerm_docs_provider.py
-│   ├── test_datasource.py
-│   ├── test_detailed_attributes.py
-│   ├── test_summaries.py
-│   └── test_utils.py
-├── scripts/                        # Utility scripts
-├── main.py                         # Legacy entry point
+│   ├── conftest.py                 # Test configuration
+│   ├── test_*.py                   # Unit tests
+│   └── integration/                # Integration tests
+├── tfsample/                       # Sample Terraform configurations
+├── policy/                         # Security and compliance policies
+│   ├── avmsec/                     # Azure security policies
+│   ├── Azure-Proactive-Resiliency-Library-v2/ # Azure resiliency policies  
+│   └── common/                     # Common policy utilities
+├── docs/                           # Documentation
+├── examples/                       # Usage examples
 ├── pyproject.toml                  # Project configuration (UV/pip)
-├── uv.lock                         # UV lockfile
+├── uv.lock                         # UV dependency lockfile
 ├── README.md                       # This file
-└── CONTRIBUTE.md                   # Contributing guidelines
+└── CONTRIBUTE.md                   # Development and contribution guide
 ```
 
-## Development
 
-### Setting Up Development Environment
-
-```bash
-# Clone the repository
-git clone <repository-url>
-cd tf-mcp-server
-
-# Using UV (recommended)
-uv sync --dev
-
-# Or using traditional pip
-pip install -r requirements-dev.txt
-
-# Install in development mode
-pip install -e .
-
-# Run tests
-pytest tests/
-
-# Run with debug logging
-export MCP_DEBUG=true
-uv run tf-mcp-server
-# or
-python -m tf_mcp_server
-```
-
-### Adding New Tools
-
-To add new MCP tools, extend the server in `src/tf_mcp_server/core/server.py`:
-
-```python
-@mcp.tool("your_new_tool")
-async def your_new_tool(
-    param: str = Field(..., description="Parameter description")
-) -> Dict[str, Any]:
-    """Tool description."""
-    # Implementation
-    return {"result": "success"}
-```
-
-### Running Tests
-
-```bash
-# Run tests (if available)
-pytest tests/
-
-# Run with coverage (if pytest-cov is installed)
-pytest --cov=src tests/
-
-# Run specific test file
-pytest tests/test_utils.py
-```
 
 ## Troubleshooting
 
@@ -427,11 +379,17 @@ Check logs in `tf-mcp-server.log` for detailed information.
 
 ## Contributing
 
+We welcome contributions! For development setup, coding standards, and detailed contribution guidelines:
+
+**👉 See the complete [Contributing Guide](CONTRIBUTE.md)**
+
+### Quick Start for Contributors
+
 1. Fork the repository
-2. Create a feature branch
-3. Make your changes with tests
-4. Run the test suite: `pytest`
-5. Format code: `black src/ tests/`
+2. Set up development environment (see [CONTRIBUTE.md](CONTRIBUTE.md#development-setup))
+3. Create a feature branch: `git checkout -b feature/your-feature`
+4. Make changes with tests
+5. Run tests and formatting: `pytest && black src/ tests/`
 6. Submit a pull request
 
 ## License
