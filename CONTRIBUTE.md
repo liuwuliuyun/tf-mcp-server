@@ -77,7 +77,7 @@ pip install -e .
 Create a `.env.local` file for local development:
 ```bash
 MCP_HOST=localhost
-MCP_PORT=6801
+MCP_PORT=8000
 MCP_DEBUG=true
 ```
 
@@ -106,7 +106,7 @@ The server can be configured using environment variables:
 ```bash
 # Server settings
 export MCP_HOST=localhost      # Default: localhost
-export MCP_PORT=6801          # Default: 6801
+export MCP_PORT=8000          # Default: 8000
 export MCP_DEBUG=true         # Enable debug logging
 
 # Run with custom configuration

@@ -46,38 +46,24 @@ docker run -d \
 # Custom port and log level
 docker run -d \
   --name tf-mcp-server \
-  -p 9000:9000 \
-  -e MCP_SERVER_PORT=9000 \
+  -p 8000:8000 \
+  -e MCP_SERVER_PORT=8000 \
   -e LOG_LEVEL=DEBUG \
   ghcr.io/liuwuliuyun/tf-mcp-server:latest
 ```
 
-## Docker Compose
+## Alternative: Docker Compose
 
-Create a `docker-compose.yml` file:
-
-```yaml
-version: '3.8'
-
-services:
-  tf-mcp-server:
-    image: ghcr.io/liuwuliuyun/tf-mcp-server:latest
-    container_name: tf-mcp-server
-    ports:
-      - "8000:8000"
-    environment:
-      - MCP_SERVER_HOST=0.0.0.0
-      - MCP_SERVER_PORT=8000
-      - LOG_LEVEL=INFO
-    volumes:
-      - ~/.azure:/home/mcpuser/.azure:ro
-      - ./terraform-workspace:/workspace
-    restart: unless-stopped
-```
-
-Then run:
+If you prefer Docker Compose:
 ```bash
+# Download the configuration
+curl -O https://raw.githubusercontent.com/liuwuliuyun/tf-mcp-server/main/docker-compose.yml
+
+# Start the service
 docker-compose up -d
+
+# Check if it's running
+docker-compose ps
 ```
 
 ## Testing the Server

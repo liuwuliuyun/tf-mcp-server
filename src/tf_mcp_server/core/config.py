@@ -16,7 +16,7 @@ class ServerConfig(BaseModel):
     
     github_token: str = Field(default="", description="GitHub token for accessing repositories")
     host: str = Field(default="localhost", description="Server host")
-    port: int = Field(default=6801, description="Server port")
+    port: int = Field(default=8000, description="Server port")
     debug: bool = Field(default=False, description="Enable debug mode")
 
 
