@@ -19,7 +19,7 @@ def test_config():
     return Config(
         server=ServerConfig(
             host="localhost",
-            port=6802,  # Different port for testing
+            port=8002,  # Different port for testing
             debug=True
         )
     )

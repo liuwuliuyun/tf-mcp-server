@@ -23,3 +23,6 @@ data/
 tf-mcp-server.log
 
 policy/
+
+# avm data cache
+__avm_data_cache__/

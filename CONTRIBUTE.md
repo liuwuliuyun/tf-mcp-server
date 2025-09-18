@@ -77,8 +77,15 @@ pip install -e .
 Create a `.env.local` file for local development:
 ```bash
 MCP_HOST=localhost
-MCP_PORT=6801
+MCP_PORT=8000
 MCP_DEBUG=true
+```
+
+For Windows PowerShell users, set environment variables like:
+```powershell
+$env:MCP_DEBUG="true"
+$env:MCP_HOST="localhost"
+$env:MCP_PORT="8000"
 ```
 
 ### 4. Verify Installation
@@ -106,7 +113,7 @@ The server can be configured using environment variables:
 ```bash
 # Server settings
 export MCP_HOST=localhost      # Default: localhost
-export MCP_PORT=6801          # Default: 6801
+export MCP_PORT=8000          # Default: 8000
 export MCP_DEBUG=true         # Enable debug logging
 
 # Run with custom configuration
@@ -330,6 +337,76 @@ Include:
 - Suggested improvements
 - Specific sections that need updates
 
+## Development
+
+### Setting Up Development Environment
+
+```bash
+# Clone the repository
+git clone https://github.com/liuwuliuyun/tf-mcp-server.git
+cd tf-mcp-server
+
+# Using UV (recommended)
+uv sync --dev
+
+# Or using traditional pip
+python -m venv venv
+# Activate virtual environment
+# Windows
+venv\Scripts\activate
+# Unix/macOS  
+source venv/bin/activate
+
+pip install -r requirements-dev.txt
+
+# Install in development mode
+pip install -e .
+
+# Run tests
+pytest tests/
+
+# Run with debug logging
+$env:MCP_DEBUG="true"  # Windows PowerShell
+export MCP_DEBUG=true  # Unix/macOS
+uv run tf-mcp-server
+# or
+python -m tf_mcp_server
+```
+
+### Running the Development Server
+
+```bash
+# Basic run
+uv run tf-mcp-server
+
+# With debug logging
+$env:MCP_DEBUG="true"; uv run tf-mcp-server  # Windows PowerShell
+MCP_DEBUG=true uv run tf-mcp-server          # Unix/macOS
+
+# Custom host/port
+$env:MCP_HOST="0.0.0.0"; $env:MCP_PORT="8080"; uv run tf-mcp-server  # Windows PowerShell
+MCP_HOST=0.0.0.0 MCP_PORT=8080 uv run tf-mcp-server                  # Unix/macOS
+```
+
+### Running Tests
+
+```bash
+# Run all tests
+pytest tests/
+
+# Run with coverage
+pytest --cov=src/tf_mcp_server tests/
+
+# Run specific test file
+pytest tests/test_azurerm_docs_provider.py
+
+# Run tests with verbose output
+pytest -v tests/
+
+# Run integration tests (if available)
+pytest tests/integration/
+```
+
 ## Development Workflow
 
 ### Adding New MCP Tools
@@ -368,19 +445,60 @@ async def test_your_new_tool():
    - Include usage examples
    - Update API documentation
 
+### Development Examples
+
+Here are examples of working with the current tools during development:
+
+#### Testing Documentation Tools
+```python
+# Test AzureRM documentation retrieval
+from tf_mcp_server.tools.azurerm_docs_provider import AzureRMDocsProvider
+
+provider = AzureRMDocsProvider()
+result = await provider.get_resource_documentation("storage_account", "resource")
+```
+
+#### Testing Terraform Commands  
+```python
+# Test Terraform formatting
+from tf_mcp_server.tools.terraform_runner import TerraformRunner
+
+runner = TerraformRunner()
+hcl = 'resource"azurerm_storage_account""test"{name="test"}'
+formatted = await runner.execute_terraform_command("fmt", hcl)
+```
+
+#### Testing Security Validation
+```python
+# Test Conftest validation
+from tf_mcp_server.tools.conftest_avm_runner import ConftestAVMRunner  
+
+runner = ConftestAVMRunner()
+result = await runner.run_conftest_validation(hcl_content, "avmsec", "high")
+```
+
 ### Current MCP Tools
 
-The server currently provides these MCP tools:
+The server provides the following MCP tools (as defined in `src/tf_mcp_server/core/server.py`):
 
 **Documentation Tools:**
-- `azurerm_terraform_documentation_retriever` - Get AzureRM resource/data source docs
-- `azapi_terraform_documentation_retriever` - Get AzAPI resource schemas
+- `azurerm_terraform_documentation_retriever` - Get detailed AzureRM resource/data source documentation with optional argument/attribute lookup
+- `azapi_terraform_documentation_retriever` - Get AzAPI resource schemas and documentation
+- `get_avm_modules` - Retrieve all available Azure Verified Modules with descriptions
+- `get_avm_latest_version` - Get the latest version of a specific Azure Verified Module
+- `get_avm_versions` - Get all available versions of a specific Azure Verified Module
+- `get_avm_variables` - Retrieve input variables schema for a specific AVM module version
+- `get_avm_outputs` - Retrieve output definitions for a specific AVM module version
 
 **Terraform Command Tools:**
-- `run_terraform_command` - Execute any Terraform command (init, plan, apply, destroy, validate, fmt)
+- `run_terraform_command` - Execute any Terraform command (init, plan, apply, destroy, validate, fmt) with provided HCL content
 
 **Security & Analysis Tools:**
-- `analyze_azure_resources` - Analyze resources in Terraform configurations
+- `run_conftest_validation` - Validate Terraform HCL against Azure security policies and best practices using Conftest
+- `run_conftest_plan_validation` - Validate Terraform plan JSON against Azure security policies and best practices using Conftest
+- `run_tflint_analysis` - Run TFLint static analysis on Terraform configurations with Azure plugin support
+- `check_tflint_installation` - Check TFLint installation status and get version information
+- `analyze_azure_resources` - Analyze Azure resources in Terraform configurations with recommendations
 
 When adding new tools, follow the established patterns and ensure they integrate well with existing functionality.
 
@@ -388,11 +506,24 @@ When adding new tools, follow the established patterns and ensure they integrate
 
 When adding support for new Azure resources:
 
-1. **Research the resource** in Azure documentation
-2. **Check existing patterns** in the codebase
-3. **Add schema information** to `src/tf_mcp_server/data/azapi_schemas.json` if needed
-4. **Update security scanning rules** if applicable
-5. **Add best practices** for the resource type
+1. **Research the resource** in Azure documentation and Terraform provider docs
+2. **Check existing patterns** in the codebase for similar resources
+3. **Add schema information** to `src/data/azapi_schemas_v2.6.1.json` if working with AzAPI resources
+4. **Update security scanning rules** in `policy/avmsec/` if security policies need to be added
+5. **Add best practices** and recommendations for the resource type in analysis tools
+6. **Consider Azure Verified Module (AVM) support** if there's a corresponding verified module
+7. **Update documentation tools** to handle new resource types or attributes
+8. **Add TFLint rules** if Azure-specific validation is needed
+
+### Adding Security Policies
+
+When adding new security policies:
+
+1. **Add Conftest policies** to `policy/avmsec/` following the naming convention
+2. **Include both azurerm and azapi variants** for broad coverage  
+3. **Add mock test data** with `.mock.json` files
+4. **Follow severity classifications** (high, medium, low, info)
+5. **Document policy rationale** and remediation steps
 
 ### Performance Considerations
 
@@ -412,10 +543,27 @@ The project uses:
 - **pytest** with async support for testing
 
 Key directories:
-- `src/tf_mcp_server/core/` - Core server functionality
+- `src/tf_mcp_server/core/` - Core server functionality and all MCP tool definitions
+  - `server.py` - Main FastMCP server with all 13 MCP tools
+  - `config.py` - Configuration management
+  - `models.py` - Data models and types
+  - `terraform_executor.py` - Terraform execution utilities
+  - `azapi_schema_generator.py` - AzAPI schema generation utilities
+  - `utils.py` - Shared utility functions
 - `src/tf_mcp_server/tools/` - Individual tool implementations
-- `src/tf_mcp_server/data/` - Static data files (schemas, etc.)
+  - `azurerm_docs_provider.py` - AzureRM documentation provider
+  - `azapi_docs_provider.py` - AzAPI documentation provider  
+  - `avm_docs_provider.py` - Azure Verified Modules provider
+  - `terraform_runner.py` - Terraform command execution
+  - `tflint_runner.py` - TFLint static analysis runner
+  - `conftest_avm_runner.py` - Conftest policy validation runner
+- `src/data/` - Static data files and schemas
+  - `azapi_schemas_v2.6.1.json` - AzAPI resource schemas
 - `tests/` - Test files matching the source structure
+- `policy/` - Security and compliance policy definitions
+  - `avmsec/` - Azure security policies for Conftest
+  - `Azure-Proactive-Resiliency-Library-v2/` - Azure resiliency policies
+- `tfsample/` - Sample Terraform configurations for testing
 
 ## Adding New Features
 
