@@ -2,6 +2,7 @@
 Main server implementation for Azure Terraform MCP Server.
 """
 
+import json
 import logging
 from typing import Dict, Any
 from pydantic import Field
@@ -15,6 +16,8 @@ from ..tools.terraform_runner import get_terraform_runner
 from ..tools.tflint_runner import get_tflint_runner
 from ..tools.conftest_avm_runner import get_conftest_avm_runner
 from ..tools.aztfexport_runner import get_aztfexport_runner
+from ..tools.terraform_schema_provider import get_terraform_schema_provider
+from ..tools.golang_source_provider import get_golang_source_provider
 
 logger = logging.getLogger(__name__)
 
@@ -39,6 +42,8 @@ def create_server(config: Config) -> FastMCP:
     tflint_runner = get_tflint_runner()
     conftest_avm_runner = get_conftest_avm_runner()
     aztfexport_runner = get_aztfexport_runner()
+    terraform_schema_provider = get_terraform_schema_provider()
+    golang_source_provider = get_golang_source_provider()
 
     # ==========================================
     # DOCUMENTATION TOOLS
@@ -970,6 +975,264 @@ def create_server(config: Config) -> FastMCP:
                 'error': f'Failed to set configuration: {str(e)}'
             }
 
+
+    # ==========================================
+    # TERRAFORM SCHEMA & PROVIDER ANALYSIS TOOLS
+    # ==========================================
+    
+    @mcp.tool("query_terraform_schema")
+    async def query_terraform_schema(
+        category: str = Field(..., description="Terraform block type: resource, data, ephemeral, function, provider"),
+        type: str = Field(default="", description="Terraform block type like azurerm_resource_group or function name. Not required for provider category."),
+        path: str = Field(default="", description="JSON path to query specific schema parts"),
+        namespace: str = Field(default="hashicorp", description="Provider namespace (e.g., 'hashicorp', 'Azure')"),
+        name: str = Field(default="", description="Provider name (e.g., 'azurerm', 'azapi'). Will be inferred if not provided."),
+        version: str = Field(default="", description="Provider version constraint")
+    ) -> str:
+        """
+        Query fine-grained Terraform schema information.
+        
+        Supports all providers available in the Terraform Registry through dynamic schema loading.
+        For provider category, returns the complete provider schema including configuration options.
+        For other categories, returns specific resource/data source/function schema.
+        
+        Args:
+            category: Terraform block type
+            type: Terraform resource/data/function type  
+            path: JSON path for specific schema parts
+            namespace: Provider namespace
+            name: Provider name (inferred from type if not provided)
+            version: Provider version constraint
+            
+        Returns:
+            JSON string representing the schema with attribute descriptions
+        """
+        try:
+            result = await terraform_schema_provider.query_schema(
+                category=category,
+                resource_type=type,
+                path=path if path else None,
+                provider_namespace=namespace,
+                provider_name=name if name else None,
+                provider_version=version if version else None
+            )
+            return result
+            
+        except Exception as e:
+            logger.error(f"Error querying terraform schema: {e}")
+            return json.dumps({"error": f"Failed to query terraform schema: {str(e)}"})
+    
+    @mcp.tool("list_terraform_provider_items")
+    async def list_terraform_provider_items(
+        category: str = Field(..., description="Item type: resource, data, ephemeral, function"),
+        name: str = Field(..., description="Provider name (e.g., 'azurerm', 'aws')"),
+        namespace: str = Field(default="hashicorp", description="Provider namespace"),
+        version: str = Field(default="", description="Provider version constraint")
+    ) -> Dict[str, Any]:
+        """
+        List all available items for a specific Terraform provider.
+        
+        This tool enables discovery of all capabilities provided by any Terraform provider
+        in the registry. Use when you need to discover what resources/data sources/functions
+        are available in a provider.
+        
+        Args:
+            category: Type of items to list
+            namespace: Provider namespace
+            name: Provider name
+            version: Provider version constraint
+            
+        Returns:
+            Dictionary with items list and metadata
+        """
+        try:
+            items = await terraform_schema_provider.list_provider_items(
+                category=category,
+                provider_namespace=namespace,
+                provider_name=name,
+                provider_version=version if version else None
+            )
+            
+            return {
+                "provider": f"{namespace}/{name}",
+                "category": category,
+                "version": version or "latest",
+                "total_items": len(items),
+                "items": items
+            }
+            
+        except Exception as e:
+            logger.error(f"Error listing provider items: {e}")
+            return {
+                "error": f"Failed to list provider items: {str(e)}",
+                "provider": f"{namespace}/{name}",
+                "category": category,
+                "items": []
+            }
+    
+    @mcp.tool("terraform_source_code_query_get_supported_providers")
+    def get_supported_terraform_providers() -> Dict[str, Any]:
+        """
+        Get all supported Terraform provider names available for source code query.
+        
+        Returns a list of provider names that have been indexed and are available
+        for golang source code analysis.
+        
+        Returns:
+            Dictionary with supported providers list
+        """
+        try:
+            providers = golang_source_provider.get_supported_providers()
+            return {
+                "supported_providers": providers,
+                "total_count": len(providers),
+                "description": "Terraform providers available for source code analysis"
+            }
+            
+        except Exception as e:
+            logger.error(f"Error getting supported providers: {e}")
+            return {
+                "error": f"Failed to get supported providers: {str(e)}",
+                "supported_providers": []
+            }
+    
+    @mcp.tool("query_terraform_block_implementation_source_code")
+    async def query_terraform_block_implementation_source_code(
+        block_type: str = Field(..., description="Terraform block type: resource, data, ephemeral"),
+        terraform_type: str = Field(..., description="Terraform type (e.g., azurerm_resource_group)"),
+        entrypoint_name: str = Field(..., description="Function/method name (create, read, update, delete, schema, etc.)"),
+        tag: str = Field(default="", description="Version tag (optional)")
+    ) -> str:
+        """
+        Read Terraform provider source code for a given Terraform block.
+        
+        Use this tool to understand how Terraform providers implement specific resources,
+        how they call APIs, and to debug issues related to specific Terraform resources.
+        
+        Args:
+            block_type: The terraform block type
+            terraform_type: The terraform resource/data type
+            entrypoint_name: The function or method name to read
+            tag: Optional version tag
+            
+        Returns:
+            Source code as string
+        """
+        try:
+            source_code = await golang_source_provider.query_terraform_source_code(
+                block_type=block_type,
+                terraform_type=terraform_type,
+                entrypoint_name=entrypoint_name,
+                tag=tag if tag else None
+            )
+            return source_code
+            
+        except Exception as e:
+            logger.error(f"Error querying terraform source code: {e}")
+            return f"Error: Failed to query terraform source code: {str(e)}"
+
+    # ==========================================
+    # GOLANG SOURCE CODE ANALYSIS TOOLS
+    # ==========================================
+    
+    @mcp.tool("golang_source_code_server_get_supported_golang_namespaces")
+    def get_supported_golang_namespaces() -> Dict[str, Any]:
+        """
+        Get all indexed golang namespaces available for source code analysis.
+        
+        Returns a list of golang namespaces/packages that have been indexed
+        and are available for source code retrieval.
+        
+        Returns:
+            Dictionary with supported namespaces
+        """
+        try:
+            namespaces = golang_source_provider.get_supported_namespaces()
+            return {
+                "supported_namespaces": namespaces,
+                "total_count": len(namespaces),
+                "description": "Golang namespaces available for source code analysis"
+            }
+            
+        except Exception as e:
+            logger.error(f"Error getting supported namespaces: {e}")
+            return {
+                "error": f"Failed to get supported namespaces: {str(e)}",
+                "supported_namespaces": []
+            }
+    
+    @mcp.tool("golang_source_code_server_get_supported_tags")
+    def get_supported_golang_tags(
+        namespace: str = Field(..., description="Golang namespace to get tags for")
+    ) -> Dict[str, Any]:
+        """
+        Get all supported tags/versions for a specific golang namespace.
+        
+        Use this tool to discover available versions/tags for a specific golang
+        namespace before analyzing code from a particular version.
+        
+        Args:
+            namespace: The golang namespace to query
+            
+        Returns:
+            Dictionary with supported tags for the namespace
+        """
+        try:
+            tags = golang_source_provider.get_supported_tags(namespace)
+            return {
+                "namespace": namespace,
+                "supported_tags": tags,
+                "total_count": len(tags),
+                "latest_tag": tags[0] if tags else "unknown"
+            }
+            
+        except Exception as e:
+            logger.error(f"Error getting supported tags: {e}")
+            return {
+                "error": f"Failed to get supported tags: {str(e)}",
+                "namespace": namespace,
+                "supported_tags": []
+            }
+    
+    @mcp.tool("query_golang_source_code")
+    async def query_golang_source_code(
+        namespace: str = Field(..., description="Golang namespace to query"),
+        symbol: str = Field(..., description="Symbol type: func, method, type, var"),
+        name: str = Field(..., description="Name of the symbol to read"),
+        receiver: str = Field(default="", description="Method receiver type (required for methods)"),
+        tag: str = Field(default="", description="Version tag (optional)")
+    ) -> str:
+        """
+        Read golang source code for given type, variable, constant, function or method definition.
+        
+        Use this tool when you need to see function, method, type, or variable definitions
+        while reading golang source code, understand how Terraform providers expand or
+        flatten structs, or debug issues related to specific Terraform resources.
+        
+        Args:
+            namespace: The golang namespace/package
+            symbol: The symbol type (func, method, type, var)
+            name: The name of the symbol
+            receiver: The receiver type (for methods only)
+            tag: Version tag
+            
+        Returns:
+            Source code as string
+        """
+        try:
+            source_code = await golang_source_provider.query_golang_source_code(
+                namespace=namespace,
+                symbol=symbol,
+                name=name,
+                receiver=receiver if receiver else None,
+                tag=tag if tag else None
+            )
+            return source_code
+            
+        except Exception as e:
+            logger.error(f"Error querying golang source code: {e}")
+            return f"Error: Failed to query golang source code: {str(e)}"
+    
     return mcp
 
 
