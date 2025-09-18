@@ -48,7 +48,6 @@ RUN AZTFEXPORT_VERSION=$(curl -s "https://api.github.com/repos/Azure/aztfexport/
     && rm aztfexport.tar.gz \
     && aztfexport --version
 
-
 # Install Conftest (latest version)
 RUN CONFTEST_VERSION=$(curl -s "https://api.github.com/repos/open-policy-agent/conftest/releases/latest" | jq -r '.tag_name' | cut -c 2-) \
     && ARCH=$(uname -m) \

@@ -219,7 +219,7 @@ The mapping file must be a JSON object where:
 
 REQUIRED FIELDS:
 - "resource_type": Terraform resource type (e.g., "azurerm_resource_group")
-- "resource_name": Terraform resource name (alphanumeric + underscore only)
+- "resource_name": Terraform resource name
 - "resource_id": Azure resource ID (same as the key)
 
 EXAMPLE MAPPING FILE:
@@ -240,7 +240,6 @@ TIPS:
 - Get resource IDs from Azure CLI: az resource list --query "[].id" -o tsv
 - Verify resource types match Terraform provider documentation
 - Test with small mapping files first before large imports
-- Use consistent naming conventions for easier management
 
 VALIDATION:
 - All 3 fields (resource_type, resource_name, resource_id) are mandatory
@@ -266,7 +265,6 @@ VALIDATION:
                 return {
                     "success": False,
                     "error": f"aztfexport executable not found: {self.aztfexport_executable}",
-                    "help_text": "",
                     "executable_path": self.aztfexport_executable,
                     "command": command or "main"
                 }
@@ -308,7 +306,6 @@ VALIDATION:
             return {
                 "success": False,
                 "error": error_msg,
-                "help_text": "",
                 "command": command or "main"
             }
         except FileNotFoundError as e:
@@ -316,7 +313,6 @@ VALIDATION:
             return {
                 "success": False,
                 "error": error_msg,
-                "help_text": "",
                 "command": command or "main"
             }
         except Exception as e:
@@ -324,7 +320,6 @@ VALIDATION:
             return {
                 "success": False,
                 "error": error_msg,
-                "help_text": "",
                 "command": command or "main"
             }
 

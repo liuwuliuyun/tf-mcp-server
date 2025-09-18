@@ -661,7 +661,7 @@ def create_server(config: Config) -> FastMCP:
     
     @mcp.tool("get_aztfexport_help")
     async def get_aztfexport_help(
-        command: str = Field("", description="Optional command to get help for. Leave empty for main help showing all available commands. Valid commands: 'config', 'rg' (resource-group), 'res' (resource), 'query', 'map' (mapping-file)")
+        command: str = Field("", description="Optional command to get help for. Leave empty for main help showing all available commands and their descriptions.")
     ) -> Dict[str, Any]:
         """
         Get dynamic help information directly from the aztfexport tool.
@@ -670,24 +670,18 @@ def create_server(config: Config) -> FastMCP:
         is always current and accurate. Use this before executing aztfexport commands.
         
         Recommended workflow:
-        1. Call get_aztfexport_help() to see available commands
-        2. Call get_aztfexport_help(command="rg") to see specific command options
+        1. Call get_aztfexport_help() to discover all available commands
+        2. Call get_aztfexport_help(command="<command_name>") for specific command help
         3. Use run_aztfexport() with the appropriate arguments
         
         Args:
-            command: Optional command to get detailed help for:
-                - "" (empty): Main help with all available commands
-                - "config": Configuration management help
-                - "rg" or "resource-group": Resource group export help  
-                - "res" or "resource": Individual resource export help
-                - "query": Azure Resource Graph query export help
-                - "map" or "mapping-file": Mapping file export help (includes required JSON format)
+            command: Optional command name to get detailed help for. The main help 
+                    (when command is empty) will show all available commands.
                 
         Returns:
             Live help text from aztfexport tool with all current options and usage.
-            For mapping file commands, includes enhanced format specification with:
-            - Required JSON structure (resource_type, resource_name, resource_id)
-            - Complete examples with real Azure resource IDs
+            The help content is fetched directly from aztfexport, ensuring it's always 
+            up-to-date with the installed version.
         """
         try:
             result = aztfexport_runner.get_help(command)
@@ -697,13 +691,12 @@ def create_server(config: Config) -> FastMCP:
             return {
                 'success': False,
                 'error': f'Failed to get aztfexport help: {str(e)}',
-                'help_text': '',
                 'command': command
             }
         
     @mcp.tool("run_aztfexport")
     async def run_aztfexport(
-        command_args: str = Field(..., description="Complete aztfexport command arguments as you would type in terminal. Use get_aztfexport_help() first to see available commands and options. Examples: 'rg myResourceGroup', 'res /subscriptions/.../resource', 'query \"type=~\\'Microsoft.Storage.*\\'\"'"),
+        command_args: str = Field(..., description="Complete aztfexport command arguments as you would type in terminal. CRITICAL: Positional arguments must come LAST after all flags. For QUERY mode, learn Azure Resource Graph syntax at portal.azure.com > Resource Graph Explorer. Use get_aztfexport_help() first to see available commands and options. Examples: 'rg --output-dir ./terraform myResourceGroup', 'res --non-interactive /subscriptions/.../resource', 'query --output-dir ./output \"type =~ \\'microsoft.automation/automationaccounts\\'\"'"),
         client_working_directory: str = Field("", description="Client's working directory path. REQUIRED when using relative paths (like -o ./output) to resolve them relative to client directory instead of server directory.")
     ) -> Dict[str, Any]:
         """
@@ -711,14 +704,34 @@ def create_server(config: Config) -> FastMCP:
         
         IMPORTANT: Use get_aztfexport_help() tool first to get current command syntax and options.
         
+        CRITICAL ARGUMENT ORDER:
+        aztfexport follows the pattern: command [FLAGS] [POSITIONAL_ARGS]
+        - All flags (--output-dir, --exclude-azure-resource, etc.) must come BEFORE positional arguments
+        - Positional arguments (resource group names, resource IDs, queries) must come LAST
+        
+        Examples of CORRECT argument order:
+        - 'rg --output-dir ./terraform --non-interactive myResourceGroup'
+        - 'res --non-interactive /subscriptions/12345/resourceGroups/myRG/providers/Microsoft.Storage/storageAccounts/mysa'
+        - 'query --output-dir ./output "type =~ \\'microsoft.automation/automationaccounts\\'"'
+
+        AZURE RESOURCE GRAPH QUERIES (for "query" command):
+        For query mode, use Azure Resource Graph (ARG) syntax. Basic patterns:
+        - Exact resource type: 'type =~ "Microsoft.ServiceBus/namespaces"'
+        - Service family: 'type startswith "Microsoft.ServiceBus"'
+        - Multiple types: 'type in ("Microsoft.Storage/storageAccounts", "Microsoft.KeyVault/vaults")'
+        - With filters: 'type =~ "Microsoft.Compute/virtualMachines" and location == "eastus"'
+    
+        Learn ARG syntax: Use Azure Portal > Resource Graph Explorer to test queries first.
+        
         This tool preserves two key features:
         1. Automatic aztfexport executable detection and validation
         2. Client working directory resolution for relative paths (like -o ./output)
         
         Workflow:
-        1. Call get_aztfexport_help() to see available commands
-        2. Call get_aztfexport_help(command="rg") for specific command help
-        3. Use this tool with the correct command_args
+        1. Call get_aztfexport_help() to discover all available commands and their syntax
+        2. Call get_aztfexport_help(command="<command_name>") for specific command help
+        3. Use this tool with the correct command_args from the help output
+        4. ENSURE positional arguments come after all flags
         
         Path Handling:
         - Relative paths (./output, ../terraform) work with or without client_working_directory
