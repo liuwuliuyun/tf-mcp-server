@@ -30,6 +30,7 @@ This MCP server provides support for Azure Terraform development, including:
 - **HCL Formatting**: Automatic code formatting for Terraform configurations
 - **TFLint Integration**: Static analysis with TFLint including Azure ruleset support
 - **Resource Analysis**: Analyze Azure resources in Terraform configurations
+- **Azure Export for Terraform (aztfexport)**: Export existing Azure resources to Terraform configuration and state
 
 ### 🚀 Integration
 - **MCP Protocol**: Full Model Context Protocol compliance for AI assistant integration
@@ -112,6 +113,14 @@ The server provides the following MCP tools:
 
 #### Analysis Tools
 - **`analyze_azure_resources`**: Analyze Azure resources in Terraform configurations
+
+#### Azure Export Tools (aztfexport Integration)
+- **`check_aztfexport_installation`**: Check Azure Export for Terraform (aztfexport) installation status and version
+- **`aztfexport_resource`**: Export a single Azure resource to Terraform configuration using aztfexport
+- **`aztfexport_resource_group`**: Export an entire Azure resource group and its resources to Terraform configuration
+- **`aztfexport_query`**: Export Azure resources using Azure Resource Graph queries to Terraform configuration
+- **`aztfexport_get_config`**: Get aztfexport configuration settings
+- **`aztfexport_set_config`**: Set aztfexport configuration settings
 
 ### Example Usage
 
@@ -303,6 +312,66 @@ The server provides the following MCP tools:
     "enable_azure_plugin": true,
     "disable_rules": "terraform_unused_declarations",
     "enable_rules": "azurerm_storage_account_min_tls_version"
+  }
+}
+```
+
+#### Azure Export for Terraform (aztfexport)
+```python
+# Check if aztfexport is installed
+{
+  "tool": "check_aztfexport_installation",
+  "arguments": {}
+}
+
+# Export a single Azure resource to Terraform configuration
+{
+  "tool": "aztfexport_resource",
+  "arguments": {
+    "resource_id": "/subscriptions/12345678-1234-1234-1234-123456789012/resourceGroups/my-rg/providers/Microsoft.Storage/storageAccounts/mystorageacct",
+    "provider": "azurerm",
+    "dry_run": false,
+    "resource_name": "primary_storage"
+  }
+}
+
+# Export an entire resource group
+{
+  "tool": "aztfexport_resource_group",
+  "arguments": {
+    "resource_group_name": "production-environment",
+    "provider": "azurerm",
+    "include_role_assignment": true,
+    "parallelism": 5,
+    "continue_on_error": true
+  }
+}
+
+# Export resources using Azure Resource Graph query
+{
+  "tool": "aztfexport_query",
+  "arguments": {
+    "query": "type =~ 'Microsoft.Storage/storageAccounts' and location == 'eastus'",
+    "provider": "azurerm",
+    "dry_run": true,
+    "name_pattern": "storage_{name}"
+  }
+}
+
+# Get aztfexport configuration
+{
+  "tool": "aztfexport_get_config",
+  "arguments": {
+    "key": "telemetry_enabled"
+  }
+}
+
+# Set aztfexport configuration (disable telemetry)
+{
+  "tool": "aztfexport_set_config",
+  "arguments": {
+    "key": "telemetry_enabled",
+    "value": "false"
   }
 }
 ```

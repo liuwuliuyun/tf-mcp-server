@@ -14,6 +14,7 @@ from ..tools.azapi_docs_provider import get_azapi_documentation_provider
 from ..tools.terraform_runner import get_terraform_runner
 from ..tools.tflint_runner import get_tflint_runner
 from ..tools.conftest_avm_runner import get_conftest_avm_runner
+from ..tools.aztfexport_runner import get_aztfexport_runner
 
 logger = logging.getLogger(__name__)
 
@@ -37,6 +38,7 @@ def create_server(config: Config) -> FastMCP:
     terraform_runner = get_terraform_runner()
     tflint_runner = get_tflint_runner()
     conftest_avm_runner = get_conftest_avm_runner()
+    aztfexport_runner = get_aztfexport_runner()
     
     # ==========================================
     # DOCUMENTATION TOOLS
@@ -651,6 +653,294 @@ def create_server(config: Config) -> FastMCP:
                     'failures': 0,
                     'warnings': 0
                 }
+            }
+
+    # ==========================================
+    # AZURE EXPORT FOR TERRAFORM (AZTFEXPORT) TOOLS
+    # ==========================================
+
+    @mcp.tool("check_aztfexport_installation")
+    async def check_aztfexport_installation() -> Dict[str, Any]:
+        """
+        Check if Azure Export for Terraform (aztfexport) is installed and get version information.
+
+        Returns:
+            Installation status, version information, and installation help if needed
+        """
+        try:
+            return await aztfexport_runner.check_installation()
+        except Exception as e:
+            logger.error(f"Error checking aztfexport installation: {e}")
+            return {
+                'installed': False,
+                'error': f'Failed to check aztfexport installation: {str(e)}',
+                'status': 'Installation check failed'
+            }
+
+    @mcp.tool("aztfexport_resource")
+    async def aztfexport_resource(
+        resource_id: str = Field(..., description="Azure resource ID to export"),
+        output_dir: str = Field("", description="Output directory (temporary if not specified)"),
+        provider: str = Field("azurerm", description="Terraform provider to use (azurerm or azapi)"),
+        resource_name: str = Field("", description="Custom resource name in Terraform"),
+        resource_type: str = Field("", description="Custom resource type in Terraform"),
+        dry_run: bool = Field(False, description="Perform a dry run without creating files"),
+        include_role_assignment: bool = Field(False, description="Include role assignments in export"),
+        parallelism: int = Field(10, description="Number of parallel operations"),
+        continue_on_error: bool = Field(False, description="Continue export even if some resources fail")
+    ) -> Dict[str, Any]:
+        """
+        Export a single Azure resource to Terraform configuration using aztfexport.
+
+        This tool uses Azure Export for Terraform (aztfexport) to export existing Azure resources
+        to Terraform configuration and state files. It generates both the HCL configuration
+        and the corresponding Terraform state.
+
+        Args:
+            resource_id: Azure resource ID to export (e.g., /subscriptions/.../resourceGroups/.../providers/Microsoft.Storage/storageAccounts/myaccount)
+            output_dir: Output directory for generated files (temporary directory if not specified)
+            provider: Terraform provider to use - 'azurerm' (default) or 'azapi'
+            resource_name: Custom resource name in the generated Terraform configuration
+            resource_type: Custom resource type in the generated Terraform configuration
+            dry_run: If true, performs validation without creating actual files
+            include_role_assignment: Whether to include role assignments in the export
+            parallelism: Number of parallel operations for export (1-50)
+            continue_on_error: Whether to continue if some resources fail during export
+
+        Returns:
+            Export result containing generated Terraform files, status, and any errors
+        """
+        try:
+            from ..tools.aztfexport_runner import AztfexportProvider
+            
+            # Validate provider
+            if provider.lower() == "azapi":
+                tf_provider = AztfexportProvider.AZAPI
+            else:
+                tf_provider = AztfexportProvider.AZURERM
+            
+            # Validate parallelism
+            parallelism = max(1, min(50, parallelism))
+            
+            result = await aztfexport_runner.export_resource(
+                resource_id=resource_id,
+                output_dir=output_dir if output_dir else None,
+                provider=tf_provider,
+                resource_name=resource_name if resource_name else None,
+                resource_type=resource_type if resource_type else None,
+                dry_run=dry_run,
+                include_role_assignment=include_role_assignment,
+                parallelism=parallelism,
+                continue_on_error=continue_on_error
+            )
+            
+            return result
+            
+        except Exception as e:
+            logger.error(f"Error in aztfexport resource export: {e}")
+            return {
+                'success': False,
+                'error': f'Resource export failed: {str(e)}',
+                'exit_code': -1
+            }
+
+    @mcp.tool("aztfexport_resource_group") 
+    async def aztfexport_resource_group(
+        resource_group_name: str = Field(..., description="Name of the resource group to export"),
+        output_dir: str = Field("", description="Output directory (temporary if not specified)"),
+        provider: str = Field("azurerm", description="Terraform provider to use (azurerm or azapi)"),
+        name_pattern: str = Field("", description="Pattern for resource naming in Terraform"),
+        type_pattern: str = Field("", description="Pattern for resource type filtering"),
+        dry_run: bool = Field(False, description="Perform a dry run without creating files"),
+        include_role_assignment: bool = Field(False, description="Include role assignments in export"),
+        parallelism: int = Field(10, description="Number of parallel operations"),
+        continue_on_error: bool = Field(False, description="Continue export even if some resources fail")
+    ) -> Dict[str, Any]:
+        """
+        Export Azure resource group and its resources to Terraform configuration using aztfexport.
+
+        This tool exports an entire Azure resource group and all its contained resources
+        to Terraform configuration and state files. It's useful for migrating complete
+        environments or resource groupings to Terraform management.
+
+        Args:
+            resource_group_name: Name of the Azure resource group to export (not the full resource ID, just the name)
+            output_dir: Output directory for generated files (temporary directory if not specified)
+            provider: Terraform provider to use - 'azurerm' (default) or 'azapi'
+            name_pattern: Pattern for resource naming in the generated Terraform configuration
+            type_pattern: Pattern for filtering resource types to export
+            dry_run: If true, performs validation without creating actual files
+            include_role_assignment: Whether to include role assignments in the export
+            parallelism: Number of parallel operations for export (1-50)
+            continue_on_error: Whether to continue if some resources fail during export
+
+        Returns:
+            Export result containing generated Terraform files, status, and any errors
+        """
+        try:
+            from ..tools.aztfexport_runner import AztfexportProvider
+            
+            # Validate provider
+            if provider.lower() == "azapi":
+                tf_provider = AztfexportProvider.AZAPI
+            else:
+                tf_provider = AztfexportProvider.AZURERM
+            
+            # Validate parallelism
+            parallelism = max(1, min(50, parallelism))
+            
+            result = await aztfexport_runner.export_resource_group(
+                resource_group_name=resource_group_name,
+                output_dir=output_dir if output_dir else None,
+                provider=tf_provider,
+                name_pattern=name_pattern if name_pattern else None,
+                type_pattern=type_pattern if type_pattern else None,
+                dry_run=dry_run,
+                include_role_assignment=include_role_assignment,
+                parallelism=parallelism,
+                continue_on_error=continue_on_error
+            )
+            
+            return result
+            
+        except Exception as e:
+            logger.error(f"Error in aztfexport resource group export: {e}")
+            return {
+                'success': False,
+                'error': f'Resource group export failed: {str(e)}',
+                'exit_code': -1
+            }
+
+    @mcp.tool("aztfexport_query")
+    async def aztfexport_query(
+        query: str = Field(..., description="Azure Resource Graph query (WHERE clause)"),
+        output_dir: str = Field("", description="Output directory (temporary if not specified)"),
+        provider: str = Field("azurerm", description="Terraform provider to use (azurerm or azapi)"),
+        name_pattern: str = Field("", description="Pattern for resource naming in Terraform"),
+        type_pattern: str = Field("", description="Pattern for resource type filtering"),
+        dry_run: bool = Field(False, description="Perform a dry run without creating files"),
+        include_role_assignment: bool = Field(False, description="Include role assignments in export"),
+        parallelism: int = Field(10, description="Number of parallel operations"),
+        continue_on_error: bool = Field(False, description="Continue export even if some resources fail")
+    ) -> Dict[str, Any]:
+        """
+        Export Azure resources using Azure Resource Graph query to Terraform configuration.
+
+        This tool uses Azure Resource Graph queries to select specific Azure resources
+        for export to Terraform configuration. It's powerful for complex resource selection
+        scenarios and bulk operations across subscriptions.
+
+        Args:
+            query: Azure Resource Graph WHERE clause (e.g., "type =~ 'Microsoft.Storage/storageAccounts' and location == 'eastus'")
+            output_dir: Output directory for generated files (temporary directory if not specified)
+            provider: Terraform provider to use - 'azurerm' (default) or 'azapi'
+            name_pattern: Pattern for resource naming in the generated Terraform configuration
+            type_pattern: Pattern for filtering resource types to export
+            dry_run: If true, performs validation without creating actual files
+            include_role_assignment: Whether to include role assignments in the export
+            parallelism: Number of parallel operations for export (1-50)
+            continue_on_error: Whether to continue if some resources fail during export
+
+        Returns:
+            Export result containing generated Terraform files, status, and any errors
+
+        Examples:
+            - Export all storage accounts: "type =~ 'Microsoft.Storage/storageAccounts'"
+            - Export resources in specific location: "location == 'eastus'"
+            - Export resources with tags: "tags['Environment'] == 'Production'"
+            - Complex query: "type =~ 'Microsoft.Compute/virtualMachines' and location == 'westus2' and tags['Team'] == 'DevOps'"
+        """
+        try:
+            from ..tools.aztfexport_runner import AztfexportProvider
+            
+            # Validate provider
+            if provider.lower() == "azapi":
+                tf_provider = AztfexportProvider.AZAPI
+            else:
+                tf_provider = AztfexportProvider.AZURERM
+            
+            # Validate parallelism
+            parallelism = max(1, min(50, parallelism))
+            
+            result = await aztfexport_runner.export_query(
+                query=query,
+                output_dir=output_dir if output_dir else None,
+                provider=tf_provider,
+                name_pattern=name_pattern if name_pattern else None,
+                type_pattern=type_pattern if type_pattern else None,
+                dry_run=dry_run,
+                include_role_assignment=include_role_assignment,
+                parallelism=parallelism,
+                continue_on_error=continue_on_error
+            )
+            
+            return result
+            
+        except Exception as e:
+            logger.error(f"Error in aztfexport query export: {e}")
+            return {
+                'success': False,
+                'error': f'Query export failed: {str(e)}',
+                'exit_code': -1
+            }
+
+    @mcp.tool("aztfexport_get_config")
+    async def aztfexport_get_config(
+        key: str = Field("", description="Specific config key to retrieve (optional)")
+    ) -> Dict[str, Any]:
+        """
+        Get Azure Export for Terraform (aztfexport) configuration settings.
+
+        This tool retrieves the current aztfexport configuration. You can get all
+        configuration or a specific setting.
+
+        Args:
+            key: Specific configuration key to retrieve. If empty, returns all configuration.
+                 Common keys: 'installation_id', 'telemetry_enabled'
+
+        Returns:
+            Configuration data or error information
+        """
+        try:
+            result = await aztfexport_runner.get_config(key if key else None)
+            return result
+            
+        except Exception as e:
+            logger.error(f"Error getting aztfexport config: {e}")
+            return {
+                'success': False,
+                'error': f'Failed to get configuration: {str(e)}'
+            }
+
+    @mcp.tool("aztfexport_set_config")
+    async def aztfexport_set_config(
+        key: str = Field(..., description="Configuration key to set"),
+        value: str = Field(..., description="Configuration value to set")
+    ) -> Dict[str, Any]:
+        """
+        Set Azure Export for Terraform (aztfexport) configuration settings.
+
+        This tool allows you to configure aztfexport settings such as telemetry preferences.
+
+        Args:
+            key: Configuration key to set (e.g., 'telemetry_enabled')
+            value: Configuration value to set (e.g., 'false' to disable telemetry)
+
+        Returns:
+            Operation result indicating success or failure
+
+        Common configuration keys:
+            - telemetry_enabled: 'true' or 'false' to control telemetry collection
+        """
+        try:
+            result = await aztfexport_runner.set_config(key, value)
+            return result
+            
+        except Exception as e:
+            logger.error(f"Error setting aztfexport config: {e}")
+            return {
+                'success': False,
+                'error': f'Failed to set configuration: {str(e)}'
             }
     
     return mcp

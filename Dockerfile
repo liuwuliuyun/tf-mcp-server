@@ -22,6 +22,7 @@ RUN tdnf update && tdnf install -y \
     net-tools \
     shadow-utils \
     azure-cli \
+    aztfexport \
     && tdnf clean all
 
 # Install Terraform (latest version)
