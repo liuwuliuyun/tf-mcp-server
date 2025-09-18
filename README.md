@@ -31,6 +31,18 @@ This MCP server provides support for Azure Terraform development, including:
 - **TFLint Integration**: Static analysis with TFLint including Azure ruleset support
 - **Resource Analysis**: Analyze Azure resources in Terraform configurations
 
+### 📋 Schema & Provider Analysis
+- **Terraform Schema Query**: Query fine-grained schema information for any Terraform provider
+- **Provider Item Discovery**: List all available resources, data sources, and functions for providers
+- **Provider Support Discovery**: Find which providers are available for analysis
+- **Dynamic Schema Loading**: Support for all providers in the Terraform Registry
+
+### 🔍 Golang Source Code Analysis
+- **Golang Namespace Discovery**: Find available golang packages for source code analysis
+- **Version/Tag Support**: Query specific versions of provider source code
+- **Source Code Retrieval**: Read golang source code for functions, methods, types, and variables
+- **Terraform Implementation Analysis**: Understand how Terraform resources are implemented in Go
+
 ### 🚀 Integration
 - **MCP Protocol**: Full Model Context Protocol compliance for AI assistant integration
 - **FastMCP Framework**: Built on FastMCP for high-performance async operations
@@ -112,6 +124,17 @@ The server provides the following MCP tools:
 
 #### Analysis Tools
 - **`analyze_azure_resources`**: Analyze Azure resources in Terraform configurations
+
+#### Terraform Schema & Provider Analysis Tools
+- **`query_terraform_schema`**: Query fine-grained Terraform schema information for any provider
+- **`list_terraform_provider_items`**: List all available items (resources, data sources, functions) for a provider
+- **`terraform_source_code_query_get_supported_providers`**: Get supported providers for source code analysis
+- **`query_terraform_block_implementation_source_code`**: Read Terraform provider source code implementations
+
+#### Golang Source Code Analysis Tools
+- **`golang_source_code_server_get_supported_golang_namespaces`**: Get available golang namespaces for analysis
+- **`golang_source_code_server_get_supported_tags`**: Get supported version tags for a golang namespace
+- **`query_golang_source_code`**: Read golang source code for functions, methods, types, and variables
 
 ### Example Usage
 
