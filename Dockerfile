@@ -22,7 +22,6 @@ RUN tdnf update && tdnf install -y \
     net-tools \
     shadow-utils \
     azure-cli \
-    aztfexport \
     && tdnf clean all
 
 # Install Terraform (latest version)
@@ -34,6 +33,16 @@ RUN TERRAFORM_VERSION=$(curl -s "https://api.github.com/repos/hashicorp/terrafor
     && mv terraform /usr/local/bin/ \
     && rm terraform.zip \
     && terraform version
+
+# Install Azure Export for Terraform (aztfexport) from GitHub releases (latest version)
+RUN AZTFEXPORT_VERSION=$(curl -s "https://api.github.com/repos/Azure/aztfexport/releases/latest" | jq -r '.tag_name' | cut -c 2-) \
+    && ARCH=$(uname -m) \
+    && if [ "$ARCH" = "x86_64" ]; then ARCH="amd64"; elif [ "$ARCH" = "aarch64" ]; then ARCH="arm64"; fi \
+    && curl -fsSL "https://github.com/Azure/aztfexport/releases/download/v${AZTFEXPORT_VERSION}/aztfexport_v${AZTFEXPORT_VERSION}_linux_${ARCH}.zip" -o aztfexport.zip \
+    && unzip aztfexport.zip \
+    && mv aztfexport /usr/local/bin/ \
+    && rm aztfexport.zip \
+    && aztfexport --version
 
 # Install TFLint
 RUN curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
