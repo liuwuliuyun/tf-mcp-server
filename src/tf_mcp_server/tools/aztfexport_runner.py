@@ -176,6 +176,9 @@ class AztfexportRunner:
             # Build command
             command = ['aztfexport', 'resource']
             
+            # Add non-interactive flags for containerized environments
+            command.extend(['--non-interactive', '--plain-ui'])
+            
             # Add provider flag
             if provider == AztfexportProvider.AZAPI:
                 command.extend(['--provider-name', 'azapi'])
@@ -278,6 +281,9 @@ class AztfexportRunner:
             # Build command
             command = ['aztfexport', 'resource-group']
             
+            # Add non-interactive flags for containerized environments
+            command.extend(['--non-interactive', '--plain-ui'])
+            
             # Add provider flag
             if provider == AztfexportProvider.AZAPI:
                 command.extend(['--provider-name', 'azapi'])
@@ -379,6 +385,9 @@ class AztfexportRunner:
             
             # Build command
             command = ['aztfexport', 'query']
+            
+            # Add non-interactive flags for containerized environments
+            command.extend(['--non-interactive', '--plain-ui'])
             
             # Add provider flag
             if provider == AztfexportProvider.AZAPI:
