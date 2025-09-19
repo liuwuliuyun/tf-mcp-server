@@ -124,6 +124,7 @@ class AztfexportRunner:
             return response
             
         except subprocess.TimeoutExpired:
+            error_msg = f"aztfexport command timed out after {COMMAND_TIMEOUT_SECONDS} seconds."
             return {"error": error_msg}
         except subprocess.CalledProcessError as e:
             error_msg = f"Error during aztfexport execution: {str(e)}"
