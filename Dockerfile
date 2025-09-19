@@ -38,6 +38,15 @@ RUN TERRAFORM_VERSION=$(curl -s "https://api.github.com/repos/hashicorp/terrafor
 RUN curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
 RUN tflint --version
 
+# Install aztfexport (latest version)
+RUN AZTFEXPORT_VERSION=$(curl -s "https://api.github.com/repos/Azure/aztfexport/releases/latest" | jq -r '.tag_name' | cut -c 2-) \
+    && ARCH=$(uname -m) \
+    && if [ "$ARCH" = "x86_64" ]; then ARCH="amd64"; elif [ "$ARCH" = "aarch64" ]; then ARCH="arm64"; fi \
+    && curl -fsSL https://github.com/Azure/aztfexport/releases/download/v${AZTFEXPORT_VERSION}/aztfexport_v${AZTFEXPORT_VERSION}_linux_${ARCH}.tar.gz -o aztfexport.tar.gz \
+    && tar -xzf aztfexport.tar.gz \
+    && mv aztfexport /usr/local/bin/ \
+    && rm aztfexport.tar.gz \
+    && aztfexport --version
 
 # Install Conftest (latest version)
 RUN CONFTEST_VERSION=$(curl -s "https://api.github.com/repos/open-policy-agent/conftest/releases/latest" | jq -r '.tag_name' | cut -c 2-) \
