@@ -58,10 +58,10 @@ docker run -d `
 docker run -d \
   --name tf-mcp-server \
   -p 8000:8000 \
-  -e AZURE_CLIENT_ID=your-client-id \
-  -e AZURE_CLIENT_SECRET=your-client-secret \
-  -e AZURE_TENANT_ID=your-tenant-id \
-  -e AZURE_SUBSCRIPTION_ID=your-subscription-id \
+  -e ARM_CLIENT_ID=your-client-id \
+  -e ARM_CLIENT_SECRET=your-client-secret \
+  -e ARM_TENANT_ID=your-tenant-id \
+  -e ARM_SUBSCRIPTION_ID=your-subscription-id \
   ghcr.io/liuwuliuyun/tf-mcp-server:latest
 ```
 
@@ -71,10 +71,10 @@ docker run -d \
 docker run -d `
   --name tf-mcp-server `
   -p 8000:8000 `
-  -e AZURE_CLIENT_ID=your-client-id `
-  -e AZURE_CLIENT_SECRET=your-client-secret `
-  -e AZURE_TENANT_ID=your-tenant-id `
-  -e AZURE_SUBSCRIPTION_ID=your-subscription-id `
+  -e ARM_CLIENT_ID=$Env:ARM_CLIENT_ID `
+  -e ARM_CLIENT_SECRET=$Env:ARM_CLIENT_SECRET `
+  -e ARM_TENANT_ID=$Env:ARM_TENANT_ID `
+  -e ARM_SUBSCRIPTION_ID=$Env:ARM_SUBSCRIPTION_ID `
   ghcr.io/liuwuliuyun/tf-mcp-server:latest
 ```
 
@@ -307,10 +307,10 @@ Health check details:
 | `MCP_SERVER_HOST` | Server bind address | `0.0.0.0` |
 | `MCP_SERVER_PORT` | Server port | `8000` |
 | `LOG_LEVEL` | Logging level (DEBUG, INFO, WARNING, ERROR) | `INFO` |
-| `AZURE_CLIENT_ID` | Azure service principal client ID | - |
-| `AZURE_CLIENT_SECRET` | Azure service principal secret | - |
-| `AZURE_TENANT_ID` | Azure tenant ID | - |
-| `AZURE_SUBSCRIPTION_ID` | Azure subscription ID | - |
+| `ARM_CLIENT_ID` | Azure service principal client ID | - |
+| `ARM_CLIENT_SECRET` | Azure service principal secret | - |
+| `ARM_TENANT_ID` | Azure tenant ID | - |
+| `ARM_SUBSCRIPTION_ID` | Azure subscription ID | - |
 | `TF_LOG` | Terraform logging level | - |
 | `TF_LOG_PATH` | Terraform log file path | - |
 
@@ -319,10 +319,10 @@ Health check details:
 For Azure CLI integration, you can provide Azure credentials via environment variables:
 
 ```env
-AZURE_CLIENT_ID=your-client-id
-AZURE_CLIENT_SECRET=your-client-secret
-AZURE_TENANT_ID=your-tenant-id
-AZURE_SUBSCRIPTION_ID=your-subscription-id
+ARM_CLIENT_ID=your-client-id
+ARM_CLIENT_SECRET=your-client-secret
+ARM_TENANT_ID=your-tenant-id
+ARM_SUBSCRIPTION_ID=your-subscription-id
 ```
 
 Alternatively, you can mount Azure credentials from the host:
