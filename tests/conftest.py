@@ -6,6 +6,7 @@ import pytest
 import asyncio
 from pathlib import Path
 import sys
+from unittest.mock import Mock
 
 # Add src to path for testing
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
@@ -23,6 +24,20 @@ def test_config():
             debug=True
         )
     )
+
+
+@pytest.fixture(scope="session")
+def event_loop_policy():
+    """Create an event loop policy for async tests."""
+    return asyncio.DefaultEventLoopPolicy()
+
+
+@pytest.fixture
+def mock_mcp_result():
+    """Create a mock MCP result object."""
+    result = Mock()
+    result.content = []
+    return result
 
 
 @pytest.fixture
