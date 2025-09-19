@@ -72,7 +72,7 @@ COPY . /app
 RUN pip install uv
 
 # Create directories for logs and health checks
-RUN mkdir -p /app/logs /app/health
+RUN mkdir -p /app/logs /app/health /home/mcpuser/
 
 # Set proper ownership and permissions for the app directory first
 RUN chown -R mcpuser:mcpuser /app /home/mcpuser \
