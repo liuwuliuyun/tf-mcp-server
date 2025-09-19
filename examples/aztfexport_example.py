@@ -158,7 +158,7 @@ async def main():
     print("\n=== Example completed ===")
     print("\nNext steps:")
     print("1. Install aztfexport if not already installed")
-    print("2. Authenticate with Azure (az login or service principal)")
+    print("2. Configure Azure Service Principal credentials (ARM_CLIENT_ID, ARM_CLIENT_SECRET, etc.)")
     print("3. Replace example resource IDs/names with actual Azure resources")
     print("4. Remove dry_run=True to generate actual Terraform files")
     print("5. Review and customize the generated Terraform configuration")

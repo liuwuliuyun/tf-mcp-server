@@ -1,6 +1,20 @@
 # Docker Guide
 
-This guide explains how to run the Azure Terraform MCP Server in a Docker container, from quick start examples to detailed deployment and troubleshooting.
+This guide explains how to run the Azure Terraform MCP Server in a Docker container, from quick st  -e LO  -e LOG_LEVEL=INFO \
+  -e ARM_CLIENT_ID=your-client-id \
+  -e ARM_CLIENT_SECRET=your-client-secret \
+  -e ARM_SUBSCRIPTION_ID=your-subscription-id \
+  -e ARM_TENANT_ID=your-tenant-id \
+  -v ".\logs:/app/logs" \
+  --restart unless-stopped \
+  ghcr.io/liuwuliuyun/tf-mcp-server:latestEL=INFO \
+  -e ARM_CLIENT_ID=your-client-id \
+  -e ARM_CLIENT_SECRET=your-client-secret \
+  -e ARM_SUBSCRIPTION_ID=your-subscription-id \
+  -e ARM_TENANT_ID=your-tenant-id \
+  -v ".\logs:/app/logs" \
+  --restart unless-stopped \
+  ghcr.io/liuwuliuyun/tf-mcp-server:latestxamples to detailed deployment and troubleshooting.
 
 ## Quick Start
 
@@ -28,25 +42,31 @@ docker run -d `
   ghcr.io/liuwuliuyun/tf-mcp-server:latest
 ```
 
-#### 2. With Azure Credentials
+#### 2. With Azure Service Principal
 
 **Linux/macOS:**
 ```bash
-# Mount Azure credentials from host
+# Using environment variables
 docker run -d \
   --name tf-mcp-server \
   -p 8000:8000 \
-  -v ~/.azure:/home/mcpuser/.azure:ro \
+  -e ARM_CLIENT_ID=your-client-id \
+  -e ARM_CLIENT_SECRET=your-client-secret \
+  -e ARM_SUBSCRIPTION_ID=your-subscription-id \
+  -e ARM_TENANT_ID=your-tenant-id \
   ghcr.io/liuwuliuyun/tf-mcp-server:latest
 ```
 
 **Windows PowerShell:**
 ```powershell
-# Mount Azure credentials from host
+# Using environment variables
 docker run -d `
   --name tf-mcp-server `
   -p 8000:8000 `
-  -v "$env:USERPROFILE\.azure:/home/mcpuser/.azure:ro" `
+  -e ARM_CLIENT_ID=your-client-id `
+  -e ARM_CLIENT_SECRET=your-client-secret `
+  -e ARM_SUBSCRIPTION_ID=your-subscription-id `
+  -e ARM_TENANT_ID=your-tenant-id `
   ghcr.io/liuwuliuyun/tf-mcp-server:latest
 ```
 
@@ -89,7 +109,10 @@ docker run -d \
   -e MCP_SERVER_HOST=0.0.0.0 \
   -e MCP_SERVER_PORT=8000 \
   -e LOG_LEVEL=INFO \
-  -v ~/.azure:/home/mcpuser/.azure:ro \
+  -e ARM_CLIENT_ID=your-client-id \
+  -e ARM_CLIENT_SECRET=your-client-secret \
+  -e ARM_SUBSCRIPTION_ID=your-subscription-id \
+  -e ARM_TENANT_ID=your-tenant-id \
   -v ./logs:/app/logs \
   --restart unless-stopped \
   ghcr.io/liuwuliuyun/tf-mcp-server:latest
@@ -104,7 +127,10 @@ docker run -d `
   -e MCP_SERVER_HOST=0.0.0.0 `
   -e MCP_SERVER_PORT=8000 `
   -e LOG_LEVEL=INFO `
-  -v "$env:USERPROFILE\.azure:/home/mcpuser/.azure:ro" `
+  -e ARM_CLIENT_ID=your-client-id `
+  -e ARM_CLIENT_SECRET=your-client-secret `
+  -e ARM_SUBSCRIPTION_ID=your-subscription-id `
+  -e ARM_TENANT_ID=your-tenant-id `
   -v ".\logs:/app/logs" `
   --restart unless-stopped `
   ghcr.io/liuwuliuyun/tf-mcp-server:latest
@@ -316,7 +342,7 @@ Health check details:
 
 ### Azure Authentication (Optional)
 
-For Azure CLI integration, you can provide Azure credentials via environment variables:
+For Azure integration, you can provide Azure Service Principal credentials via environment variables:
 
 ```env
 ARM_CLIENT_ID=your-client-id
@@ -325,15 +351,18 @@ ARM_TENANT_ID=your-tenant-id
 ARM_SUBSCRIPTION_ID=your-subscription-id
 ```
 
-Alternatively, you can mount Azure credentials from the host:
+Example Docker run command with Azure Service Principal:
 
 **Linux/macOS:**
 ```bash
 docker run -d \
   --name tf-mcp-server \
   -p 8000:8000 \
-  -v ~/.azure:/home/mcpuser/.azure:ro \
-  tf-mcp-server
+  -e ARM_CLIENT_ID=your-client-id \
+  -e ARM_CLIENT_SECRET=your-client-secret \
+  -e ARM_SUBSCRIPTION_ID=your-subscription-id \
+  -e ARM_TENANT_ID=your-tenant-id \
+  ghcr.io/liuwuliuyun/tf-mcp-server:latest
 ```
 
 **Windows PowerShell:**
@@ -341,8 +370,11 @@ docker run -d \
 docker run -d `
   --name tf-mcp-server `
   -p 8000:8000 `
-  -v "$env:USERPROFILE\.azure:/home/mcpuser/.azure:ro" `
-  tf-mcp-server
+  -e ARM_CLIENT_ID=your-client-id `
+  -e ARM_CLIENT_SECRET=your-client-secret `
+  -e ARM_SUBSCRIPTION_ID=your-subscription-id `
+  -e ARM_TENANT_ID=your-tenant-id `
+  ghcr.io/liuwuliuyun/tf-mcp-server:latest
 ```
 
 ## Volumes and Persistence
@@ -354,8 +386,8 @@ docker run -d `
 # Persistent logs
 -v ./logs:/app/logs
 
-# Azure credentials (alternative to environment variables)
--v ~/.azure:/home/mcpuser/.azure:ro
+# Configuration files (if you want to mount custom configs)
+-v ./config:/app/config:ro
 
 # Policy files (if you want to update externally)
 -v ./policy:/app/policy:ro
@@ -366,8 +398,8 @@ docker run -d `
 # Persistent logs
 -v ".\logs:/app/logs"
 
-# Azure credentials (alternative to environment variables)
--v "$env:USERPROFILE\.azure:/home/mcpuser/.azure:ro"
+# Configuration files (if you want to mount custom configs)
+-v ".\config:/app/config:ro"
 
 # Policy files (if you want to update externally)
 -v ".\policy:/app/policy:ro"

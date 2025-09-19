@@ -21,7 +21,6 @@ RUN tdnf update && tdnf install -y \
     tar \
     net-tools \
     shadow-utils \
-    azure-cli \
     && tdnf clean all
 
 # Install Terraform (latest version)
@@ -73,7 +72,7 @@ COPY . /app
 RUN pip install uv
 
 # Create directories for logs and health checks
-RUN mkdir -p /app/logs /app/health /home/mcpuser/.azure
+RUN mkdir -p /app/logs /app/health
 
 # Set proper ownership and permissions for the app directory first
 RUN chown -R mcpuser:mcpuser /app /home/mcpuser \

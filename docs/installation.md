@@ -22,7 +22,7 @@ This guide provides detailed installation instructions for the Azure Terraform M
 
 **What you need:**
 - ✅ Docker installed on your computer
-- ✅ Azure CLI (only if you want Azure authentication) - [Install guide](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
+- ✅ Azure Service Principal (only if you want Azure authentication)
 
 **What's included automatically:**
 - ✅ Python, Terraform, TFLint, Conftest - all pre-installed
@@ -41,38 +41,25 @@ docker run -d --name tf-mcp-server -p 8000:8000 ghcr.io/liuwuliuyun/tf-mcp-serve
 docker run -d --name tf-mcp-server -p 8000:8000 ghcr.io/liuwuliuyun/tf-mcp-server:latest
 ```
 
-### 2️⃣ With Azure CLI (Recommended for development)
-First, login to Azure: `az login`, then:
-
-**Linux/macOS:**
-```bash
-docker run -d --name tf-mcp-server -p 8000:8000 -v ~/.azure:/home/mcpuser/.azure:ro ghcr.io/liuwuliuyun/tf-mcp-server:latest
-```
-
-**Windows PowerShell:**
-```powershell
-docker run -d --name tf-mcp-server -p 8000:8000 -v "$env:USERPROFILE\.azure:/home/mcpuser/.azure:ro" ghcr.io/liuwuliuyun/tf-mcp-server:latest
-```
-
-### 3️⃣ With Service Principal (For production)
+### 2️⃣ With Azure Service Principal (Recommended for production)
 
 **Linux/macOS:**
 ```bash
 docker run -d --name tf-mcp-server -p 8000:8000 \
-  -e ARM_CLIENT_ID=<your_client_id> \
-  -e ARM_CLIENT_SECRET=<your_client_secret> \
-  -e ARM_SUBSCRIPTION_ID=<your_subscription_id> \
-  -e ARM_TENANT_ID=<your_tenant_id> \
+  -e ARM_CLIENT_ID=your-client-id \
+  -e ARM_CLIENT_SECRET=your-client-secret \
+  -e ARM_SUBSCRIPTION_ID=your-subscription-id \
+  -e ARM_TENANT_ID=your-tenant-id \
   ghcr.io/liuwuliuyun/tf-mcp-server:latest
 ```
 
 **Windows PowerShell:**
 ```powershell
 docker run -d --name tf-mcp-server -p 8000:8000 `
-  -e ARM_CLIENT_ID=<your_client_id> `
-  -e ARM_CLIENT_SECRET=<your_client_secret> `
-  -e ARM_SUBSCRIPTION_ID=<your_subscription_id> `
-  -e ARM_TENANT_ID=<your_tenant_id> `
+  -e ARM_CLIENT_ID=your-client-id `
+  -e ARM_CLIENT_SECRET=your-client-secret `
+  -e ARM_SUBSCRIPTION_ID=your-subscription-id `
+  -e ARM_TENANT_ID=your-tenant-id `
   ghcr.io/liuwuliuyun/tf-mcp-server:latest
 ```
 
@@ -301,14 +288,13 @@ GITHUB_TOKEN=<your_github_token_here>
 
 5. **Azure Authentication Issues**
    ```bash
-   # Check if Azure CLI is authenticated
-   az account show
+   # Verify service principal environment variables are set
+   echo $ARM_CLIENT_ID $ARM_CLIENT_SECRET $ARM_SUBSCRIPTION_ID $ARM_TENANT_ID
    
-   # If using service principal, verify environment variables are set
-   echo $ARM_CLIENT_ID $ARM_SUBSCRIPTION_ID $ARM_TENANT_ID
-   
-   # Test Azure connectivity
-   az account list-locations --output table
+   # Test authentication with Azure REST API
+   curl -X POST "https://login.microsoftonline.com/$ARM_TENANT_ID/oauth2/v2.0/token" \
+     -H "Content-Type: application/x-www-form-urlencoded" \
+     -d "grant_type=client_credentials&client_id=$ARM_CLIENT_ID&client_secret=$ARM_CLIENT_SECRET&scope=https://management.azure.com/.default"
    ```
 
 6. **Limited Functionality Without Authentication**
@@ -339,7 +325,7 @@ Check logs in `tf-mcp-server.log` for detailed information.
 
 After installation:
 1. **Test the server**: Use the health check endpoint to verify it's running
-2. **Configure Azure authentication**: Set up Azure CLI or service principal credentials
+2. **Configure Azure authentication**: Set up service principal credentials
 3. **Integrate with VS Code**: Add the MCP configuration to your workspace
 4. **Explore the tools**: Check out the [main README](../README.md) for available tools and usage examples
 

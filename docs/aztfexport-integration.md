@@ -80,12 +80,7 @@ sudo mv terraform /usr/local/bin/
 
 Configure Azure authentication for aztfexport:
 
-#### Azure CLI (Recommended)
-```bash
-az login
-```
-
-#### Service Principal
+#### Service Principal (Required)
 ```bash
 export ARM_CLIENT_ID="your-client-id"
 export ARM_CLIENT_SECRET="your-client-secret"
@@ -360,7 +355,7 @@ result = await mcp_client.call_tool("aztfexport_query", {
 ### Common Issues
 
 1. **Authentication Failed**
-   - Ensure you're logged in to Azure (`az login`)
+   - Ensure you have Azure Service Principal credentials configured
    - Verify subscription access
    - Check service principal credentials
 

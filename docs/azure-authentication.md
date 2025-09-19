@@ -9,70 +9,35 @@ The Azure Terraform MCP Server can operate in different modes depending on your 
 
 ### Authentication Methods
 
-#### Method 1: Azure CLI Authentication (Recommended for Development)
+#### Service Principal Authentication (Required)
 
-First, authenticate with Azure CLI:
-```bash
-# Install Azure CLI (if not already installed)
-# Windows
-winget install Microsoft.AzureCLI
-# macOS  
-brew install azure-cli
-# Linux
-curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+Create a service principal using Azure Portal or Azure PowerShell:
 
-# Login to Azure
-az login
+**Using Azure Portal:**
+1. Go to Azure Active Directory > App registrations
+2. Click "New registration"
+3. Provide a name for your application
+4. Select account types (usually "Accounts in this organizational directory only")
+5. Click "Register"
+6. Note the "Application (client) ID" and "Directory (tenant) ID"
+7. Go to "Certificates & secrets" > "New client secret"
+8. Create a secret and note the value (this is your ARM_CLIENT_SECRET)
+9. Go to your subscription > Access control (IAM) > Add role assignment
+10. Assign "Contributor" role to your service principal
 
-# Set default subscription (optional)
-az account set --subscription "<subscription-id>"
+**Using Azure PowerShell:**
+```powershell
+# Connect to Azure
+Connect-AzAccount
 
-# Verify authentication
-az account show
-```
-
-**Docker with Azure CLI:**
-```bash
-# Mount Azure CLI credentials
-docker run -d \
-  --name tf-mcp-server \
-  -p 8000:8000 \
-  -v ~/.azure:/home/mcpuser/.azure:ro \
-  ghcr.io/liuwuliuyun/tf-mcp-server:latest
-```
-
-**MCP Configuration for VS Code:**
-```json
-{
-  "command": "docker",
-  "args": [
-    "run", "-d", "--name", "azure-terraform-mcp-server", "-p", "8000:8000",
-    "-v", "~/.azure:/home/mcpuser/.azure:ro",
-    "ghcr.io/liuwuliuyun/tf-mcp-server:latest"
-  ],
-  "env": {
-    "MCP_SERVER_HOST": "0.0.0.0",
-    "MCP_SERVER_PORT": "8000"
-  },
-  "transport": "http",
-  "host": "localhost",
-  "port": 8000
-}
-```
-
-#### Method 2: Service Principal Authentication (Recommended for Production)
-
-Create a service principal:
-```bash
 # Create service principal
-az ad sp create-for-rbac --name "terraform-mcp-server" --role "Contributor"
+$sp = New-AzADServicePrincipal -DisplayName "terraform-mcp-server" -Role "Contributor"
 
-# Output will include:
-# - appId (ARM_CLIENT_ID)
-# - password (ARM_CLIENT_SECRET)  
-# - tenant (ARM_TENANT_ID)
-# Get your subscription ID:
-az account show --query id -o tsv
+# Get the values you need:
+# - Application ID: $sp.AppId (ARM_CLIENT_ID)
+# - Secret: $sp.PasswordCredentials.SecretText (ARM_CLIENT_SECRET)
+# - Tenant ID: (Get-AzContext).Tenant.Id (ARM_TENANT_ID)
+# - Subscription ID: (Get-AzContext).Subscription.Id (ARM_SUBSCRIPTION_ID)
 ```
 
 **Docker with Service Principal:**
@@ -109,7 +74,7 @@ docker run -d \
 }
 ```
 
-#### Method 3: Managed Identity (For Azure VMs)
+#### Managed Identity Authentication (Azure Resources Only)
 
 When running on Azure VMs with managed identity:
 ```bash
@@ -122,24 +87,21 @@ docker run -d \
 
 ### Feature Availability by Authentication Mode
 
-| Feature | No Auth | Azure CLI | Service Principal | Managed Identity |
-|---------|---------|-----------|-------------------|------------------|
-| 📖 AzureRM Documentation | ✅ | ✅ | ✅ | ✅ |
-| 📖 AzAPI Documentation | ✅ | ✅ | ✅ | ✅ |
-| 📖 AVM Module Info | ✅ | ✅ | ✅ | ✅ |
-| 🔍 TFLint Analysis | ✅ | ✅ | ✅ | ✅ |
-| 📝 HCL Formatting | ✅ | ✅ | ✅ | ✅ |
-| ✅ HCL Validation | ✅ | ✅ | ✅ | ✅ |
-| 🛡️ Conftest Validation | ❌ | ✅ | ✅ | ✅ |
-| ⚙️ Terraform Plan | ❌ | ✅ | ✅ | ✅ |
-| 🚀 Terraform Apply | ❌ | ✅ | ✅ | ✅ |
-| 🔍 Resource Analysis | ❌ | ✅ | ✅ | ✅ |
+| Feature | No Auth | Service Principal | Managed Identity |
+|---------|---------|-------------------|------------------|
+| Documentation | ✅ | ✅ | ✅ |
+| HCL Formatting | ✅ | ✅ | ✅ |
+| Static Analysis | ✅ | ✅ | ✅ |
+| Terraform Plan | ❌ | ✅ | ✅ |
+| Azure Resource Export | ❌ | ✅ | ✅ |
+| Policy Validation | ❌ | ✅ | ✅ |
+| Use Case | Development/Testing | Production/Automation | Azure Resources |
 
 ### Docker Compose with Authentication
 
 Create a `docker-compose.yml` with your preferred authentication method:
 
-**With Azure CLI (Development):**
+**With Service Principal:**
 ```yaml
 version: '3.8'
 services:
@@ -148,11 +110,13 @@ services:
     container_name: tf-mcp-server
     ports:
       - "8000:8000"
-    volumes:
-      - ~/.azure:/home/mcpuser/.azure:ro
     environment:
       - MCP_SERVER_HOST=0.0.0.0
       - MCP_SERVER_PORT=8000
+      - ARM_CLIENT_ID=your-client-id
+      - ARM_CLIENT_SECRET=your-client-secret
+      - ARM_SUBSCRIPTION_ID=your-subscription-id
+      - ARM_TENANT_ID=your-tenant-id
     restart: unless-stopped
 ```
 
