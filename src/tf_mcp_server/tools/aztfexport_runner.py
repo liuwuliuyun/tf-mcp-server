@@ -16,7 +16,7 @@ class AztfexportRunner:
 
     def _find_aztfexport_executable(self) -> str:
         """Find the aztfexport executable on the system."""
-        import shutil
+        
         
         # Try common locations and PATH
         possible_names = ["aztfexport", "aztfexport.exe"]
