@@ -329,7 +329,7 @@ _aztfexport_runner_instance = None
 
 def get_aztfexport_runner() -> AztfexportRunner:
     """Get a singleton instance of AztfexportRunner."""
-    global _aztfexport_runner_instance # nanxu to understand
+    global _aztfexport_runner_instance
     if _aztfexport_runner_instance is None:
         _aztfexport_runner_instance = AztfexportRunner()
     return _aztfexport_runner_instance
