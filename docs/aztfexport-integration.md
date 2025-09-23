@@ -14,6 +14,7 @@ Azure Export for Terraform (aztfexport) is a powerful command-line tool that hel
 - **Multi-Provider Support**: Works with both AzureRM and AzAPI Terraform providers
 - **Configuration Management**: Get and set aztfexport configuration options
 - **Installation Validation**: Check aztfexport installation and dependencies
+- **Container-Friendly**: All generated files are returned in the API response, making it ideal for containerized environments
 
 ## Prerequisites
 
@@ -117,7 +118,6 @@ Export a single Azure resource to Terraform configuration.
 
 **Parameters:**
 - `resource_id` (required): Azure resource ID to export
-- `output_dir` (optional): Output directory for generated files
 - `provider` (optional): Terraform provider to use ("azurerm" or "azapi", default: "azurerm")
 - `resource_name` (optional): Custom resource name in Terraform
 - `resource_type` (optional): Custom resource type in Terraform
@@ -129,8 +129,8 @@ Export a single Azure resource to Terraform configuration.
 **Returns:**
 - `success` (boolean): Whether the export succeeded
 - `exit_code` (number): Command exit code
-- `generated_files` (object): Generated Terraform files and their contents
-- `output_directory` (string): Directory containing generated files
+- `generated_files` (object): Generated Terraform files and their contents (all file contents are returned in the response)
+- `output_directory` (string): Temporary directory path used during export (cleaned up after operation)
 - `stdout` (string): Command output
 - `stderr` (string): Command error output
 
@@ -149,7 +149,6 @@ Export an entire Azure resource group and its resources.
 
 **Parameters:**
 - `resource_group_name` (required): Name of the resource group to export
-- `output_dir` (optional): Output directory for generated files
 - `provider` (optional): Terraform provider to use ("azurerm" or "azapi")
 - `name_pattern` (optional): Pattern for resource naming in Terraform
 - `type_pattern` (optional): Pattern for resource type filtering
@@ -176,7 +175,6 @@ Export Azure resources using Azure Resource Graph queries.
 
 **Parameters:**
 - `query` (required): Azure Resource Graph WHERE clause
-- `output_dir` (optional): Output directory for generated files
 - `provider` (optional): Terraform provider to use
 - `name_pattern` (optional): Pattern for resource naming
 - `type_pattern` (optional): Pattern for resource type filtering

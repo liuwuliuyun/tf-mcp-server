@@ -137,7 +137,6 @@ class AztfexportRunner:
     async def export_resource(
         self,
         resource_id: str,
-        output_dir: Optional[str] = None,
         provider: AztfexportProvider = AztfexportProvider.AZURERM,
         resource_name: Optional[str] = None,
         resource_type: Optional[str] = None,
@@ -151,7 +150,6 @@ class AztfexportRunner:
         
         Args:
             resource_id: Azure resource ID to export
-            output_dir: Output directory (temporary if not specified)
             provider: Terraform provider to use (azurerm or azapi)
             resource_name: Custom resource name in Terraform
             resource_type: Custom resource type in Terraform
@@ -165,13 +163,9 @@ class AztfexportRunner:
         """
         temp_dir = None
         try:
-            # Use provided directory or create temporary one
-            if output_dir:
-                work_dir = Path(output_dir)
-                work_dir.mkdir(parents=True, exist_ok=True)
-            else:
-                temp_dir = tempfile.mkdtemp(prefix="aztfexport_")
-                work_dir = Path(temp_dir)
+            # Always use temporary directory for container environments
+            temp_dir = tempfile.mkdtemp(prefix="aztfexport_")
+            work_dir = Path(temp_dir)
             
             # Build command
             command = ['aztfexport', 'resource']
@@ -229,7 +223,7 @@ class AztfexportRunner:
                 'exit_code': -1,
                 'success': False,
                 'error': str(e),
-                'output_directory': str(work_dir) if 'work_dir' in locals() else None
+                'output_directory': str(temp_dir) if temp_dir else None
             }
         finally:
             # Clean up temporary directory if created
@@ -242,7 +236,6 @@ class AztfexportRunner:
     async def export_resource_group(
         self,
         resource_group_name: str,
-        output_dir: Optional[str] = None,
         provider: AztfexportProvider = AztfexportProvider.AZURERM,
         name_pattern: Optional[str] = None,
         type_pattern: Optional[str] = None,
@@ -256,7 +249,6 @@ class AztfexportRunner:
         
         Args:
             resource_group_name: Name of the resource group to export
-            output_dir: Output directory (temporary if not specified)
             provider: Terraform provider to use (azurerm or azapi)
             name_pattern: Pattern for resource naming in Terraform
             type_pattern: Pattern for resource type filtering
@@ -270,13 +262,9 @@ class AztfexportRunner:
         """
         temp_dir = None
         try:
-            # Use provided directory or create temporary one
-            if output_dir:
-                work_dir = Path(output_dir)
-                work_dir.mkdir(parents=True, exist_ok=True)
-            else:
-                temp_dir = tempfile.mkdtemp(prefix="aztfexport_rg_")
-                work_dir = Path(temp_dir)
+            # Always use temporary directory for container environments
+            temp_dir = tempfile.mkdtemp(prefix="aztfexport_rg_")
+            work_dir = Path(temp_dir)
             
             # Build command
             command = ['aztfexport', 'resource-group']
@@ -334,7 +322,7 @@ class AztfexportRunner:
                 'exit_code': -1,
                 'success': False,
                 'error': str(e),
-                'output_directory': str(work_dir) if 'work_dir' in locals() else None
+                'output_directory': str(temp_dir) if temp_dir else None
             }
         finally:
             # Clean up temporary directory if created
@@ -347,7 +335,6 @@ class AztfexportRunner:
     async def export_query(
         self,
         query: str,
-        output_dir: Optional[str] = None,
         provider: AztfexportProvider = AztfexportProvider.AZURERM,
         name_pattern: Optional[str] = None,
         type_pattern: Optional[str] = None,
@@ -361,7 +348,6 @@ class AztfexportRunner:
         
         Args:
             query: Azure Resource Graph query (WHERE clause)
-            output_dir: Output directory (temporary if not specified)
             provider: Terraform provider to use (azurerm or azapi)
             name_pattern: Pattern for resource naming in Terraform
             type_pattern: Pattern for resource type filtering
@@ -375,13 +361,9 @@ class AztfexportRunner:
         """
         temp_dir = None
         try:
-            # Use provided directory or create temporary one
-            if output_dir:
-                work_dir = Path(output_dir)
-                work_dir.mkdir(parents=True, exist_ok=True)
-            else:
-                temp_dir = tempfile.mkdtemp(prefix="aztfexport_query_")
-                work_dir = Path(temp_dir)
+            # Always use temporary directory for container environments
+            temp_dir = tempfile.mkdtemp(prefix="aztfexport_query_")
+            work_dir = Path(temp_dir)
             
             # Build command
             command = ['aztfexport', 'query']
@@ -439,7 +421,7 @@ class AztfexportRunner:
                 'exit_code': -1,
                 'success': False,
                 'error': str(e),
-                'output_directory': str(work_dir) if 'work_dir' in locals() else None
+                'output_directory': str(temp_dir) if temp_dir else None
             }
         finally:
             # Clean up temporary directory if created
