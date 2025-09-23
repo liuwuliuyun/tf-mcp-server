@@ -130,7 +130,6 @@ Export a single Azure resource to Terraform configuration.
 - `success` (boolean): Whether the export succeeded
 - `exit_code` (number): Command exit code
 - `generated_files` (object): Generated Terraform files and their contents (all file contents are returned in the response)
-- `output_directory` (string): Temporary directory path used during export (cleaned up after operation)
 - `stdout` (string): Command output
 - `stderr` (string): Command error output
 

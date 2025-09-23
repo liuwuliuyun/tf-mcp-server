@@ -208,7 +208,6 @@ class AztfexportRunner:
                 'stdout': result['stdout'],
                 'stderr': result['stderr'],
                 'success': result['exit_code'] == 0,
-                'output_directory': str(work_dir),
                 'generated_files': {}
             }
             
@@ -222,8 +221,7 @@ class AztfexportRunner:
             return {
                 'exit_code': -1,
                 'success': False,
-                'error': str(e),
-                'output_directory': str(temp_dir) if temp_dir else None
+                'error': str(e)
             }
         finally:
             # Clean up temporary directory if created
@@ -307,7 +305,6 @@ class AztfexportRunner:
                 'stdout': result['stdout'],
                 'stderr': result['stderr'],
                 'success': result['exit_code'] == 0,
-                'output_directory': str(work_dir),
                 'generated_files': {}
             }
             
@@ -321,8 +318,7 @@ class AztfexportRunner:
             return {
                 'exit_code': -1,
                 'success': False,
-                'error': str(e),
-                'output_directory': str(temp_dir) if temp_dir else None
+                'error': str(e)
             }
         finally:
             # Clean up temporary directory if created
@@ -406,7 +402,6 @@ class AztfexportRunner:
                 'stdout': result['stdout'],
                 'stderr': result['stderr'],
                 'success': result['exit_code'] == 0,
-                'output_directory': str(work_dir),
                 'generated_files': {}
             }
             
@@ -420,8 +415,7 @@ class AztfexportRunner:
             return {
                 'exit_code': -1,
                 'success': False,
-                'error': str(e),
-                'output_directory': str(temp_dir) if temp_dir else None
+                'error': str(e)
             }
         finally:
             # Clean up temporary directory if created
