@@ -11,7 +11,7 @@ ENV PYTHONUNBUFFERED=1 \
     LOG_LEVEL=INFO
 
 # Install system dependencies
-RUN tdnf update && tdnf install -y \
+RUN tdnf update -y && tdnf install -y \
     curl \
     unzip \
     wget \
