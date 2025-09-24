@@ -68,6 +68,9 @@ WORKDIR /app
 # Copy project files
 COPY . /app
 
+# Create workspace directory
+RUN mkdir -p /workspace
+
 # Install UV package manager for faster dependency resolution
 RUN pip install uv
 
@@ -75,8 +78,8 @@ RUN pip install uv
 RUN mkdir -p /app/logs /app/health /home/mcpuser/
 
 # Set proper ownership and permissions for the app directory first
-RUN chown -R mcpuser:mcpuser /app /home/mcpuser \
-    && chmod 755 /app/logs /app/health
+RUN chown -R mcpuser:mcpuser /app /home/mcpuser /workspace \
+    && chmod 755 /app/logs /app/health /workspace
 
 # Switch to non-root user before installing dependencies
 USER mcpuser

@@ -134,9 +134,50 @@ class AztfexportRunner:
             'releases': 'Download from https://github.com/Azure/aztfexport/releases'
         }
     
+    def _generate_output_folder_name(self, prefix: str = "aztfexport") -> str:
+        """
+        Generate a unique, non-repeatable output folder name.
+        
+        Args:
+            prefix: Prefix for the folder name
+            
+        Returns:
+            Unique folder name with timestamp and random component
+        """
+        import time
+        import random
+        import string
+        
+        timestamp = int(time.time())
+        random_suffix = ''.join(random.choices(string.ascii_lowercase + string.digits, k=6))
+        return f"{prefix}_{timestamp}_{random_suffix}"
+    
+    def _get_output_directory(self, output_folder_name: Optional[str] = None) -> Path:
+        """
+        Get the output directory path, creating it if necessary.
+        
+        Args:
+            output_folder_name: Custom folder name to create under /workspace, or None for auto-generated
+            
+        Returns:
+            Path object for the output directory
+        """
+        if output_folder_name:
+            # Use provided folder name under /workspace
+            work_dir = Path("/workspace") / output_folder_name
+        else:
+            # Generate unique folder name in /workspace
+            folder_name = self._generate_output_folder_name()
+            work_dir = Path("/workspace") / folder_name
+        
+        # Create directory if it doesn't exist
+        work_dir.mkdir(parents=True, exist_ok=True)
+        return work_dir
+
     async def export_resource(
         self,
         resource_id: str,
+        output_folder_name: Optional[str] = None,
         provider: AztfexportProvider = AztfexportProvider.AZURERM,
         resource_name: Optional[str] = None,
         resource_type: Optional[str] = None,
@@ -150,6 +191,7 @@ class AztfexportRunner:
         
         Args:
             resource_id: Azure resource ID to export
+            output_folder_name: Folder name for generated files (created under /workspace)
             provider: Terraform provider to use (azurerm or azapi)
             resource_name: Custom resource name in Terraform
             resource_type: Custom resource type in Terraform
@@ -161,11 +203,9 @@ class AztfexportRunner:
         Returns:
             Export result with generated files and status
         """
-        temp_dir = None
         try:
-            # Always use temporary directory for container environments
-            temp_dir = tempfile.mkdtemp(prefix="aztfexport_")
-            work_dir = Path(temp_dir)
+            # Get output directory
+            work_dir = self._get_output_directory(output_folder_name)
             
             # Build command
             command = ['aztfexport', 'resource']
@@ -208,6 +248,7 @@ class AztfexportRunner:
                 'stdout': result['stdout'],
                 'stderr': result['stderr'],
                 'success': result['exit_code'] == 0,
+                'output_directory': str(work_dir),
                 'generated_files': {}
             }
             
@@ -223,17 +264,11 @@ class AztfexportRunner:
                 'success': False,
                 'error': str(e)
             }
-        finally:
-            # Clean up temporary directory if created
-            if temp_dir and os.path.exists(temp_dir):
-                try:
-                    shutil.rmtree(temp_dir)
-                except Exception as e:
-                    logger.warning(f"Failed to clean up temporary directory {temp_dir}: {e}")
     
     async def export_resource_group(
         self,
         resource_group_name: str,
+        output_folder_name: Optional[str] = None,
         provider: AztfexportProvider = AztfexportProvider.AZURERM,
         name_pattern: Optional[str] = None,
         type_pattern: Optional[str] = None,
@@ -247,6 +282,7 @@ class AztfexportRunner:
         
         Args:
             resource_group_name: Name of the resource group to export
+            output_folder_name: Folder name for generated files (created under /workspace)
             provider: Terraform provider to use (azurerm or azapi)
             name_pattern: Pattern for resource naming in Terraform
             type_pattern: Pattern for resource type filtering
@@ -258,11 +294,9 @@ class AztfexportRunner:
         Returns:
             Export result with generated files and status
         """
-        temp_dir = None
         try:
-            # Always use temporary directory for container environments
-            temp_dir = tempfile.mkdtemp(prefix="aztfexport_rg_")
-            work_dir = Path(temp_dir)
+            # Get output directory
+            work_dir = self._get_output_directory(output_folder_name)
             
             # Build command
             command = ['aztfexport', 'resource-group']
@@ -305,6 +339,7 @@ class AztfexportRunner:
                 'stdout': result['stdout'],
                 'stderr': result['stderr'],
                 'success': result['exit_code'] == 0,
+                'output_directory': str(work_dir),
                 'generated_files': {}
             }
             
@@ -320,17 +355,11 @@ class AztfexportRunner:
                 'success': False,
                 'error': str(e)
             }
-        finally:
-            # Clean up temporary directory if created
-            if temp_dir and os.path.exists(temp_dir):
-                try:
-                    shutil.rmtree(temp_dir)
-                except Exception as e:
-                    logger.warning(f"Failed to clean up temporary directory {temp_dir}: {e}")
     
     async def export_query(
         self,
         query: str,
+        output_folder_name: Optional[str] = None,
         provider: AztfexportProvider = AztfexportProvider.AZURERM,
         name_pattern: Optional[str] = None,
         type_pattern: Optional[str] = None,
@@ -344,6 +373,7 @@ class AztfexportRunner:
         
         Args:
             query: Azure Resource Graph query (WHERE clause)
+            output_folder_name: Folder name for generated files (created under /workspace)
             provider: Terraform provider to use (azurerm or azapi)
             name_pattern: Pattern for resource naming in Terraform
             type_pattern: Pattern for resource type filtering
@@ -355,11 +385,9 @@ class AztfexportRunner:
         Returns:
             Export result with generated files and status
         """
-        temp_dir = None
         try:
-            # Always use temporary directory for container environments
-            temp_dir = tempfile.mkdtemp(prefix="aztfexport_query_")
-            work_dir = Path(temp_dir)
+            # Get output directory
+            work_dir = self._get_output_directory(output_folder_name)
             
             # Build command
             command = ['aztfexport', 'query']
@@ -402,6 +430,7 @@ class AztfexportRunner:
                 'stdout': result['stdout'],
                 'stderr': result['stderr'],
                 'success': result['exit_code'] == 0,
+                'output_directory': str(work_dir),
                 'generated_files': {}
             }
             
@@ -417,13 +446,6 @@ class AztfexportRunner:
                 'success': False,
                 'error': str(e)
             }
-        finally:
-            # Clean up temporary directory if created
-            if temp_dir and os.path.exists(temp_dir):
-                try:
-                    shutil.rmtree(temp_dir)
-                except Exception as e:
-                    logger.warning(f"Failed to clean up temporary directory {temp_dir}: {e}")
     
     async def _read_generated_files(self, directory: Path) -> Dict[str, str]:
         """

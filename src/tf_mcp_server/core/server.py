@@ -680,6 +680,7 @@ def create_server(config: Config) -> FastMCP:
     @mcp.tool("aztfexport_resource")
     async def aztfexport_resource(
         resource_id: str = Field(..., description="Azure resource ID to export"),
+        output_folder_name: str = Field("", description="Output folder name (created under /workspace, auto-generated if not specified)"),
         provider: str = Field("azurerm", description="Terraform provider to use (azurerm or azapi)"),
         resource_name: str = Field("", description="Custom resource name in Terraform"),
         resource_type: str = Field("", description="Custom resource type in Terraform"),
@@ -697,6 +698,7 @@ def create_server(config: Config) -> FastMCP:
 
         Args:
             resource_id: Azure resource ID to export (e.g., /subscriptions/.../resourceGroups/.../providers/Microsoft.Storage/storageAccounts/myaccount)
+            output_folder_name: Folder name for generated files (created under /workspace, auto-generated if not specified)
             provider: Terraform provider to use - 'azurerm' (default) or 'azapi'
             resource_name: Custom resource name in the generated Terraform configuration
             resource_type: Custom resource type in the generated Terraform configuration
@@ -722,6 +724,7 @@ def create_server(config: Config) -> FastMCP:
             
             result = await aztfexport_runner.export_resource(
                 resource_id=resource_id,
+                output_folder_name=output_folder_name if output_folder_name else None,
                 provider=tf_provider,
                 resource_name=resource_name if resource_name else None,
                 resource_type=resource_type if resource_type else None,
@@ -744,6 +747,7 @@ def create_server(config: Config) -> FastMCP:
     @mcp.tool("aztfexport_resource_group") 
     async def aztfexport_resource_group(
         resource_group_name: str = Field(..., description="Name of the resource group to export"),
+        output_folder_name: str = Field("", description="Output folder name (created under /workspace, auto-generated if not specified)"),
         provider: str = Field("azurerm", description="Terraform provider to use (azurerm or azapi)"),
         name_pattern: str = Field("", description="Pattern for resource naming in Terraform"),
         type_pattern: str = Field("", description="Pattern for resource type filtering"),
@@ -761,6 +765,7 @@ def create_server(config: Config) -> FastMCP:
 
         Args:
             resource_group_name: Name of the Azure resource group to export (not the full resource ID, just the name)
+            output_folder_name: Folder name for generated files (created under /workspace, auto-generated if not specified)
             provider: Terraform provider to use - 'azurerm' (default) or 'azapi'
             name_pattern: Pattern for resource naming in the generated Terraform configuration
             type_pattern: Pattern for filtering resource types to export
@@ -786,6 +791,7 @@ def create_server(config: Config) -> FastMCP:
             
             result = await aztfexport_runner.export_resource_group(
                 resource_group_name=resource_group_name,
+                output_folder_name=output_folder_name if output_folder_name else None,
                 provider=tf_provider,
                 name_pattern=name_pattern if name_pattern else None,
                 type_pattern=type_pattern if type_pattern else None,
@@ -808,6 +814,7 @@ def create_server(config: Config) -> FastMCP:
     @mcp.tool("aztfexport_query")
     async def aztfexport_query(
         query: str = Field(..., description="Azure Resource Graph query (WHERE clause)"),
+        output_folder_name: str = Field("", description="Output folder name (created under /workspace, auto-generated if not specified)"),
         provider: str = Field("azurerm", description="Terraform provider to use (azurerm or azapi)"),
         name_pattern: str = Field("", description="Pattern for resource naming in Terraform"),
         type_pattern: str = Field("", description="Pattern for resource type filtering"),
@@ -825,6 +832,7 @@ def create_server(config: Config) -> FastMCP:
 
         Args:
             query: Azure Resource Graph WHERE clause (e.g., "type =~ 'Microsoft.Storage/storageAccounts' and location == 'eastus'")
+            output_folder_name: Folder name for generated files (created under /workspace, auto-generated if not specified)
             provider: Terraform provider to use - 'azurerm' (default) or 'azapi'
             name_pattern: Pattern for resource naming in the generated Terraform configuration
             type_pattern: Pattern for filtering resource types to export
@@ -856,6 +864,7 @@ def create_server(config: Config) -> FastMCP:
             
             result = await aztfexport_runner.export_query(
                 query=query,
+                output_folder_name=output_folder_name if output_folder_name else None,
                 provider=tf_provider,
                 name_pattern=name_pattern if name_pattern else None,
                 type_pattern=type_pattern if type_pattern else None,
@@ -946,13 +955,11 @@ async def run_server(config: Config) -> None:
     """
     server = create_server(config)
     
-    logger.info(f"Starting Azure Terraform MCP Server on {config.server.host}:{config.server.port}")
+    logger.info("Starting Azure Terraform MCP Server with stdio transport")
     
     try:
         await server.run_async(
-            transport="http",
-            host=config.server.host,
-            port=config.server.port
+            transport="stdio"
         )
     except Exception as e:
         logger.error(f"Server error: {e}")

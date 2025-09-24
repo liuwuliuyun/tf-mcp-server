@@ -29,8 +29,7 @@ def main():
         # Load configuration from environment
         config = Config.from_env()
         
-        logger.info("Starting Azure Terraform MCP Server")
-        logger.info(f"Configuration: Host={config.server.host}, Port={config.server.port}")
+        logger.info("Starting Azure Terraform MCP Server with stdio transport")
         
         # Run the server
         asyncio.run(run_server(config))
