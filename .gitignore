@@ -24,5 +24,7 @@ tf-mcp-server.log
 
 policy/
 
+workspace/
+
 # avm data cache
 __avm_data_cache__/

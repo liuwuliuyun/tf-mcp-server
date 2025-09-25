@@ -551,6 +551,63 @@ def create_server(config: Config) -> FastMCP:
                 }
             }
 
+    @mcp.tool("run_tflint_workspace_analysis")
+    async def run_tflint_workspace_analysis(
+        workspace_folder: str,
+        output_format: str = Field("json", description="Output format: json, default, checkstyle, junit, compact, sarif"),
+        enable_azure_plugin: bool = Field(True, description="Enable Azure ruleset plugin"),
+        enable_rules: str = Field("", description="Comma-separated list of rules to enable"),
+        disable_rules: str = Field("", description="Comma-separated list of rules to disable"),
+        initialize_plugins: bool = Field(True, description="Whether to initialize plugins"),
+        recursive: bool = Field(False, description="Whether to recursively lint subdirectories")
+    ) -> Dict[str, Any]:
+        """
+        Run TFLint static analysis on a workspace folder containing Terraform configuration files.
+        
+        Args:
+            workspace_folder: Path to the workspace folder containing Terraform files
+            output_format: Output format (json, default, checkstyle, junit, compact, sarif)
+            enable_azure_plugin: Whether to enable the Azure ruleset plugin
+            enable_rules: Comma-separated list of specific rules to enable
+            disable_rules: Comma-separated list of specific rules to disable
+            initialize_plugins: Whether to initialize plugins
+            recursive: Whether to recursively lint subdirectories
+            
+        Returns:
+            TFLint analysis results with issues, summary, and workspace information
+        """
+        try:
+            # Parse rule lists
+            enable_rules_list = [rule.strip() for rule in enable_rules.split(',') if rule.strip()] if enable_rules else None
+            disable_rules_list = [rule.strip() for rule in disable_rules.split(',') if rule.strip()] if disable_rules else None
+            
+            # Run TFLint analysis on workspace folder
+            result = await tflint_runner.lint_terraform_workspace_folder(
+                workspace_folder=workspace_folder,
+                output_format=output_format,
+                enable_azure_plugin=enable_azure_plugin,
+                enable_rules=enable_rules_list,
+                disable_rules=disable_rules_list,
+                initialize_plugins=initialize_plugins,
+                recursive=recursive
+            )
+            
+            return result
+            
+        except Exception as e:
+            logger.error(f"Error running TFLint workspace analysis: {e}")
+            return {
+                'success': False,
+                'error': f'TFLint workspace analysis failed: {str(e)}',
+                'issues': [],
+                'summary': {
+                    'total_issues': 0,
+                    'errors': 0,
+                    'warnings': 0,
+                    'notices': 0
+                }
+            }
+
     # ==========================================
     # CONFTEST AVM POLICY TOOLS
     # ==========================================

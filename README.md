@@ -28,7 +28,7 @@ This MCP server provides support for Azure Terraform development, including:
 - **Unified Terraform Commands**: Single tool to execute all Terraform commands (init, plan, apply, destroy, validate, fmt)
 - **HCL Validation**: Syntax validation and error reporting for Terraform code
 - **HCL Formatting**: Automatic code formatting for Terraform configurations
-- **TFLint Integration**: Static analysis with TFLint including Azure ruleset support
+- **TFLint Integration**: Static analysis with TFLint including Azure ruleset support for both raw HCL content and workspace folders
 - **Resource Analysis**: Analyze Azure resources in Terraform configurations
 - **Azure Export for Terraform (aztfexport)**: Export existing Azure resources to Terraform configuration and state
 
@@ -110,7 +110,8 @@ The server provides the following MCP tools:
 - **`run_conftest_workspace_plan_validation`**: Validate Terraform plan files in a workspace folder against Azure security policies
 
 #### Static Analysis Tools
-- **`run_tflint_analysis`**: Run TFLint static analysis on Terraform configurations with Azure plugin support
+- **`run_tflint_analysis`**: Run TFLint static analysis on raw Terraform HCL content with Azure plugin support
+- **`run_tflint_workspace_analysis`**: Run TFLint static analysis on workspace folders containing Terraform files (supports recursive analysis)
 - **`check_tflint_installation`**: Check TFLint installation status and get version information
 
 #### Analysis Tools
@@ -350,12 +351,23 @@ This workflow allows you to:
 
 #### TFLint Static Analysis
 ```python
-# Run TFLint analysis with Azure plugin
+# Run TFLint analysis with raw HCL content
 {
   "tool": "run_tflint_analysis",
   "arguments": {
     "hcl_content": "resource \"azurerm_storage_account\" \"example\" {\n  name = \"mystorageaccount\"\n  resource_group_name = \"myresourcegroup\"\n  location = \"East US\"\n  account_tier = \"Standard\"\n  account_replication_type = \"LRS\"\n}",
     "output_format": "json",
+    "enable_azure_plugin": true
+  }
+}
+
+# Run TFLint analysis on workspace folder
+{
+  "tool": "run_tflint_workspace_analysis",
+  "arguments": {
+    "workspace_folder": "/path/to/terraform/project",
+    "output_format": "json",
+    "recursive": true,
     "enable_azure_plugin": true
   }
 }

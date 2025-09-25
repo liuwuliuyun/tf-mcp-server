@@ -294,6 +294,211 @@ plugin "azurerm" {
             'format': output_format
         }
     
+    async def lint_terraform_workspace_folder(self,
+                                             workspace_folder: str,
+                                             output_format: str = "json",
+                                             enable_azure_plugin: bool = True,
+                                             enable_rules: Optional[List[str]] = None,
+                                             disable_rules: Optional[List[str]] = None,
+                                             initialize_plugins: bool = True,
+                                             recursive: bool = False) -> Dict[str, Any]:
+        """
+        Run TFLint on a workspace folder containing Terraform configuration files.
+        
+        Args:
+            workspace_folder: Path to the workspace folder containing Terraform files
+            output_format: Output format (json, default, checkstyle, junit, compact, sarif)
+            enable_azure_plugin: Whether to enable the Azure ruleset plugin
+            enable_rules: List of specific rules to enable
+            disable_rules: List of specific rules to disable
+            initialize_plugins: Whether to run tflint --init to install plugins
+            recursive: Whether to recursively lint subdirectories
+            
+        Returns:
+            TFLint analysis result
+        """
+        if not workspace_folder or not workspace_folder.strip():
+            return {
+                'success': False,
+                'error': 'No workspace folder provided',
+                'issues': [],
+                'summary': {
+                    'total_issues': 0,
+                    'errors': 0,
+                    'warnings': 0,
+                    'notices': 0
+                }
+            }
+        
+        # Resolve workspace folder path
+        folder_path = os.path.abspath(workspace_folder.strip())
+        
+        # Check if folder exists
+        if not os.path.exists(folder_path):
+            return {
+                'success': False,
+                'error': f'Workspace folder does not exist: {folder_path}',
+                'issues': [],
+                'summary': {
+                    'total_issues': 0,
+                    'errors': 0,
+                    'warnings': 0,
+                    'notices': 0
+                }
+            }
+        
+        if not os.path.isdir(folder_path):
+            return {
+                'success': False,
+                'error': f'Workspace path is not a directory: {folder_path}',
+                'issues': [],
+                'summary': {
+                    'total_issues': 0,
+                    'errors': 0,
+                    'warnings': 0,
+                    'notices': 0
+                }
+            }
+        
+        # Check if folder contains Terraform files
+        tf_files = []
+        for root, dirs, files in os.walk(folder_path):
+            for file in files:
+                if file.endswith('.tf') or file.endswith('.tf.json'):
+                    tf_files.append(os.path.join(root, file))
+            if not recursive:
+                break
+        
+        if not tf_files:
+            return {
+                'success': False,
+                'error': f'No Terraform files (.tf or .tf.json) found in workspace folder: {folder_path}',
+                'issues': [],
+                'summary': {
+                    'total_issues': 0,
+                    'errors': 0,
+                    'warnings': 0,
+                    'notices': 0
+                }
+            }
+        
+        try:
+            # Check if .tflint.hcl exists, if not create one
+            tflint_config_path = os.path.join(folder_path, '.tflint.hcl')
+            config_created = False
+            
+            if not os.path.exists(tflint_config_path):
+                with open(tflint_config_path, 'w', encoding='utf-8') as f:
+                    f.write(self._create_tflint_config(enable_azure_plugin))
+                config_created = True
+            
+            # Initialize plugins if requested
+            if initialize_plugins:
+                init_result = await self._run_tflint_init(folder_path)
+                if not init_result['success']:
+                    # Clean up created config if initialization failed
+                    if config_created:
+                        try:
+                            os.remove(tflint_config_path)
+                        except:
+                            pass
+                    
+                    return {
+                        'success': False,
+                        'error': f'Failed to initialize TFLint plugins: {init_result["error"]}',
+                        'issues': [],
+                        'summary': {
+                            'total_issues': 0,
+                            'errors': 0,
+                            'warnings': 0,
+                            'notices': 0
+                        }
+                    }
+            
+            # Build tflint command
+            cmd = [self.tflint_executable, '--format', output_format]
+            
+            # Add rule flags
+            if enable_rules:
+                for rule in enable_rules:
+                    cmd.extend(['--enable-rule', rule])
+            
+            if disable_rules:
+                for rule in disable_rules:
+                    cmd.extend(['--disable-rule', rule])
+            
+            # Add recursive flag if requested
+            if recursive:
+                cmd.append('--recursive')
+            
+            # Run TFLint
+            result = subprocess.run(
+                cmd,
+                cwd=folder_path,
+                capture_output=True,
+                text=True,
+                timeout=180  # Longer timeout for workspace analysis
+            )
+            
+            # Clean up created config file if we created it
+            if config_created:
+                try:
+                    os.remove(tflint_config_path)
+                except:
+                    pass
+            
+            analysis_result = self._parse_tflint_output(result, output_format)
+            analysis_result['workspace_folder'] = folder_path
+            analysis_result['terraform_files_found'] = len(tf_files)
+            analysis_result['terraform_files'] = tf_files
+            analysis_result['config_created'] = config_created
+            
+            return analysis_result
+                
+        except subprocess.TimeoutExpired:
+            # Clean up created config if timeout occurred
+            tflint_config_path = os.path.join(folder_path, '.tflint.hcl')
+            config_created = False
+            try:
+                if os.path.exists(tflint_config_path):
+                    # Only remove if we created it - simple heuristic
+                    os.remove(tflint_config_path)
+            except:
+                pass
+            
+            return {
+                'success': False,
+                'error': 'TFLint execution timed out (180 seconds)',
+                'issues': [],
+                'summary': {
+                    'total_issues': 0,
+                    'errors': 0,
+                    'warnings': 0,
+                    'notices': 0
+                }
+            }
+        except Exception as e:
+            # Clean up created config if error occurred
+            tflint_config_path = os.path.join(folder_path, '.tflint.hcl')
+            try:
+                if os.path.exists(tflint_config_path):
+                    # Only remove if we created it - simple heuristic
+                    os.remove(tflint_config_path)
+            except:
+                pass
+            
+            return {
+                'success': False,
+                'error': f'TFLint execution error: {str(e)}',
+                'issues': [],
+                'summary': {
+                    'total_issues': 0,
+                    'errors': 0,
+                    'warnings': 0,
+                    'notices': 0
+                }
+            }
+
     async def check_tflint_installation(self) -> Dict[str, Any]:
         """
         Check if TFLint is installed and get version information.
