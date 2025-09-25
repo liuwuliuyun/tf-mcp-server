@@ -105,7 +105,9 @@ The server provides the following MCP tools:
 
 #### Security Tools
 - **`run_conftest_validation`**: Validate Terraform HCL against Azure security policies and best practices using Conftest (supports azurerm, azapi, and AVM providers)
+- **`run_conftest_workspace_validation`**: Validate Terraform files in a workspace folder against Azure security policies (works with aztfexport folders)
 - **`run_conftest_plan_validation`**: Validate Terraform plan JSON against Azure security policies and best practices using Conftest
+- **`run_conftest_workspace_plan_validation`**: Validate Terraform plan files in a workspace folder against Azure security policies
 
 #### Static Analysis Tools
 - **`run_tflint_analysis`**: Run TFLint static analysis on Terraform configurations with Azure plugin support
@@ -218,6 +220,25 @@ The server provides the following MCP tools:
     "policy_set": "Azure-Proactive-Resiliency-Library-v2"
   }
 }
+
+# Validate workspace folder (works with aztfexport folders)
+{
+  "tool": "run_conftest_workspace_validation",
+  "arguments": {
+    "folder_name": "exported-rg-acctest0001",
+    "policy_set": "avmsec",
+    "severity_filter": "high"
+  }
+}
+
+# Validate plan files in workspace folder
+{
+  "tool": "run_conftest_workspace_plan_validation",
+  "arguments": {
+    "folder_name": "exported-rg-acctest0001",
+    "policy_set": "all"
+  }
+}
 ```
 
 #### AzAPI Documentation
@@ -284,6 +305,48 @@ The server provides the following MCP tools:
   }
 }
 ```
+
+## Integrated Workflows
+
+### Export and Validate Azure Resources
+
+The conftest tools are designed to work seamlessly with aztfexport for a complete export-and-validate workflow:
+
+```python
+# 1. Export Azure resource to workspace folder
+{
+  "tool": "aztfexport_resource",
+  "arguments": {
+    "resource_id": "/subscriptions/12345678-1234-1234-1234-123456789abc/resourceGroups/my-rg/providers/Microsoft.Storage/storageAccounts/mystorageaccount",
+    "output_folder_name": "exported-storage-account",
+    "provider": "azurerm"
+  }
+}
+
+# 2. Validate exported Terraform files
+{
+  "tool": "run_conftest_workspace_validation", 
+  "arguments": {
+    "folder_name": "exported-storage-account",
+    "policy_set": "avmsec",
+    "severity_filter": "high"
+  }
+}
+
+# 3. Optionally validate just the plan file
+{
+  "tool": "run_conftest_workspace_plan_validation",
+  "arguments": {
+    "folder_name": "exported-storage-account", 
+    "policy_set": "Azure-Proactive-Resiliency-Library-v2"
+  }
+}
+```
+
+This workflow allows you to:
+1. Export existing Azure infrastructure as Terraform code
+2. Immediately validate it against Azure security policies and best practices
+3. Identify compliance issues before applying changes
 
 #### TFLint Static Analysis
 ```python

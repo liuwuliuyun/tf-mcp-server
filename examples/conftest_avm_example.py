@@ -131,6 +131,100 @@ async def main():
     except Exception as e:
         print(f"❌ Error during validation: {e}")
     
+    # Example 4: Demonstrate workspace folder validation (simulated)
+    print("\n" + "="*60)
+    print("Example 4: Workspace Folder Validation (Simulated)")
+    print("="*60)
+    
+    # Note: This would work if you have a real workspace folder with .tf files
+    # In a real scenario, you might use this after running aztfexport
+    workspace_folder_example = """
+    # Example usage for workspace folder validation:
+    
+    # 1. After exporting resources with aztfexport:
+    result = await runner.validate_workspace_folder_with_avm_policies(
+        folder_name="exported-rg-myresources",  # Folder created by aztfexport
+        policy_set="avmsec",
+        severity_filter="high"
+    )
+    
+    # 2. Validate existing workspace folder:
+    result = await runner.validate_workspace_folder_with_avm_policies(
+        folder_name="my-terraform-project",
+        policy_set="all"
+    )
+    
+    # 3. Validate plan files in workspace folder:
+    result = await runner.validate_workspace_folder_plan_with_avm_policies(
+        folder_name="exported-rg-myresources", 
+        policy_set="Azure-Proactive-Resiliency-Library-v2"
+    )
+    """
+    
+    print("Workspace folder validation allows you to validate:")
+    print("• Terraform files in folders created by aztfexport")
+    print("• Existing workspace folders with .tf files")
+    print("• Plan files in workspace directories")
+    print()
+    print("Example code:")
+    print(workspace_folder_example)
+    
+    # Example 5: Demonstrate plan validation
+    print("\n" + "="*60)
+    print("Example 5: Plan JSON Validation")
+    print("="*60)
+    
+    # Example plan JSON (minimal for demonstration)
+    example_plan_json = '''
+    {
+      "format_version": "1.1",
+      "terraform_version": "1.5.0",
+      "planned_values": {
+        "root_module": {
+          "resources": [
+            {
+              "address": "azurerm_storage_account.example",
+              "mode": "managed",
+              "type": "azurerm_storage_account",
+              "values": {
+                "name": "examplestorage",
+                "resource_group_name": "example-rg",
+                "location": "West Europe",
+                "account_tier": "Standard",
+                "account_replication_type": "LRS",
+                "allow_nested_items_to_be_public": true,
+                "min_tls_version": "TLS1_0"
+              }
+            }
+          ]
+        }
+      }
+    }
+    '''
+    
+    try:
+        result = await runner.validate_with_avm_policies(
+            terraform_plan_json=example_plan_json,
+            policy_set="avmsec",
+            severity_filter="medium"
+        )
+        
+        print(f"Plan Validation Success: {result['success']}")
+        print(f"Total Violations: {result['summary']['total_violations']}")
+        print(f"Policy Set: {result['policy_set']}")
+        
+        if result['violations']:
+            print("\nPlan validation violations:")
+            for i, violation in enumerate(result['violations'], 1):
+                print(f"  {i}. [{violation['level'].upper()}] {violation['policy']}")
+                print(f"     Message: {violation['message']}")
+                print()
+        else:
+            print("✅ No violations found in plan!")
+            
+    except Exception as e:
+        print(f"❌ Error during plan validation: {e}")
+
     print("\n" + "="*60)
     print("Example 3: Validate with Azure Proactive Resiliency Library v2 only")
     print("="*60)

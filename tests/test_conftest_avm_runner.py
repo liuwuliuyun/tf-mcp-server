@@ -141,6 +141,147 @@ class TestConftestAVMRunner:
             assert result['success'] is False
     
     @pytest.mark.asyncio
+    async def test_validate_workspace_folder_with_avm_policies_empty_folder(self, runner):
+        """Test workspace folder validation with empty folder name."""
+        result = await runner.validate_workspace_folder_with_avm_policies("")
+        
+        assert result['success'] is False
+        assert 'No folder name provided' in result['error']
+        assert result['violations'] == []
+        assert result['summary']['total_violations'] == 0
+
+    @pytest.mark.asyncio
+    async def test_validate_workspace_folder_with_avm_policies_nonexistent(self, runner):
+        """Test workspace folder validation with nonexistent folder."""
+        result = await runner.validate_workspace_folder_with_avm_policies("nonexistent_folder")
+        
+        assert result['success'] is False
+        assert 'does not exist' in result['error']
+        assert result['violations'] == []
+
+    @pytest.mark.asyncio
+    async def test_validate_workspace_folder_plan_with_avm_policies_empty_folder(self, runner):
+        """Test workspace folder plan validation with empty folder name."""
+        result = await runner.validate_workspace_folder_plan_with_avm_policies("")
+        
+        assert result['success'] is False
+        assert 'No folder name provided' in result['error']
+        assert result['violations'] == []
+        assert result['summary']['total_violations'] == 0
+
+    @pytest.mark.asyncio
+    async def test_validate_workspace_folder_plan_with_avm_policies_nonexistent(self, runner):
+        """Test workspace folder plan validation with nonexistent folder."""
+        result = await runner.validate_workspace_folder_plan_with_avm_policies("nonexistent_folder")
+        
+        assert result['success'] is False
+        assert 'does not exist' in result['error']
+        assert result['violations'] == []
+
+    @pytest.mark.asyncio 
+    async def test_validate_workspace_folder_with_avm_policies_success(self, runner):
+        """Test successful workspace folder validation."""
+        with patch('pathlib.Path.exists') as mock_exists, \
+             patch('pathlib.Path.is_dir') as mock_is_dir, \
+             patch('pathlib.Path.glob') as mock_glob, \
+             patch('subprocess.run') as mock_run:
+            
+            # Mock that the workspace folder exists
+            mock_exists.return_value = True
+            mock_is_dir.return_value = True
+            
+            # Mock .tf files exist in the folder
+            mock_tf_file = Mock()
+            mock_tf_file.name = 'main.tf'
+            mock_glob.return_value = [mock_tf_file]
+            
+            # Mock successful terraform operations
+            mock_init_result = Mock()
+            mock_init_result.returncode = 0
+            mock_init_result.stderr = ''
+            
+            mock_plan_result = Mock()
+            mock_plan_result.returncode = 0
+            mock_plan_result.stderr = ''
+            
+            mock_show_result = Mock()
+            mock_show_result.returncode = 0
+            mock_show_result.stdout = '{"planned_values": {"root_module": {"resources": []}}}'
+            
+            # Configure subprocess.run to return different results based on command
+            def run_side_effect(*args, **kwargs):
+                if 'init' in args[0]:
+                    return mock_init_result
+                elif 'plan' in args[0]:
+                    return mock_plan_result
+                elif 'show' in args[0]:
+                    return mock_show_result
+                else:
+                    # Mock conftest execution
+                    conftest_result = Mock()
+                    conftest_result.returncode = 0
+                    conftest_result.stdout = '[]'  # No violations
+                    conftest_result.stderr = ''
+                    return conftest_result
+                    
+            mock_run.side_effect = run_side_effect
+            
+            result = await runner.validate_workspace_folder_with_avm_policies("test_folder")
+            
+            assert result['success'] is True
+            assert 'workspace_folder' in result
+            assert result['workspace_folder'] == 'test_folder'
+            assert 'terraform_files' in result
+            assert 'main.tf' in result['terraform_files']
+
+    @pytest.mark.asyncio 
+    async def test_validate_workspace_folder_plan_with_avm_policies_success(self, runner):
+        """Test successful workspace folder plan validation with existing plan."""
+        with patch('pathlib.Path.exists') as mock_exists, \
+             patch('pathlib.Path.is_dir') as mock_is_dir, \
+             patch('pathlib.Path.glob') as mock_glob, \
+             patch('subprocess.run') as mock_run:
+            
+            # Mock that the workspace folder exists
+            mock_exists.return_value = True
+            mock_is_dir.return_value = True
+            
+            # Mock existing plan file
+            mock_plan_file = Mock()
+            mock_plan_file.name = 'tfplan.binary'
+            def glob_side_effect(pattern):
+                if pattern == 'tfplan.binary':
+                    return [mock_plan_file]
+                return []
+            mock_glob.side_effect = glob_side_effect
+            
+            # Mock successful terraform show
+            mock_show_result = Mock()
+            mock_show_result.returncode = 0
+            mock_show_result.stdout = '{"planned_values": {"root_module": {"resources": []}}}'
+            
+            # Mock conftest execution
+            mock_conftest_result = Mock()
+            mock_conftest_result.returncode = 0
+            mock_conftest_result.stdout = '[]'  # No violations
+            mock_conftest_result.stderr = ''
+            
+            def run_side_effect(*args, **kwargs):
+                if 'show' in args[0]:
+                    return mock_show_result
+                else:
+                    return mock_conftest_result
+                    
+            mock_run.side_effect = run_side_effect
+            
+            result = await runner.validate_workspace_folder_plan_with_avm_policies("test_folder")
+            
+            assert result['success'] is True
+            assert 'workspace_folder' in result
+            assert result['workspace_folder'] == 'test_folder'
+            assert 'plan_file' in result
+
+    @pytest.mark.asyncio
     async def test_validate_with_avm_policies_success(self, runner):
         """Test successful validation with AVM policies."""
         terraform_plan = '{"planned_values": {"root_module": {"resources": []}}}'

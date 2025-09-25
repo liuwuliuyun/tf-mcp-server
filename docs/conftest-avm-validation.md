@@ -48,6 +48,59 @@ This tool supports comprehensive validation of Azure resources using azurerm, az
 - Validation success status
 - List of policy violations
 - Summary with violation counts
+
+### 2. `run_conftest_workspace_validation`
+
+Validate Terraform files in a workspace folder against Azure security policies and best practices using Conftest.
+
+This tool validates all `.tf` files in the specified workspace folder, similar to how aztfexport creates folders under `/workspace`. It automatically runs `terraform init`, `terraform plan`, and validates the resulting plan.
+
+**Parameters:**
+- `folder_name` (required): Name of the folder under `/workspace` to validate (e.g., "exported-rg-acctest0001")
+- `policy_set` (optional, default: "all"): Policy set to use
+- `severity_filter` (optional): Severity filter for avmsec policies  
+- `custom_policies` (optional): Comma-separated list of custom policy paths
+
+**Returns:**
+- Validation success status
+- List of policy violations
+- Summary with violation counts
+- Workspace folder information and list of Terraform files
+
+### 3. `run_conftest_plan_validation`
+
+Validate Terraform plan JSON against Azure security policies and best practices using Conftest.
+
+This tool validates a pre-generated Terraform plan in JSON format, useful when you already have a plan file.
+
+**Parameters:**
+- `terraform_plan_json` (required): Terraform plan in JSON format
+- `policy_set` (optional, default: "all"): Policy set to use
+- `severity_filter` (optional): Severity filter for avmsec policies
+- `custom_policies` (optional): Comma-separated list of custom policy paths
+
+**Returns:**
+- Validation success status
+- List of policy violations
+- Summary with violation counts
+
+### 4. `run_conftest_workspace_plan_validation`
+
+Validate Terraform plan files in a workspace folder against Azure security policies using Conftest.
+
+This tool validates existing plan files (`.tfplan`, `tfplan.binary`) in the specified workspace folder, or creates a new plan if only `.tf` files are present. Works with folders created by aztfexport or other Terraform operations in the `/workspace` directory.
+
+**Parameters:**
+- `folder_name` (required): Name of the folder under `/workspace` containing the plan file (e.g., "exported-rg-acctest0001")
+- `policy_set` (optional, default: "all"): Policy set to use
+- `severity_filter` (optional): Severity filter for avmsec policies
+- `custom_policies` (optional): Comma-separated list of custom policy paths
+
+**Returns:**
+- Validation success status  
+- List of policy violations
+- Summary with violation counts
+- Workspace folder information and plan file path
 - Detailed violation information
 
 ### 2. `run_conftest_plan_validation`
@@ -241,8 +294,20 @@ If Terraform operations fail:
 
 These tools are automatically integrated into the Azure Terraform MCP Server and can be accessed via the MCP protocol. The tools are registered as:
 
-- `run_conftest_validation` 
-- `run_conftest_plan_validation`
+- `run_conftest_validation` - Validate raw HCL content
+- `run_conftest_workspace_validation` - Validate .tf files in a workspace folder
+- `run_conftest_plan_validation` - Validate raw plan JSON content  
+- `run_conftest_workspace_plan_validation` - Validate plan files in a workspace folder
+
+### Workflow Integration
+
+The workspace-based tools are designed to work seamlessly with other tools in the MCP server:
+
+1. **With AzTFExport**: After using `aztfexport_resource` to export Azure resources to a workspace folder, use `run_conftest_workspace_validation` to validate the exported Terraform files.
+
+2. **Continuous Validation**: Run workspace validation after making changes to Terraform files in workspace folders to ensure compliance with Azure policies.
+
+3. **Plan Validation**: Use `run_conftest_workspace_plan_validation` when you have existing plan files or want to validate plans without re-running Terraform operations.
 
 ## Contributing
 
