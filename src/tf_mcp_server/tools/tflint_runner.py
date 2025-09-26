@@ -5,9 +5,8 @@ TFLint runner utilities for Azure Terraform MCP Server.
 import os
 import json
 import subprocess
-import tempfile
 from typing import Dict, Any, Optional, List
-from ..core.utils import extract_hcl_from_markdown, resolve_workspace_path
+from ..core.utils import resolve_workspace_path
 
 
 class TFLintRunner:
@@ -61,133 +60,6 @@ plugin "azurerm" {
 """
         
         return config
-    
-    async def lint_terraform_configuration(self, 
-                                         hcl_content: str, 
-                                         output_format: str = "json",
-                                         enable_azure_plugin: bool = True,
-                                         enable_rules: Optional[List[str]] = None,
-                                         disable_rules: Optional[List[str]] = None,
-                                         var_file_content: Optional[str] = None,
-                                         initialize_plugins: bool = True) -> Dict[str, Any]:
-        """
-        Run TFLint on the provided Terraform configuration.
-        
-        Args:
-            hcl_content: Terraform HCL content to lint
-            output_format: Output format (json, default, checkstyle, junit, compact, sarif)
-            enable_azure_plugin: Whether to enable the Azure ruleset plugin
-            enable_rules: List of specific rules to enable
-            disable_rules: List of specific rules to disable
-            var_file_content: Optional Terraform variables content
-            initialize_plugins: Whether to run tflint --init to install plugins
-            
-        Returns:
-            TFLint analysis result
-        """
-        if not hcl_content or not hcl_content.strip():
-            return {
-                'success': False,
-                'error': 'No HCL content provided',
-                'issues': [],
-                'summary': {
-                    'total_issues': 0,
-                    'errors': 0,
-                    'warnings': 0,
-                    'notices': 0
-                }
-            }
-        
-        # Extract HCL if wrapped in markdown
-        extracted_hcl = extract_hcl_from_markdown(hcl_content)
-        if extracted_hcl:
-            hcl_content = extracted_hcl
-        
-        try:
-            with tempfile.TemporaryDirectory() as temp_dir:
-                # Write Terraform configuration
-                tf_file = os.path.join(temp_dir, 'main.tf')
-                with open(tf_file, 'w', encoding='utf-8') as f:
-                    f.write(hcl_content)
-                
-                # Write variables file if provided
-                if var_file_content:
-                    vars_file = os.path.join(temp_dir, 'terraform.tfvars')
-                    with open(vars_file, 'w', encoding='utf-8') as f:
-                        f.write(var_file_content)
-                
-                # Write tflint configuration
-                config_file = os.path.join(temp_dir, '.tflint.hcl')
-                with open(config_file, 'w', encoding='utf-8') as f:
-                    f.write(self._create_tflint_config(enable_azure_plugin))
-                
-                # Initialize plugins if requested
-                if initialize_plugins:
-                    init_result = await self._run_tflint_init(temp_dir)
-                    if not init_result['success']:
-                        return {
-                            'success': False,
-                            'error': f'Failed to initialize TFLint plugins: {init_result["error"]}',
-                            'issues': [],
-                            'summary': {
-                                'total_issues': 0,
-                                'errors': 0,
-                                'warnings': 0,
-                                'notices': 0
-                            }
-                        }
-                
-                # Build tflint command
-                cmd = [self.tflint_executable, '--format', output_format]
-                
-                # Add rule flags
-                if enable_rules:
-                    for rule in enable_rules:
-                        cmd.extend(['--enable-rule', rule])
-                
-                if disable_rules:
-                    for rule in disable_rules:
-                        cmd.extend(['--disable-rule', rule])
-                
-                # Add variable file if exists
-                if var_file_content:
-                    cmd.extend(['--var-file', 'terraform.tfvars'])
-                
-                # Run TFLint
-                result = subprocess.run(
-                    cmd,
-                    cwd=temp_dir,
-                    capture_output=True,
-                    text=True,
-                    timeout=120
-                )
-                
-                return self._parse_tflint_output(result, output_format)
-                
-        except subprocess.TimeoutExpired:
-            return {
-                'success': False,
-                'error': 'TFLint execution timed out (120 seconds)',
-                'issues': [],
-                'summary': {
-                    'total_issues': 0,
-                    'errors': 0,
-                    'warnings': 0,
-                    'notices': 0
-                }
-            }
-        except Exception as e:
-            return {
-                'success': False,
-                'error': f'TFLint execution error: {str(e)}',
-                'issues': [],
-                'summary': {
-                    'total_issues': 0,
-                    'errors': 0,
-                    'warnings': 0,
-                    'notices': 0
-                }
-            }
     
     async def _run_tflint_init(self, working_dir: str) -> Dict[str, Any]:
         """

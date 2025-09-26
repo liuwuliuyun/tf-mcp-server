@@ -1,311 +1,175 @@
 """
-Example demonstrating how to use the Conftest AVM runner for Azure policy validation.
+Example demonstrating how to use the Conftest AVM runner for Azure policy validation
+with the workspace- and plan-based tooling.
 """
 
 import asyncio
 import json
-import sys
 import os
+import shutil
+import sys
+import textwrap
+from pathlib import Path
+from uuid import uuid4
 
 # Add the src directory to the Python path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 
+from tf_mcp_server.core.utils import get_workspace_root
 from tf_mcp_server.tools.conftest_avm_runner import get_conftest_avm_runner
 
 
-async def main():
-    """Main example function."""
-    
-    # Get the Conftest AVM runner
-    runner = get_conftest_avm_runner()
-    
-    # Example Terraform HCL content
-    example_hcl = '''
-    # Configure the Azure Provider
-    terraform {
-      required_providers {
-        azurerm = {
-          source  = "hashicorp/azurerm"
-          version = "~>3.0"
+SAMPLE_HCL = """
+terraform {
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = "~>3.0"
+    }
+  }
+}
+
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "example" {
+  name     = "example-rg"
+  location = "West Europe"
+
+  tags = {
+    Environment = "Test"
+  }
+}
+
+resource "azurerm_storage_account" "example" {
+  name                     = "examplestorageacct"
+  resource_group_name      = azurerm_resource_group.example.name
+  location                 = azurerm_resource_group.example.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+  allow_nested_items_to_be_public = true
+
+  tags = {
+    Environment = "Test"
+  }
+}
+"""
+
+SAMPLE_PLAN_JSON = {
+    "format_version": "1.1",
+    "terraform_version": "1.5.0",
+    "planned_values": {
+        "root_module": {
+            "resources": [
+                {
+                    "address": "azurerm_storage_account.example",
+                    "mode": "managed",
+                    "type": "azurerm_storage_account",
+                    "values": {
+                        "name": "examplestorage",
+                        "resource_group_name": "example-rg",
+                        "location": "West Europe",
+                        "account_tier": "Standard",
+                        "account_replication_type": "LRS",
+                        "allow_nested_items_to_be_public": True,
+                        "min_tls_version": "TLS1_0"
+                    }
+                }
+            ]
         }
-      }
     }
-    
-    # Configure the Microsoft Azure Provider
-    provider "azurerm" {
-      features {}
-    }
-    
-    # Create a resource group
-    resource "azurerm_resource_group" "example" {
-      name     = "example-rg"
-      location = "West Europe"
-      
-      tags = {
-        Environment = "Test"
-      }
-    }
-    
-    # Create a storage account (potentially insecure for demonstration)
-    resource "azurerm_storage_account" "example" {
-      name                     = "examplestorageacct"
-      resource_group_name      = azurerm_resource_group.example.name
-      location                 = azurerm_resource_group.example.location
-      account_tier             = "Standard"
-      account_replication_type = "LRS"
-      
-      # Potentially insecure configuration for demo
-      allow_nested_items_to_be_public = true
-      
-      tags = {
-        Environment = "Test"
-      }
-    }
-    
-    # Create a virtual network
-    resource "azurerm_virtual_network" "example" {
-      name                = "example-vnet"
-      address_space       = ["10.0.0.0/16"]
-      location            = azurerm_resource_group.example.location
-      resource_group_name = azurerm_resource_group.example.name
-      
-      tags = {
-        Environment = "Test"
-      }
-    }
-    '''
-    
-    print("\n" + "="*60)
-    print("Example 1: Validate with all AVM policies")
-    print("="*60)
-    
+}
+
+
+def _create_workspace() -> tuple[Path, str]:
+    """Create a temporary Terraform workspace containing the sample configuration."""
+    workspace_root = get_workspace_root()
+    workspace_root.mkdir(parents=True, exist_ok=True)
+
+    folder_name = f"conftest-avm-example-{uuid4().hex}"
+    workspace_dir = workspace_root / folder_name
+    workspace_dir.mkdir(parents=True, exist_ok=True)
+
+    (workspace_dir / "main.tf").write_text(textwrap.dedent(SAMPLE_HCL).strip() + "\n", encoding="utf-8")
+    return workspace_dir, folder_name
+
+
+def _print_result(title: str, result: dict) -> None:
+    """Pretty-print Conftest results."""
+    print("\n" + "=" * 60)
+    print(title)
+    print("=" * 60)
+
+    success = result.get("success", False)
+    print(f"Success: {success}")
+
+    if "policy_set" in result:
+        print(f"Policy Set: {result['policy_set']}")
+    if "severity_filter" in result and result['severity_filter']:
+        print(f"Severity Filter: {result['severity_filter']}")
+
+    summary = result.get("summary", {})
+    if summary:
+        print(f"Total Violations: {summary.get('total_violations', 'n/a')}")
+
+    if success and result.get("violations"):
+        print("\nViolations:")
+        for idx, violation in enumerate(result["violations"], start=1):
+            policy = violation.get("policy", "unknown-policy")
+            level = violation.get("level", "warning").upper()
+            message = violation.get("message", "No message provided")
+            print(f"  {idx}. [{level}] {policy}\n     {message}")
+    elif not success:
+        error_msg = result.get("error") or result.get("command_error")
+        if error_msg:
+            print(f"Error: {error_msg}")
+        else:
+            print("Validation did not succeed; see logs for details.")
+
+
+async def main() -> None:
+    runner = get_conftest_avm_runner()
+
+    workspace_dir, folder_name = _create_workspace()
     try:
-        result = await runner.validate_terraform_hcl_with_avm_policies(
-            hcl_content=example_hcl,
+        # 1. Validate the workspace folder with all policies
+        workspace_result = await runner.validate_workspace_folder_with_avm_policies(
+            folder_name=folder_name,
             policy_set="all"
         )
-        
-        print(f"Validation Success: {result['success']}")
-        print(f"Total Violations: {result['summary']['total_violations']}")
-        print(f"Policy Set: {result['policy_set']}")
-        
-        if result['violations']:
-            print("\nViolations found:")
-            for i, violation in enumerate(result['violations'][:5], 1):  # Show first 5
-                print(f"  {i}. [{violation['level'].upper()}] {violation['policy']}")
-                print(f"     Message: {violation['message']}")
-                if violation.get('metadata'):
-                    print(f"     Metadata: {violation['metadata']}")
-                print()
-        else:
-            print("✅ No violations found!")
-            
-    except Exception as e:
-        print(f"❌ Error during validation: {e}")
-    
-    print("\n" + "="*60)
-    print("Example 2: Validate with avmsec high severity policies only")
-    print("="*60)
-    
-    try:
-        result = await runner.validate_terraform_hcl_with_avm_policies(
-            hcl_content=example_hcl,
+        _print_result("Workspace Validation (All Policies)", workspace_result)
+
+        # 2. Validate the same workspace with avmsec high severity policies
+        severity_result = await runner.validate_workspace_folder_with_avm_policies(
+            folder_name=folder_name,
             policy_set="avmsec",
             severity_filter="high"
         )
-        
-        print(f"Validation Success: {result['success']}")
-        print(f"Total Violations: {result['summary']['total_violations']}")
-        print(f"Policy Set: {result['policy_set']}")
-        print(f"Severity Filter: {result['severity_filter']}")
-        
-        if result['violations']:
-            print("\nHigh severity violations:")
-            for i, violation in enumerate(result['violations'], 1):
-                print(f"  {i}. [{violation['level'].upper()}] {violation['policy']}")
-                print(f"     Message: {violation['message']}")
-                print()
-        else:
-            print("✅ No high severity violations found!")
-            
-    except Exception as e:
-        print(f"❌ Error during validation: {e}")
-    
-    # Example 4: Demonstrate workspace folder validation (simulated)
-    print("\n" + "="*60)
-    print("Example 4: Workspace Folder Validation (Simulated)")
-    print("="*60)
-    
-    # Note: This would work if you have a real workspace folder with .tf files
-    # In a real scenario, you might use this after running aztfexport
-    workspace_folder_example = """
-    # Example usage for workspace folder validation:
-    
-    # 1. After exporting resources with aztfexport:
-    result = await runner.validate_workspace_folder_with_avm_policies(
-        folder_name="exported-rg-myresources",  # Folder created by aztfexport
-        policy_set="avmsec",
-        severity_filter="high"
-    )
-    
-    # 2. Validate existing workspace folder:
-    result = await runner.validate_workspace_folder_with_avm_policies(
-        folder_name="my-terraform-project",
-        policy_set="all"
-    )
-    
-    # 3. Validate plan files in workspace folder:
-    result = await runner.validate_workspace_folder_plan_with_avm_policies(
-        folder_name="exported-rg-myresources", 
-        policy_set="Azure-Proactive-Resiliency-Library-v2"
-    )
-    """
-    
-    print("Workspace folder validation allows you to validate:")
-    print("• Terraform files in folders created by aztfexport")
-    print("• Existing workspace folders with .tf files")
-    print("• Plan files in workspace directories")
-    print()
-    print("Example code:")
-    print(workspace_folder_example)
-    
-    # Example 5: Demonstrate plan validation
-    print("\n" + "="*60)
-    print("Example 5: Plan JSON Validation")
-    print("="*60)
-    
-    # Example plan JSON (minimal for demonstration)
-    example_plan_json = '''
-    {
-      "format_version": "1.1",
-      "terraform_version": "1.5.0",
-      "planned_values": {
-        "root_module": {
-          "resources": [
-            {
-              "address": "azurerm_storage_account.example",
-              "mode": "managed",
-              "type": "azurerm_storage_account",
-              "values": {
-                "name": "examplestorage",
-                "resource_group_name": "example-rg",
-                "location": "West Europe",
-                "account_tier": "Standard",
-                "account_replication_type": "LRS",
-                "allow_nested_items_to_be_public": true,
-                "min_tls_version": "TLS1_0"
-              }
-            }
-          ]
-        }
-      }
-    }
-    '''
-    
-    try:
-        result = await runner.validate_with_avm_policies(
-            terraform_plan_json=example_plan_json,
+        _print_result("Workspace Validation (avmsec High Severity)", severity_result)
+
+        # 3. Validate a pre-generated plan JSON payload
+        plan_json = json.dumps(SAMPLE_PLAN_JSON)
+        plan_result = await runner.validate_with_avm_policies(
+            terraform_plan_json=plan_json,
             policy_set="avmsec",
             severity_filter="medium"
         )
-        
-        print(f"Plan Validation Success: {result['success']}")
-        print(f"Total Violations: {result['summary']['total_violations']}")
-        print(f"Policy Set: {result['policy_set']}")
-        
-        if result['violations']:
-            print("\nPlan validation violations:")
-            for i, violation in enumerate(result['violations'], 1):
-                print(f"  {i}. [{violation['level'].upper()}] {violation['policy']}")
-                print(f"     Message: {violation['message']}")
-                print()
-        else:
-            print("✅ No violations found in plan!")
-            
-    except Exception as e:
-        print(f"❌ Error during plan validation: {e}")
+        _print_result("Plan JSON Validation", plan_result)
 
-    print("\n" + "="*60)
-    print("Example 3: Validate with Azure Proactive Resiliency Library v2 only")
-    print("="*60)
-    
-    try:
-        result = await runner.validate_terraform_hcl_with_avm_policies(
-            hcl_content=example_hcl,
+        # 4. Illustrate workspace plan validation (will run terraform plan/show)
+        print("\nNote: Workspace plan validation runs `terraform plan` in the workspace.")
+        workspace_plan_result = await runner.validate_workspace_folder_plan_with_avm_policies(
+            folder_name=folder_name,
             policy_set="Azure-Proactive-Resiliency-Library-v2"
         )
-        
-        print(f"Validation Success: {result['success']}")
-        print(f"Total Violations: {result['summary']['total_violations']}")
-        print(f"Policy Set: {result['policy_set']}")
-        
-        if result['violations']:
-            print("\nResiliency violations:")
-            for i, violation in enumerate(result['violations'], 1):
-                print(f"  {i}. [{violation['level'].upper()}] {violation['policy']}")
-                print(f"     Message: {violation['message']}")
-                print()
-        else:
-            print("✅ No resiliency violations found!")
-            
-    except Exception as e:
-        print(f"❌ Error during validation: {e}")
-    
-    # Example with a Terraform plan JSON (if you have one)
-    print("\n" + "="*60)
-    print("Example 4: Direct plan validation")
-    print("="*60)
-    
-    example_plan_json = '''
-    {
-      "format_version": "1.1",
-      "terraform_version": "1.0.0",
-      "planned_values": {
-        "root_module": {
-          "resources": [
-            {
-              "address": "azurerm_storage_account.example",
-              "mode": "managed",
-              "type": "azurerm_storage_account",
-              "name": "example",
-              "values": {
-                "account_tier": "Standard",
-                "account_replication_type": "LRS",
-                "allow_nested_items_to_be_public": true,
-                "location": "West Europe",
-                "name": "examplestorageacct"
-              }
-            }
-          ]
-        }
-      }
-    }
-    '''
-    
-    try:
-        result = await runner.validate_with_avm_policies(
-            terraform_plan_json=example_plan_json,
-            policy_set="avmsec"
-        )
-        
-        print(f"Plan Validation Success: {result['success']}")
-        print(f"Total Violations: {result['summary']['total_violations']}")
-        
-        if result['violations']:
-            print("\nPlan violations:")
-            for i, violation in enumerate(result['violations'], 1):
-                print(f"  {i}. [{violation['level'].upper()}] {violation['policy']}")
-                print(f"     Message: {violation['message']}")
-                print()
-        else:
-            print("✅ No plan violations found!")
-            
-    except Exception as e:
-        print(f"❌ Error during plan validation: {e}")
-    
-    print("\n" + "="*60)
-    print("Examples completed!")
-    print("="*60)
+        _print_result("Workspace Plan Validation", workspace_plan_result)
+
+    finally:
+        if workspace_dir.exists():
+            shutil.rmtree(workspace_dir, ignore_errors=True)
+
+    print("\nExamples completed. Review the output above for validation results.")
 
 
 if __name__ == "__main__":

@@ -8,7 +8,8 @@ ENV PYTHONUNBUFFERED=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
     MCP_SERVER_HOST=0.0.0.0 \
     MCP_SERVER_PORT=8000 \
-    LOG_LEVEL=INFO
+    LOG_LEVEL=INFO \
+    MCP_WORKSPACE_ROOT=/workspace
 
 # Install system dependencies
 RUN tdnf update -y && tdnf install -y \
@@ -69,7 +70,10 @@ WORKDIR /app
 COPY . /app
 
 # Create workspace directory
-RUN mkdir -p /workspace
+RUN mkdir -p "$MCP_WORKSPACE_ROOT"
+
+# Mark the workspace as a mount point so users can bind their host directories easily
+VOLUME ["$MCP_WORKSPACE_ROOT"]
 
 # Install UV package manager for faster dependency resolution
 RUN pip install uv
@@ -78,8 +82,8 @@ RUN pip install uv
 RUN mkdir -p /app/logs /app/health /home/mcpuser/
 
 # Set proper ownership and permissions for the app directory first
-RUN chown -R mcpuser:mcpuser /app /home/mcpuser /workspace \
-    && chmod 755 /app/logs /app/health /workspace
+RUN chown -R mcpuser:mcpuser /app /home/mcpuser "$MCP_WORKSPACE_ROOT" \
+    && chmod 755 /app/logs /app/health "$MCP_WORKSPACE_ROOT"
 
 # Switch to non-root user before installing dependencies
 USER mcpuser

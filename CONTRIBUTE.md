@@ -474,7 +474,11 @@ formatted = await runner.execute_terraform_command("fmt", hcl)
 from tf_mcp_server.tools.conftest_avm_runner import ConftestAVMRunner  
 
 runner = ConftestAVMRunner()
-result = await runner.run_conftest_validation(hcl_content, "avmsec", "high")
+result = await runner.validate_workspace_folder_with_avm_policies(
+  folder_name="exported-rg-acctest0001",
+  policy_set="avmsec",
+  severity_filter="high"
+)
 ```
 
 ### Current MCP Tools
@@ -494,9 +498,9 @@ The server provides the following MCP tools (as defined in `src/tf_mcp_server/co
 - `run_terraform_command` - Execute any Terraform command (init, plan, apply, destroy, validate, fmt) with provided HCL content
 
 **Security & Analysis Tools:**
-- `run_conftest_validation` - Validate Terraform HCL against Azure security policies and best practices using Conftest
 - `run_conftest_plan_validation` - Validate Terraform plan JSON against Azure security policies and best practices using Conftest
-- `run_tflint_analysis` - Run TFLint static analysis on Terraform configurations with Azure plugin support
+- `run_conftest_workspace_validation` - Validate Terraform workspaces against Azure security policies and best practices using Conftest
+- `run_tflint_workspace_analysis` - Run TFLint static analysis on Terraform workspaces with Azure plugin support
 - `check_tflint_installation` - Check TFLint installation status and get version information
 - `analyze_azure_resources` - Analyze Azure resources in Terraform configurations with recommendations
 

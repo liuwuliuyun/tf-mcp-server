@@ -4,10 +4,7 @@ This document describes how to use TFLint static analysis with the Azure Terrafo
 
 ## Overview
 
-TFLint is a Terraform static analysis tool that finds possible errors (like invalid instance types), warns about deprecated syntax, and enforces best practices. This integration provides two main ways to run TFLint analysis:
-
-1. **Raw HCL Content Analysis** - Analyze Terraform code directly from strings
-2. **Workspace Folder Analysis** - Analyze existing Terraform projects in directories
+TFLint is a Terraform static analysis tool that finds possible errors (like invalid instance types), warns about deprecated syntax, and enforces best practices. The Azure Terraform MCP Server runs TFLint against Terraform workspaces that you provide on disk.
 
 ## Prerequisites
 
@@ -43,36 +40,7 @@ tflint --version
 
 ## Available Tools
 
-### 1. `run_tflint_analysis`
-
-Analyzes raw Terraform HCL content provided as a string.
-
-**Parameters:**
-- `hcl_content` (required): Terraform HCL content to analyze
-- `output_format` (optional): Output format - json, default, checkstyle, junit, compact, sarif (default: json)
-- `enable_azure_plugin` (optional): Enable Azure ruleset plugin (default: true)
-- `enable_rules` (optional): Comma-separated list of rules to enable
-- `disable_rules` (optional): Comma-separated list of rules to disable
-- `var_file_content` (optional): Terraform variables content
-- `initialize_plugins` (optional): Whether to initialize plugins (default: true)
-
-**Example:**
-```hcl
-resource "azurerm_resource_group" "example" {
-  name     = "example-resources"
-  location = "West Europe"
-}
-
-resource "azurerm_storage_account" "example" {
-  name                     = "examplestorageaccount"
-  resource_group_name      = azurerm_resource_group.example.name
-  location                 = azurerm_resource_group.example.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-```
-
-### 2. `run_tflint_workspace_analysis`
+### `run_tflint_workspace_analysis`
 
 Analyzes a workspace folder containing Terraform configuration files.
 
@@ -101,32 +69,28 @@ terraform-project/
         └── network.tf
 ```
 
-### 3. `check_tflint_installation`
+### `check_tflint_installation`
 
 Checks if TFLint is installed and returns version information.
 
 ## Usage Examples
 
-### Analyzing Raw HCL Content
+### Preparing a Workspace
 
-Use `run_tflint_analysis` when you have Terraform code as a string:
+Save your Terraform configuration to a workspace directory that the server can access. You can create the folder manually, generate it with `run_terraform_command`, or reuse aztfexport output.
 
-```python
-result = await run_tflint_analysis(
-    hcl_content="""
-    resource "azurerm_resource_group" "example" {
-      name     = "example-resources"
-      location = "West Europe"
-    }
-    """,
-    output_format="json",
-    enable_azure_plugin=True
-)
+```
+terraform-project/
+├── main.tf
+├── variables.tf
+└── modules/
+    └── storage/
+        └── storage.tf
 ```
 
 ### Analyzing Workspace Folders
 
-Use `run_tflint_workspace_analysis` when you have a directory with Terraform files:
+Use `run_tflint_workspace_analysis` to scan the directory:
 
 #### Non-Recursive Analysis
 ```python
@@ -150,13 +114,14 @@ result = await run_tflint_workspace_analysis(
 
 ### Custom Rule Configuration
 
-Enable or disable specific rules:
+Enable or disable specific rules while scanning the workspace:
 
 ```python
-result = await run_tflint_analysis(
-    hcl_content=hcl_code,
-    enable_rules="terraform_required_providers,terraform_required_version",
-    disable_rules="terraform_unused_declarations"
+result = await run_tflint_workspace_analysis(
+  workspace_folder="/path/to/terraform/project",
+  enable_rules=["terraform_required_providers", "terraform_required_version"],
+  disable_rules=["terraform_unused_declarations"],
+  output_format="json"
 )
 ```
 

@@ -8,7 +8,6 @@ import subprocess
 import tempfile
 from typing import Dict, Any, Optional, List
 from ..core.utils import (
-    extract_hcl_from_markdown,
     strip_ansi_escape_sequences,
     resolve_workspace_path,
 )
@@ -628,109 +627,6 @@ exception contains rules if {
             return {
                 'success': False,
                 'error': f'Error validating workspace folder plan with AVM policies: {error_message}',
-                'violations': [],
-                'summary': {'total_violations': 0, 'failures': 0, 'warnings': 0}
-            }
-
-    async def validate_terraform_hcl_with_avm_policies(self,
-                                                      hcl_content: str,
-                                                      policy_set: str = "all",
-                                                      severity_filter: Optional[str] = None,
-                                                      custom_policies: Optional[List[str]] = None) -> Dict[str, Any]:
-        """
-        Validate Terraform HCL content against Azure Verified Modules policies.
-        This method will first convert HCL to a plan, then validate it.
-        
-        Args:
-            hcl_content: Terraform HCL content
-            policy_set: Policy set to use ('all', 'Azure-Proactive-Resiliency-Library-v2', 'avmsec')
-            severity_filter: Filter by severity for avmsec policies ('high', 'medium', 'low', 'info')
-            custom_policies: List of custom policy paths to include
-            
-        Returns:
-            Policy validation results
-        """
-        # Extract HCL if needed
-        extracted_hcl = extract_hcl_from_markdown(hcl_content)
-        if extracted_hcl:
-            hcl_content = extracted_hcl
-        
-        try:
-            # Create temporary directory for Terraform operations
-            with tempfile.TemporaryDirectory() as temp_dir:
-                # Write HCL content to main.tf
-                main_tf_path = os.path.join(temp_dir, 'main.tf')
-                with open(main_tf_path, 'w') as f:
-                    f.write(hcl_content)
-                
-                # Initialize Terraform
-                init_result = subprocess.run(['terraform', 'init'], 
-                                           cwd=temp_dir,
-                                           capture_output=True, 
-                                           text=True, 
-                                           timeout=120)
-                
-                if init_result.returncode != 0:
-                    error_message = strip_ansi_escape_sequences(init_result.stderr)
-                    return {
-                        'success': False,
-                        'error': f'Terraform init failed: {error_message}',
-                        'violations': [],
-                        'summary': {'total_violations': 0, 'failures': 0, 'warnings': 0}
-                    }
-                
-                # Create Terraform plan
-                plan_result = subprocess.run(['terraform', 'plan', '-out=tfplan.binary'], 
-                                           cwd=temp_dir,
-                                           capture_output=True, 
-                                           text=True, 
-                                           timeout=120)
-                
-                if plan_result.returncode != 0:
-                    error_message = strip_ansi_escape_sequences(plan_result.stderr)
-                    return {
-                        'success': False,
-                        'error': f'Terraform plan failed: {error_message}',
-                        'violations': [],
-                        'summary': {'total_violations': 0, 'failures': 0, 'warnings': 0}
-                    }
-                
-                # Convert plan to JSON
-                show_result = subprocess.run(['terraform', 'show', '-json', 'tfplan.binary'], 
-                                           cwd=temp_dir,
-                                           capture_output=True, 
-                                           text=True, 
-                                           timeout=60)
-                
-                if show_result.returncode != 0:
-                    error_message = strip_ansi_escape_sequences(show_result.stderr)
-                    return {
-                        'success': False,
-                        'error': f'Terraform show failed: {error_message}',
-                        'violations': [],
-                        'summary': {'total_violations': 0, 'failures': 0, 'warnings': 0}
-                    }
-                
-                # Now validate the plan JSON with AVM policies
-                return await self.validate_with_avm_policies(
-                    terraform_plan_json=show_result.stdout,
-                    policy_set=policy_set,
-                    severity_filter=severity_filter,
-                    custom_policies=custom_policies
-                )
-                
-        except subprocess.TimeoutExpired:
-            return {
-                'success': False,
-                'error': 'Terraform operation timed out',
-                'violations': [],
-                'summary': {'total_violations': 0, 'failures': 0, 'warnings': 0}
-            }
-        except Exception as e:
-            error_message = strip_ansi_escape_sequences(str(e))
-            return {
-                'success': False,
-                'error': f'Error validating HCL with AVM policies: {error_message}',
                 'violations': [],
                 'summary': {'total_violations': 0, 'failures': 0, 'warnings': 0}
             }

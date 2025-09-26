@@ -28,7 +28,7 @@ This MCP server provides support for Azure Terraform development, including:
 - **Unified Terraform Commands**: Single tool to execute all Terraform commands (init, plan, apply, destroy, validate, fmt)
 - **HCL Validation**: Syntax validation and error reporting for Terraform code
 - **HCL Formatting**: Automatic code formatting for Terraform configurations
-- **TFLint Integration**: Static analysis with TFLint including Azure ruleset support for both raw HCL content and workspace folders
+- **TFLint Integration**: Static analysis with TFLint including Azure ruleset support for Terraform workspaces
 - **Resource Analysis**: Analyze Azure resources in Terraform configurations
 - **Azure Export for Terraform (aztfexport)**: Export existing Azure resources to Terraform configuration and state
 
@@ -104,13 +104,11 @@ The server provides the following MCP tools:
 - **`run_terraform_command`**: Execute any Terraform command (init, plan, apply, destroy, validate, fmt) with provided HCL content
 
 #### Security Tools
-- **`run_conftest_validation`**: Validate Terraform HCL against Azure security policies and best practices using Conftest (supports azurerm, azapi, and AVM providers)
 - **`run_conftest_workspace_validation`**: Validate Terraform files in a workspace folder against Azure security policies (works with aztfexport folders)
 - **`run_conftest_plan_validation`**: Validate Terraform plan JSON against Azure security policies and best practices using Conftest
 - **`run_conftest_workspace_plan_validation`**: Validate Terraform plan files in a workspace folder against Azure security policies
 
 #### Static Analysis Tools
-- **`run_tflint_analysis`**: Run TFLint static analysis on raw Terraform HCL content with Azure plugin support
 - **`run_tflint_workspace_analysis`**: Run TFLint static analysis on workspace folders containing Terraform files (supports recursive analysis)
 - **`check_tflint_installation`**: Check TFLint installation status and get version information
 
@@ -193,21 +191,14 @@ The server provides the following MCP tools:
 ```
 
 #### Azure Policy Validation
-```python
-# Validate with all Azure policies
-{
-  "tool": "run_conftest_validation",
-  "arguments": {
-    "hcl_content": "resource \"azurerm_storage_account\" \"example\" {\n  name = \"mystorageaccount\"\n  resource_group_name = \"myresourcegroup\"\n  location = \"East US\"\n  account_tier = \"Standard\"\n  account_replication_type = \"LRS\"\n}",
-    "policy_set": "all"
-  }
-}
+Conftest validation now operates on Terraform workspaces or plan files. Save your configuration to disk (for example, using `run_terraform_command` or aztfexport) and point the tools at those files:
 
-# Validate with high severity security policies only
+```python
+# Validate Terraform files in a workspace folder (works with aztfexport folders)
 {
-  "tool": "run_conftest_validation",
+  "tool": "run_conftest_workspace_validation",
   "arguments": {
-    "hcl_content": "resource \"azurerm_storage_account\" \"example\" {\n  name = \"mystorageaccount\"\n  resource_group_name = \"myresourcegroup\"\n  location = \"East US\"\n  account_tier = \"Standard\"\n  account_replication_type = \"LRS\"\n}",
+    "folder_name": "exported-rg-acctest0001",
     "policy_set": "avmsec",
     "severity_filter": "high"
   }
@@ -222,17 +213,7 @@ The server provides the following MCP tools:
   }
 }
 
-# Validate workspace folder (works with aztfexport folders)
-{
-  "tool": "run_conftest_workspace_validation",
-  "arguments": {
-    "folder_name": "exported-rg-acctest0001",
-    "policy_set": "avmsec",
-    "severity_filter": "high"
-  }
-}
-
-# Validate plan files in workspace folder
+# Validate plan files stored in a workspace folder
 {
   "tool": "run_conftest_workspace_plan_validation",
   "arguments": {
@@ -350,25 +331,19 @@ This workflow allows you to:
 3. Identify compliance issues before applying changes
 
 #### TFLint Static Analysis
-```python
-# Run TFLint analysis with raw HCL content
-{
-  "tool": "run_tflint_analysis",
-  "arguments": {
-    "hcl_content": "resource \"azurerm_storage_account\" \"example\" {\n  name = \"mystorageaccount\"\n  resource_group_name = \"myresourcegroup\"\n  location = \"East US\"\n  account_tier = \"Standard\"\n  account_replication_type = \"LRS\"\n}",
-    "output_format": "json",
-    "enable_azure_plugin": true
-  }
-}
+TFLint now runs against Terraform workspaces. Save your configuration to disk, then invoke the workspace analysis tool:
 
-# Run TFLint analysis on workspace folder
+```python
+# Run TFLint analysis on a workspace folder
 {
   "tool": "run_tflint_workspace_analysis",
   "arguments": {
     "workspace_folder": "/path/to/terraform/project",
     "output_format": "json",
     "recursive": true,
-    "enable_azure_plugin": true
+    "enable_azure_plugin": true,
+    "enable_rules": ["azurerm_storage_account_min_tls_version"],
+    "disable_rules": ["terraform_unused_declarations"]
   }
 }
 
@@ -376,18 +351,6 @@ This workflow allows you to:
 {
   "tool": "check_tflint_installation",
   "arguments": {}
-}
-
-# Run with specific rules configuration
-{
-  "tool": "run_tflint_analysis",
-  "arguments": {
-    "hcl_content": "resource \"azurerm_storage_account\" \"example\" {\n  name = \"mystorageaccount\"\n}",
-    "output_format": "compact",
-    "enable_azure_plugin": true,
-    "disable_rules": "terraform_unused_declarations",
-    "enable_rules": "azurerm_storage_account_min_tls_version"
-  }
 }
 ```
 

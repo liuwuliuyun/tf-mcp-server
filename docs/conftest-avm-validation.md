@@ -15,7 +15,7 @@ The Conftest Azure policy validation tools provide integration with Azure securi
   - `Azure-Proactive-Resiliency-Library-v2`: Resiliency-focused policies
   - `avmsec`: Security-focused policies
 - **Severity Filtering**: Filter avmsec policies by severity level (high, medium, low, info)
-- **Flexible Input**: Support for both Terraform HCL content and pre-generated plan JSON
+- **Flexible Input**: Support for Terraform workspaces and pre-generated plan JSON
 - **Custom Policies**: Support for additional custom policy paths
 
 ## Prerequisites
@@ -32,24 +32,7 @@ The Conftest Azure policy validation tools provide integration with Azure securi
 
 ## Available Tools
 
-### 1. `run_conftest_validation`
-
-Validate Terraform HCL content against Azure security policies and best practices using Conftest.
-
-This tool supports comprehensive validation of Azure resources using azurerm, azapi, and AVM (Azure Verified Modules) providers with security checks, compliance rules, and operational best practices.
-
-**Parameters:**
-- `hcl_content` (required): Terraform HCL content to validate
-- `policy_set` (optional, default: "all"): Policy set to use
-- `severity_filter` (optional): Severity filter for avmsec policies
-- `custom_policies` (optional): Comma-separated list of custom policy paths
-
-**Returns:**
-- Validation success status
-- List of policy violations
-- Summary with violation counts
-
-### 2. `run_conftest_workspace_validation`
+### `run_conftest_workspace_validation`
 
 Validate Terraform files in a workspace folder against Azure security policies and best practices using Conftest.
 
@@ -67,7 +50,7 @@ This tool validates all `.tf` files in the specified workspace folder, similar t
 - Summary with violation counts
 - Workspace folder information and list of Terraform files
 
-### 3. `run_conftest_plan_validation`
+### `run_conftest_plan_validation`
 
 Validate Terraform plan JSON against Azure security policies and best practices using Conftest.
 
@@ -84,7 +67,7 @@ This tool validates a pre-generated Terraform plan in JSON format, useful when y
 - List of policy violations
 - Summary with violation counts
 
-### 4. `run_conftest_workspace_plan_validation`
+### `run_conftest_workspace_plan_validation`
 
 Validate Terraform plan files in a workspace folder against Azure security policies using Conftest.
 
@@ -102,21 +85,6 @@ This tool validates existing plan files (`.tfplan`, `tfplan.binary`) in the spec
 - Summary with violation counts
 - Workspace folder information and plan file path
 - Detailed violation information
-
-### 2. `run_conftest_plan_validation`
-
-Validate pre-generated Terraform plan JSON against Azure security policies and best practices using Conftest.
-
-This tool supports comprehensive validation of Azure resources using azurerm, azapi, and AVM (Azure Verified Modules) providers with security checks, compliance rules, and operational best practices.
-
-**Parameters:**
-- `terraform_plan_json` (required): Terraform plan in JSON format
-- `policy_set` (optional, default: "all"): Policy set to use
-- `severity_filter` (optional): Severity filter for avmsec policies
-- `custom_policies` (optional): Comma-separated list of custom policy paths
-
-**Returns:**
-- Same as `run_conftest_validation`
 
 ## Policy Sets
 
@@ -137,70 +105,60 @@ Security-focused policies inspired by Bridgecrew Checkov rules.
 
 ## Usage Examples
 
-### Example 1: Basic Validation with All Policies
+### Example 1: Validate a Workspace Folder with All Policies
 
 ```python
 from tf_mcp_server.tools.conftest_avm_runner import get_conftest_avm_runner
 import asyncio
 
-async def validate_terraform():
-    runner = get_conftest_avm_runner()
-    
-    hcl_content = '''
-    resource "azurerm_storage_account" "example" {
-      name                     = "examplestorageacct"
-      resource_group_name      = "example-rg"
-      location                 = "West Europe"
-      account_tier             = "Standard"
-      account_replication_type = "LRS"
-    }
-    '''
-    
-    result = await runner.validate_terraform_hcl_with_avm_policies(
-        hcl_content=hcl_content,
-        policy_set="all"
-    )
-    
-    print(f"Validation Success: {result['success']}")
-    print(f"Total Violations: {result['summary']['total_violations']}")
-    
-    for violation in result['violations']:
-        print(f"- {violation['policy']}: {violation['message']}")
+async def validate_workspace():
+  runner = get_conftest_avm_runner()
 
-asyncio.run(validate_terraform())
+  result = await runner.validate_workspace_folder_with_avm_policies(
+    folder_name="exported-rg-acctest0001",
+    policy_set="all"
+  )
+
+  print(f"Validation Success: {result['success']}")
+  print(f"Total Violations: {result['summary']['total_violations']}")
+
+  for violation in result['violations']:
+    print(f"- {violation['policy']}: {violation['message']}")
+
+asyncio.run(validate_workspace())
 ```
 
-### Example 2: Security-Only Validation with High Severity Filter
+### Example 2: Workspace Validation with Severity Filtering
 
 ```python
-result = await runner.validate_terraform_hcl_with_avm_policies(
-    hcl_content=hcl_content,
-    policy_set="avmsec",
-    severity_filter="high"
+result = await runner.validate_workspace_folder_with_avm_policies(
+  folder_name="exported-rg-acctest0001",
+  policy_set="avmsec",
+  severity_filter="high"
 )
 ```
 
-### Example 3: Resiliency-Only Validation
-
-```python
-result = await runner.validate_terraform_hcl_with_avm_policies(
-    hcl_content=hcl_content,
-    policy_set="Azure-Proactive-Resiliency-Library-v2"
-)
-```
-
-### Example 4: Validating Pre-Generated Plan JSON
+### Example 3: Validate Pre-Generated Plan JSON
 
 ```python
 # Generate plan JSON first
 # terraform plan -out=tfplan.binary && terraform show -json tfplan.binary > tfplan.json
 
-with open('tfplan.json', 'r') as f:
-    plan_json = f.read()
+with open('tfplan.json', 'r', encoding='utf-8') as f:
+  plan_json = f.read()
 
 result = await runner.validate_with_avm_policies(
-    terraform_plan_json=plan_json,
-    policy_set="avmsec"
+  terraform_plan_json=plan_json,
+  policy_set="avmsec"
+)
+```
+
+### Example 4: Validate Plan Files Stored in a Workspace Folder
+
+```python
+result = await runner.validate_workspace_folder_plan_with_avm_policies(
+  folder_name="exported-rg-acctest0001",
+  policy_set="Azure-Proactive-Resiliency-Library-v2"
 )
 ```
 
@@ -294,7 +252,6 @@ If Terraform operations fail:
 
 These tools are automatically integrated into the Azure Terraform MCP Server and can be accessed via the MCP protocol. The tools are registered as:
 
-- `run_conftest_validation` - Validate raw HCL content
 - `run_conftest_workspace_validation` - Validate .tf files in a workspace folder
 - `run_conftest_plan_validation` - Validate raw plan JSON content  
 - `run_conftest_workspace_plan_validation` - Validate plan files in a workspace folder
