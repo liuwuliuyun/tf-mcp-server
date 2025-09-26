@@ -1,20 +1,11 @@
 # Docker Guide
 
-This guide explains how to run the Azure Terraform MCP Server in a Docker container, from quick st  -e LO  -e LOG_LEVEL=INFO \
-  -e ARM_CLIENT_ID=your-client-id \
-  -e ARM_CLIENT_SECRET=your-client-secret \
-  -e ARM_SUBSCRIPTION_ID=your-subscription-id \
-  -e ARM_TENANT_ID=your-tenant-id \
-  -v ".\logs:/app/logs" \
-  --restart unless-stopped \
-  ghcr.io/liuwuliuyun/tf-mcp-server:latestEL=INFO \
-  -e ARM_CLIENT_ID=your-client-id \
-  -e ARM_CLIENT_SECRET=your-client-secret \
-  -e ARM_SUBSCRIPTION_ID=your-subscription-id \
-  -e ARM_TENANT_ID=your-tenant-id \
-  -v ".\logs:/app/logs" \
-  --restart unless-stopped \
-  ghcr.io/liuwuliuyun/tf-mcp-server:latestxamples to detailed deployment and troubleshooting.
+This guide explains how to run the Azure Terraform MCP Server in a Docker container, from quick start examples to detailed deployment and troubleshooting.
+
+> **Important:** This server implements the **Model Context Protocol     -v "$PWD\logs:/app/logs" `
+     -e LOG_LEVEL=INFO `
+     ghcr.io/liuwuliuyun/tf-mcp-server:latest
+   ```CP)** using **stdio transport**, not HTTP. All examples use `--rm -i` flags and volume mounting instead of port mapping.
 
 ## Quick Start
 
@@ -24,21 +15,25 @@ The easiest way to get started is using the pre-built Docker image from GitHub C
 
 #### 1. Basic Usage
 
+For MCP (Model Context Protocol) integration with VS Code or other MCP clients:
+
 **Linux/macOS:**
 ```bash
-# Pull and run the latest image
-docker run -d \
-  --name tf-mcp-server \
-  -p 8000:8000 \
+# For MCP stdio transport (recommended)
+docker run --rm -i \
+  --name tf-mcp-server-instance \
+  -v "$(pwd):/workspace" \
+  -e LOG_LEVEL=INFO \
   ghcr.io/liuwuliuyun/tf-mcp-server:latest
 ```
 
 **Windows PowerShell:**
 ```powershell
-# Pull and run the latest image
-docker run -d `
-  --name tf-mcp-server `
-  -p 8000:8000 `
+# For MCP stdio transport (recommended)
+docker run --rm -i `
+  --name tf-mcp-server-instance `
+  -v "${PWD}:/workspace" `
+  -e LOG_LEVEL=INFO `
   ghcr.io/liuwuliuyun/tf-mcp-server:latest
 ```
 
@@ -46,178 +41,168 @@ docker run -d `
 
 **Linux/macOS:**
 ```bash
-# Using environment variables
-docker run -d \
-  --name tf-mcp-server \
-  -p 8000:8000 \
+# With Azure authentication for full functionality
+docker run --rm -i \
+  --name tf-mcp-server-instance \
+  -v "$(pwd):/workspace" \
   -e ARM_CLIENT_ID=your-client-id \
   -e ARM_CLIENT_SECRET=your-client-secret \
   -e ARM_SUBSCRIPTION_ID=your-subscription-id \
   -e ARM_TENANT_ID=your-tenant-id \
+  -e LOG_LEVEL=INFO \
   ghcr.io/liuwuliuyun/tf-mcp-server:latest
 ```
 
 **Windows PowerShell:**
 ```powershell
-# Using environment variables
-docker run -d `
-  --name tf-mcp-server `
-  -p 8000:8000 `
+# With Azure authentication for full functionality
+docker run --rm -i `
+  --name tf-mcp-server-instance `
+  -v "${PWD}:/workspace" `
   -e ARM_CLIENT_ID=your-client-id `
   -e ARM_CLIENT_SECRET=your-client-secret `
   -e ARM_SUBSCRIPTION_ID=your-subscription-id `
   -e ARM_TENANT_ID=your-tenant-id `
+  -e LOG_LEVEL=INFO `
   ghcr.io/liuwuliuyun/tf-mcp-server:latest
 ```
 
-#### 3. With Environment Variables
+#### 3. With Environment Variables from Host
 
 **Linux/macOS:**
 ```bash
-# Using Azure service principal
-docker run -d \
-  --name tf-mcp-server \
-  -p 8000:8000 \
-  -e ARM_CLIENT_ID=your-client-id \
-  -e ARM_CLIENT_SECRET=your-client-secret \
-  -e ARM_TENANT_ID=your-tenant-id \
-  -e ARM_SUBSCRIPTION_ID=your-subscription-id \
+# Using environment variables from host system
+docker run --rm -i \
+  --name tf-mcp-server-instance \
+  -v "$(pwd):/workspace" \
+  -e ARM_CLIENT_ID=$ARM_CLIENT_ID \
+  -e ARM_CLIENT_SECRET=$ARM_CLIENT_SECRET \
+  -e ARM_TENANT_ID=$ARM_TENANT_ID \
+  -e ARM_SUBSCRIPTION_ID=$ARM_SUBSCRIPTION_ID \
+  -e LOG_LEVEL=INFO \
   ghcr.io/liuwuliuyun/tf-mcp-server:latest
 ```
 
 **Windows PowerShell:**
 ```powershell
-# Using Azure service principal
-docker run -d `
-  --name tf-mcp-server `
-  -p 8000:8000 `
+# Using environment variables from host system
+docker run --rm -i `
+  --name tf-mcp-server-instance `
+  -v "${PWD}:/workspace" `
   -e ARM_CLIENT_ID=$Env:ARM_CLIENT_ID `
   -e ARM_CLIENT_SECRET=$Env:ARM_CLIENT_SECRET `
   -e ARM_TENANT_ID=$Env:ARM_TENANT_ID `
   -e ARM_SUBSCRIPTION_ID=$Env:ARM_SUBSCRIPTION_ID `
-  ghcr.io/liuwuliuyun/tf-mcp-server:latest
-```
-
-#### 4. Full Configuration
-
-**Linux/macOS:**
-```bash
-# Recommended production setup
-docker run -d \
-  --name tf-mcp-server \
-  -p 8000:8000 \
-  -e MCP_SERVER_HOST=0.0.0.0 \
-  -e MCP_SERVER_PORT=8000 \
-  -e LOG_LEVEL=INFO \
-  -e ARM_CLIENT_ID=your-client-id \
-  -e ARM_CLIENT_SECRET=your-client-secret \
-  -e ARM_SUBSCRIPTION_ID=your-subscription-id \
-  -e ARM_TENANT_ID=your-tenant-id \
-  -v ./logs:/app/logs \
-  --restart unless-stopped \
-  ghcr.io/liuwuliuyun/tf-mcp-server:latest
-```
-
-**Windows PowerShell:**
-```powershell
-# Recommended production setup
-docker run -d `
-  --name tf-mcp-server `
-  -p 8000:8000 `
-  -e MCP_SERVER_HOST=0.0.0.0 `
-  -e MCP_SERVER_PORT=8000 `
   -e LOG_LEVEL=INFO `
-  -e ARM_CLIENT_ID=your-client-id `
-  -e ARM_CLIENT_SECRET=your-client-secret `
-  -e ARM_SUBSCRIPTION_ID=your-subscription-id `
-  -e ARM_TENANT_ID=your-tenant-id `
-  -v ".\logs:/app/logs" `
-  --restart unless-stopped `
   ghcr.io/liuwuliuyun/tf-mcp-server:latest
 ```
 
-  #### 4a. Mounting Workspace Content
+#### 4. VS Code MCP Integration
 
-  Many tools expect Terraform configuration to live under a writable workspace root. By default the
-  container uses `/workspace`, but you can change this by mounting your host directory and setting
-  the `MCP_WORKSPACE_ROOT` environment variable.
+The recommended way to use this server is with VS Code's MCP integration. Create or edit `.vscode/mcp.json` in your workspace:
 
-  **Linux/macOS:**
-  ```bash
-  docker run -d \
-    --name tf-mcp-server \
-    -p 8000:8000 \
-    -e MCP_WORKSPACE_ROOT=/workspaces/projects \
-    -v /path/to/terraform:/workspaces/projects \
-    ghcr.io/liuwuliuyun/tf-mcp-server:latest
-  ```
+```json
+{
+  "servers": {
+    "tf-mcp-server": {
+      "command": "docker",
+      "args": [
+        "run",
+        "--rm",
+        "-i",
+        "--name", "tf-mcp-server-instance",
+        "-v", "${workspaceFolder}:/workspace",
+        "-e", "ARM_CLIENT_ID=${env:ARM_CLIENT_ID}",
+        "-e", "ARM_CLIENT_SECRET=${env:ARM_CLIENT_SECRET}",
+        "-e", "ARM_SUBSCRIPTION_ID=${env:ARM_SUBSCRIPTION_ID}",
+        "-e", "ARM_TENANT_ID=${env:ARM_TENANT_ID}",
+        "-e", "LOG_LEVEL=INFO",
+        "ghcr.io/liuwuliuyun/tf-mcp-server:latest"
+      ],
+      "env": {
+        "ARM_CLIENT_ID": "${env:ARM_CLIENT_ID}",
+        "ARM_CLIENT_SECRET": "${env:ARM_CLIENT_SECRET}",
+        "ARM_SUBSCRIPTION_ID": "${env:ARM_SUBSCRIPTION_ID}",
+        "ARM_TENANT_ID": "${env:ARM_TENANT_ID}"
+      }
+    }
+  }
+}
+```
 
-  **Windows PowerShell:**
-  ```powershell
-  docker run -d `
-    --name tf-mcp-server `
-    -p 8000:8000 `
-    -e MCP_WORKSPACE_ROOT=/workspaces/projects `
-    -v "C:\\terraform:/workspaces/projects" `
-    ghcr.io/liuwuliuyun/tf-mcp-server:latest
-  ```
+## Important Notes
 
-  With this setup tools such as TFLint, Conftest, and aztfexport will automatically resolve relative
-  paths against `/workspaces/projects`. Absolute paths outside this root are rejected for safety.
+### MCP vs HTTP Server
 
-#### 5. Using Docker Compose (Recommended)
+This server is designed to work with the **Model Context Protocol (MCP)** using **stdio transport**, not as an HTTP server. The examples above show the correct usage patterns:
+
+- ✅ **Use `--rm -i`** for stdio transport (MCP)  
+- ✅ **Mount workspace** with `-v` for file access
+- ✅ **No port mapping** needed (MCP uses stdin/stdout)
+- ❌ **Avoid `-d -p 8000:8000`** (that's for HTTP servers)
+
+### Workspace Mounting
+
+The server expects Terraform files to be accessible at `/workspace` inside the container. The `-v` flag mounts your local directory:
+
+- **VS Code**: Uses `${workspaceFolder}:/workspace` automatically
+- **Manual Docker**: Use `-v "$(pwd):/workspace"` to mount current directory
+- **Custom Path**: Use `-v "/path/to/your/terraform:/workspace"`
+
+#### 5. Custom Workspace Path
+
+You can mount a different directory and set a custom workspace root:
 
 **Linux/macOS:**
 ```bash
-# Download the docker-compose.yml file
-curl -O https://raw.githubusercontent.com/liuwuliuyun/tf-mcp-server/main/docker-compose.yml
-
-# Start the service
-docker-compose up -d
-
-# Check if it's running
-docker-compose ps
+docker run --rm -i \
+  --name tf-mcp-server-instance \
+  -v "/path/to/your/terraform:/workspaces/projects" \
+  -e MCP_WORKSPACE_ROOT=/workspaces/projects \
+  -e LOG_LEVEL=INFO \
+  ghcr.io/liuwuliuyun/tf-mcp-server:latest
 ```
 
 **Windows PowerShell:**
 ```powershell
-# Download the docker-compose.yml file
-Invoke-WebRequest -Uri "https://raw.githubusercontent.com/liuwuliuyun/tf-mcp-server/main/docker-compose.yml" -OutFile "docker-compose.yml"
-
-# Start the service
-docker-compose up -d
-
-# Check if it's running
-docker-compose ps
+docker run --rm -i `
+  --name tf-mcp-server-instance `
+  -v "C:\terraform:/workspaces/projects" `
+  -e MCP_WORKSPACE_ROOT=/workspaces/projects `
+  -e LOG_LEVEL=INFO `
+  ghcr.io/liuwuliuyun/tf-mcp-server:latest
 ```
 
-### Testing the Server
+This setup allows tools like TFLint, Conftest, and aztfexport to resolve relative paths against `/workspaces/projects`.
 
-Once running, test the server:
+### Testing the MCP Server
 
-**Linux/macOS:**
-```bash
-# Check if server is running
-curl http://localhost:8000/health
+To test if the server is working correctly with MCP:
 
-# View logs
-docker logs tf-mcp-server
+1. **Test basic functionality:**
+   ```bash
+   # Run a simple command that should work without Azure auth
+   echo '{"method":"get_avm_modules","params":{}}' | \
+   docker run --rm -i ghcr.io/liuwuliuyun/tf-mcp-server:latest
+   ```
 
-# Check container status
-docker ps | grep tf-mcp-server
-```
+2. **Check server logs:**
+   ```bash
+   # View any error messages
+   docker logs tf-mcp-server-instance 2>&1 | grep -i error
+   ```
 
-**Windows PowerShell:**
-```powershell
-# Check if server is running
-Invoke-RestMethod -Uri "http://localhost:8000/health"
-
-# View logs
-docker logs tf-mcp-server
-
-# Check container status
-docker ps | Select-String "tf-mcp-server"
-```
+3. **Test with workspace:**
+   ```bash
+   # Create test workspace with terraform file
+   mkdir test-workspace
+   echo 'resource "azurerm_storage_account" "test" {}' > test-workspace/main.tf
+   
+   # Test server with mounted workspace
+   docker run --rm -i \
+     -v "$(pwd)/test-workspace:/workspace" \
+     ghcr.io/liuwuliuyun/tf-mcp-server:latest
+   ```
 
 ## Building from Source
 
@@ -246,26 +231,17 @@ If you prefer to build the image yourself:
 
    **Linux/macOS:**
    ```bash
-   docker run -d \
-     --name tf-mcp-server \
-     -p 8000:8000 \
-     -e MCP_SERVER_HOST=0.0.0.0 \
-     -e MCP_SERVER_PORT=8000 \
-     -e LOG_LEVEL=INFO \
+   docker run --rm -i \
+     -v $(pwd):/workspace \
      -v $(pwd)/logs:/app/logs \
-     --restart unless-stopped \
-     tf-mcp-server
+     -e LOG_LEVEL=INFO \
+     ghcr.io/liuwuliuyun/tf-mcp-server:latest
    ```
 
    **Windows PowerShell:**
    ```powershell
-   docker run -d `
-     --name tf-mcp-server `
-     -p 8000:8000 `
-     -e MCP_SERVER_HOST=0.0.0.0 `
-     -e MCP_SERVER_PORT=8000 `
-     -e LOG_LEVEL=INFO `
-     -v "$PWD\logs:/app/logs" `
+   docker run --rm -i `
+     -v "$PWD:/workspace" `
      --restart unless-stopped `
      tf-mcp-server
    ```
@@ -283,75 +259,73 @@ If you prefer to build the image yourself:
 **Linux/macOS:**
 ```bash
 # Use a specific version
-docker run -d --name tf-mcp-server -p 8000:8000 \
+docker run --rm -i --name tf-mcp-server-instance \
+  -v "$(pwd):/workspace" \
   ghcr.io/liuwuliuyun/tf-mcp-server:v1.0.0
 
 # Use main branch build
-docker run -d --name tf-mcp-server -p 8000:8000 \
+docker run --rm -i --name tf-mcp-server-instance \
+  -v "$(pwd):/workspace" \
   ghcr.io/liuwuliuyun/tf-mcp-server:main
 
 # Use latest stable
-docker run -d --name tf-mcp-server -p 8000:8000 \
+docker run --rm -i --name tf-mcp-server-instance \
+  -v "$(pwd):/workspace" \
   ghcr.io/liuwuliuyun/tf-mcp-server:latest
 ```
 
 **Windows PowerShell:**
 ```powershell
 # Use a specific version
-docker run -d --name tf-mcp-server -p 8000:8000 `
+docker run --rm -i --name tf-mcp-server-instance `
+  -v "${PWD}:/workspace" `
   ghcr.io/liuwuliuyun/tf-mcp-server:v1.0.0
 
 # Use main branch build
-docker run -d --name tf-mcp-server -p 8000:8000 `
+docker run --rm -i --name tf-mcp-server-instance `
+  -v "${PWD}:/workspace" `
   ghcr.io/liuwuliuyun/tf-mcp-server:main
 
 # Use latest stable
-docker run -d --name tf-mcp-server -p 8000:8000 `
+docker run --rm -i --name tf-mcp-server-instance `
+  -v "${PWD}:/workspace" `
   ghcr.io/liuwuliuyun/tf-mcp-server:latest
 ```
 
-### Basic Container Commands
+### Basic Container Management
+
+For MCP stdio servers, containers are typically short-lived and managed by the MCP client:
 
 **All platforms (same commands):**
 ```bash
-# Stop the server
-docker stop tf-mcp-server
+# Kill a running stdio server (if needed)
+docker kill tf-mcp-server-instance
 
-# Start the server
-docker start tf-mcp-server
-
-# Restart the server
-docker restart tf-mcp-server
-
-# Remove the container
-docker rm tf-mcp-server
+# Remove stopped containers
+docker container prune
 
 # Pull latest image
 docker pull ghcr.io/liuwuliuyun/tf-mcp-server:latest
 
-# Check container status
+# List running containers
 docker ps
-docker logs tf-mcp-server
+
+# View container logs (for debugging)
+docker logs tf-mcp-server-instance
 ```
 
 ### Health Checks
 
-The container includes health checks that verify the MCP server is running:
+The container includes health checks that verify dependencies are available:
 
 **All platforms (same commands):**
 ```bash
-# Check health status
-docker inspect --format='{{.State.Health.Status}}' tf-mcp-server
-
-# View health logs
-docker inspect --format='{{range .State.Health.Log}}{{.Output}}{{end}}' tf-mcp-server
+# Check if image has required tools
+docker run --rm ghcr.io/liuwuliuyun/tf-mcp-server:latest which terraform
+docker run --rm ghcr.io/liuwuliuyun/tf-mcp-server:latest which tflint
+docker run --rm ghcr.io/liuwuliuyun/tf-mcp-server:latest which conftest
+docker run --rm ghcr.io/liuwuliuyun/tf-mcp-server:latest which aztfexport
 ```
-
-Health check details:
-- **Interval**: 30 seconds
-- **Timeout**: 10 seconds
-- **Start Period**: 40 seconds
-- **Retries**: 3
 
 ## Configuration
 
@@ -359,9 +333,8 @@ Health check details:
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `MCP_SERVER_HOST` | Server bind address | `0.0.0.0` |
-| `MCP_SERVER_PORT` | Server port | `8000` |
 | `LOG_LEVEL` | Logging level (DEBUG, INFO, WARNING, ERROR) | `INFO` |
+| `MCP_WORKSPACE_ROOT` | Root directory for workspace operations | `/workspace` |
 | `ARM_CLIENT_ID` | Azure service principal client ID | - |
 | `ARM_CLIENT_SECRET` | Azure service principal secret | - |
 | `ARM_TENANT_ID` | Azure tenant ID | - |
@@ -370,6 +343,11 @@ Health check details:
 | `TF_LOG_PATH` | Terraform log file path | - |
 
 ### Azure Authentication (Optional)
+
+| `ARM_CLIENT_ID` | Azure Service Principal Client ID | None |
+| `ARM_CLIENT_SECRET` | Azure Service Principal Client Secret | None |  
+| `ARM_SUBSCRIPTION_ID` | Azure Subscription ID | None |
+| `ARM_TENANT_ID` | Azure Tenant ID | None |
 
 For Azure integration, you can provide Azure Service Principal credentials via environment variables:
 
@@ -380,13 +358,13 @@ ARM_TENANT_ID=your-tenant-id
 ARM_SUBSCRIPTION_ID=your-subscription-id
 ```
 
-Example Docker run command with Azure Service Principal:
+Example with Azure Service Principal:
 
 **Linux/macOS:**
 ```bash
-docker run -d \
-  --name tf-mcp-server \
-  -p 8000:8000 \
+docker run --rm -i \
+  --name tf-mcp-server-instance \
+  -v "$(pwd):/workspace" \
   -e ARM_CLIENT_ID=your-client-id \
   -e ARM_CLIENT_SECRET=your-client-secret \
   -e ARM_SUBSCRIPTION_ID=your-subscription-id \
@@ -396,9 +374,9 @@ docker run -d \
 
 **Windows PowerShell:**
 ```powershell
-docker run -d `
-  --name tf-mcp-server `
-  -p 8000:8000 `
+docker run --rm -i `
+  --name tf-mcp-server-instance `
+  -v "${PWD}:/workspace" `
   -e ARM_CLIENT_ID=your-client-id `
   -e ARM_CLIENT_SECRET=your-client-secret `
   -e ARM_SUBSCRIPTION_ID=your-subscription-id `
@@ -406,32 +384,54 @@ docker run -d `
   ghcr.io/liuwuliuyun/tf-mcp-server:latest
 ```
 
-## Volumes and Persistence
+## Volume Mounting
 
-### Recommended Volume Mounts
+### Workspace Volume (Required)
+
+The server requires access to your Terraform files via volume mounting:
 
 **Linux/macOS:**
 ```bash
-# Persistent logs
--v ./logs:/app/logs
+# Mount current directory as workspace
+-v "$(pwd):/workspace"
 
-# Configuration files (if you want to mount custom configs)
--v ./config:/app/config:ro
+# Mount specific directory
+-v "/path/to/terraform:/workspace" 
 
-# Policy files (if you want to update externally)
--v ./policy:/app/policy:ro
+# Mount with custom workspace root
+-v "/path/to/terraform:/custom/path" -e MCP_WORKSPACE_ROOT=/custom/path
 ```
 
 **Windows PowerShell:**
 ```powershell
-# Persistent logs
+# Mount current directory as workspace
+-v "${PWD}:/workspace"
+
+# Mount specific directory  
+-v "C:\terraform:/workspace"
+
+# Mount with custom workspace root
+-v "C:\terraform:/custom/path" -e MCP_WORKSPACE_ROOT=/custom/path
+```
+
+### Optional Volume Mounts
+
+**Linux/macOS:**
+```bash
+# Mount logs directory (for debugging)
+-v "./logs:/app/logs"
+
+# Mount custom policy files
+-v "./custom-policies:/app/custom-policies:ro"
+```
+
+**Windows PowerShell:**
+```powershell
+# Mount logs directory (for debugging)
 -v ".\logs:/app/logs"
 
-# Configuration files (if you want to mount custom configs)
--v ".\config:/app/config:ro"
-
-# Policy files (if you want to update externally)
--v ".\policy:/app/policy:ro"
+# Mount custom policy files
+-v ".\custom-policies:/app/custom-policies:ro"
 ```
 
 ## Included Tools
@@ -456,74 +456,77 @@ The Docker image includes the following tools:
 
 ### Execute Commands Inside Container
 
+For debugging, you can run commands inside the container:
+
 **All platforms (same commands):**
 ```bash
-# Get a shell inside the container
-docker exec -it tf-mcp-server /bin/bash
+# Check tool versions
+docker run --rm ghcr.io/liuwuliuyun/tf-mcp-server:latest terraform version
+docker run --rm ghcr.io/liuwuliuyun/tf-mcp-server:latest tflint --version
+docker run --rm ghcr.io/liuwuliuyun/tf-mcp-server:latest conftest --version
+docker run --rm ghcr.io/liuwuliuyun/tf-mcp-server:latest aztfexport version
 
-# Check Terraform version
-docker exec tf-mcp-server terraform version
-
-# Check TFLint version
-docker exec tf-mcp-server tflint --version
+# Get a shell for debugging
+docker run --rm -it ghcr.io/liuwuliuyun/tf-mcp-server:latest /bin/bash
 ```
 
 ## Troubleshooting
 
 ### Common Issues
 
-1. **Container fails to start:**
+1. **MCP communication fails:**
 
    **All platforms (same commands):**
    ```bash
-   # Check logs
-   docker logs tf-mcp-server
+   # Check if server starts correctly
+   echo '{"method":"get_avm_modules","params":{}}' | \
+   docker run --rm -i ghcr.io/liuwuliuyun/tf-mcp-server:latest
    
-   # Check container status
-   docker inspect tf-mcp-server
+   # Check container logs
+   docker logs tf-mcp-server-instance
    ```
 
-2. **Port already in use:**
+2. **Workspace mount issues:**
 
    **All platforms (same commands):**
    ```bash
-   # Use different port
-   docker run -p 8001:8000 tf-mcp-server
+   # Verify mount is working
+   docker run --rm -i -v "$(pwd):/workspace" \
+     ghcr.io/liuwuliuyun/tf-mcp-server:latest ls -la /workspace
    ```
 
 3. **Permission issues:**
 
    **Linux/macOS:**
    ```bash
-   # Check volume permissions
-   ls -la logs/
+   # Check workspace permissions
+   ls -la /path/to/your/workspace
    
    # Fix permissions if needed
-   chmod 755 logs/
+   chmod -R 755 /path/to/your/workspace
    ```
 
    **Windows PowerShell:**
    ```powershell
-   # Check volume permissions
-   Get-ChildItem -Path logs -Force
+   # Check workspace permissions
+   Get-ChildItem -Path "C:\your\workspace" -Force
    
-   # Fix permissions if needed (create directory if it doesn't exist)
-   New-Item -ItemType Directory -Path "logs" -Force
+   # Ensure directory exists and is accessible
+   New-Item -ItemType Directory -Path "C:\your\workspace" -Force
    ```
 
-4. **Resource constraints:**
+4. **Azure authentication issues:**
 
    **All platforms (same commands):**
    ```bash
-   # Monitor resource usage
-   docker stats tf-mcp-server
-   
-   # Increase limits in docker-compose.yml
-   deploy:
-     resources:
-       limits:
-         memory: 2G
-         cpus: '1.0'
+   # Test Azure credentials
+   docker run --rm -i \
+     -e ARM_CLIENT_ID=your-client-id \
+     -e ARM_CLIENT_SECRET=your-client-secret \
+     -e ARM_SUBSCRIPTION_ID=your-subscription-id \
+     -e ARM_TENANT_ID=your-tenant-id \
+     ghcr.io/liuwuliuyun/tf-mcp-server:latest \
+     az account show
    ```
 
 ### Debug Mode
@@ -532,18 +535,73 @@ Run container in debug mode:
 
 **Linux/macOS:**
 ```bash
-docker run -it --rm \
+docker run --rm -i \
   -e LOG_LEVEL=DEBUG \
-  -p 8000:8000 \
-  tf-mcp-server
+  -v "$(pwd):/workspace" \
+  ghcr.io/liuwuliuyun/tf-mcp-server:latest
 ```
 
 **Windows PowerShell:**
 ```powershell
-docker run -it --rm `
+docker run --rm -i `
   -e LOG_LEVEL=DEBUG `
-  -p 8000:8000 `
-  tf-mcp-server
+  -v "${PWD}:/workspace" `
+  ghcr.io/liuwuliuyun/tf-mcp-server:latest
+```
+## Best Practices
+
+### MCP Server Usage
+
+1. **Use --rm flag:** Always use `--rm` to automatically remove containers when they stop:
+   ```bash
+   docker run --rm -i ghcr.io/liuwuliuyun/tf-mcp-server:latest
+   ```
+
+2. **Mount workspace correctly:** Ensure your Terraform files are accessible:
+   ```bash
+   -v "$(pwd):/workspace"  # Current directory
+   -v "/path/to/terraform:/workspace"  # Specific directory
+   ```
+
+3. **Set proper logging level:**
+   ```bash
+   -e LOG_LEVEL=INFO  # For production
+   -e LOG_LEVEL=DEBUG  # For troubleshooting
+   ```
+
+4. **Secure Azure credentials:** Use environment variables or VS Code env substitution:
+   ```bash
+   -e ARM_CLIENT_ID=${ARM_CLIENT_ID}
+   ```
+
+## Updates and Maintenance
+
+### Updating the Image
+
+1. **Pull latest image:**
+   ```bash
+   docker pull ghcr.io/liuwuliuyun/tf-mcp-server:latest
+   ```
+
+2. **VS Code MCP:** Update automatically uses latest when restarting
+
+3. **Manual usage:** Simply use the new image tag in your commands
+
+### Backup
+
+Important data to backup:
+- Your Terraform configuration files
+- Azure service principal credentials
+- Custom policy files (if any)
+- VS Code MCP configuration (`.vscode/mcp.json`)
+
+## Support
+
+For issues and questions:
+- Check the troubleshooting section above  
+- Review the main README.md for tool-specific help
+- Test with debug logging: `-e LOG_LEVEL=DEBUG`
+- Open an issue in the project repository
 ```
 
 Access container shell:
@@ -585,29 +643,27 @@ Additional security options for production:
 
 **Linux/macOS:**
 ```bash
-docker run -d \
-  --name tf-mcp-server \
-  -p 8000:8000 \
+docker run --rm -i \
+  -v $(pwd):/workspace \
   --security-opt no-new-privileges:true \
   --read-only \
-  tf-mcp-server
+  ghcr.io/liuwuliuyun/tf-mcp-server:latest
 ```
 
 **Windows PowerShell:**
 ```powershell
-docker run -d `
-  --name tf-mcp-server `
-  -p 8000:8000 `
+docker run --rm -i `
+  -v "$PWD:/workspace" `
   --security-opt no-new-privileges:true `
   --read-only `
-  tf-mcp-server
+  ghcr.io/liuwuliuyun/tf-mcp-server:latest
 ```
 
 ### Network Security
 
-- Only expose necessary ports
-- Use Docker networks for container communication
-- Consider using reverse proxy for production
+- No port exposure needed for MCP stdio transport
+- MCP communication happens via stdin/stdout
+- For HTTP mode (non-MCP), use proper network isolation
 
 ## Production Deployment
 
@@ -624,46 +680,42 @@ docker run -d `
 
    **Linux/macOS:**
    ```bash
-   docker run -d \
-     --name tf-mcp-server \
-     -p 8000:8000 \
+   docker run --rm -i \
+     -v $(pwd):/workspace \
      --memory=1g \
      --cpus=0.5 \
-     tf-mcp-server
+     ghcr.io/liuwuliuyun/tf-mcp-server:latest
    ```
 
    **Windows PowerShell:**
    ```powershell
-   docker run -d `
-     --name tf-mcp-server `
-     -p 8000:8000 `
+   docker run --rm -i `
+     -v "$PWD:/workspace" `
      --memory=1g `
      --cpus=0.5 `
-     tf-mcp-server
+     ghcr.io/liuwuliuyun/tf-mcp-server:latest
    ```
 
 3. **Configure log rotation:**
 
    **Linux/macOS:**
    ```bash
-   docker run -d \
-     --name tf-mcp-server \
-     -p 8000:8000 \
+   docker run --rm -i \
+     -v $(pwd):/workspace \
      --log-driver json-file \
      --log-opt max-size=10m \
      --log-opt max-file=3 \
-     tf-mcp-server
+     ghcr.io/liuwuliuyun/tf-mcp-server:latest
    ```
 
    **Windows PowerShell:**
    ```powershell
-   docker run -d `
-     --name tf-mcp-server `
-     -p 8000:8000 `
+   docker run --rm -i `
+     -v "$PWD:/workspace" `
      --log-driver json-file `
      --log-opt max-size=10m `
      --log-opt max-file=3 `
-     tf-mcp-server
+     ghcr.io/liuwuliuyun/tf-mcp-server:latest
    ```
 
 4. **Use secrets for sensitive data:**
@@ -705,7 +757,7 @@ docker run -d `
    docker stop tf-mcp-server
    docker rm tf-mcp-server
    docker build -t tf-mcp-server .
-   docker run -d --name tf-mcp-server -p 8000:8000 tf-mcp-server
+   docker run --rm -i -v $(pwd):/workspace ghcr.io/liuwuliuyun/tf-mcp-server:latest
    ```
 
 ### Backup

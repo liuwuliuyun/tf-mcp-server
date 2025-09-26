@@ -70,15 +70,22 @@ The setup includes several security features:
 
 Once published, users can use your Docker image:
 
+**For VS Code MCP integration:**
 ```bash
-# Latest version
-docker run -p 8000:8000 ghcr.io/YOUR_USERNAME/tf-mcp-server:latest
+# Latest version  
+docker run --rm -i -v $(pwd):/workspace ghcr.io/YOUR_USERNAME/tf-mcp-server:latest
 
 # Specific version
-docker run -p 8000:8000 ghcr.io/YOUR_USERNAME/tf-mcp-server:v1.0.0
+docker run --rm -i -v $(pwd):/workspace ghcr.io/YOUR_USERNAME/tf-mcp-server:v1.0.0
 
 # Development version
-docker run -p 8000:8000 ghcr.io/YOUR_USERNAME/tf-mcp-server:main
+docker run --rm -i -v $(pwd):/workspace ghcr.io/YOUR_USERNAME/tf-mcp-server:main
+```
+
+**For HTTP server mode (non-MCP):**
+```bash
+# Use -p 8000:8000 for direct API access
+docker run -p 8000:8000 ghcr.io/YOUR_USERNAME/tf-mcp-server:latest
 ```
 
 ## Monitoring Builds

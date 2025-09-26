@@ -118,6 +118,7 @@ Export a single Azure resource to Terraform configuration.
 
 **Parameters:**
 - `resource_id` (required): Azure resource ID to export
+- `output_folder_name` (optional): Output folder name (created under the workspace root, auto-generated if not specified)
 - `provider` (optional): Terraform provider to use ("azurerm" or "azapi", default: "azurerm")
 - `resource_name` (optional): Custom resource name in Terraform
 - `resource_type` (optional): Custom resource type in Terraform
@@ -137,6 +138,7 @@ Export a single Azure resource to Terraform configuration.
 ```python
 result = await mcp_client.call_tool("aztfexport_resource", {
     "resource_id": "/subscriptions/12345678-1234-1234-1234-123456789012/resourceGroups/my-rg/providers/Microsoft.Storage/storageAccounts/mystorageacct",
+    "output_folder_name": "exported-storage-account",
     "provider": "azurerm",
     "dry_run": false
 })
@@ -148,6 +150,7 @@ Export an entire Azure resource group and its resources.
 
 **Parameters:**
 - `resource_group_name` (required): Name of the resource group to export
+- `output_folder_name` (optional): Output folder name (created under the workspace root, auto-generated if not specified)
 - `provider` (optional): Terraform provider to use ("azurerm" or "azapi")
 - `name_pattern` (optional): Pattern for resource naming in Terraform
 - `type_pattern` (optional): Pattern for resource type filtering
@@ -162,6 +165,7 @@ Export an entire Azure resource group and its resources.
 ```python
 result = await mcp_client.call_tool("aztfexport_resource_group", {
     "resource_group_name": "my-production-rg",
+    "output_folder_name": "exported-production-rg",
     "provider": "azurerm",
     "parallelism": 5,
     "continue_on_error": true
@@ -174,6 +178,7 @@ Export Azure resources using Azure Resource Graph queries.
 
 **Parameters:**
 - `query` (required): Azure Resource Graph WHERE clause
+- `output_folder_name` (optional): Output folder name (created under the workspace root, auto-generated if not specified)
 - `provider` (optional): Terraform provider to use
 - `name_pattern` (optional): Pattern for resource naming
 - `type_pattern` (optional): Pattern for resource type filtering
@@ -194,6 +199,7 @@ Export Azure resources using Azure Resource Graph queries.
 ```python
 result = await mcp_client.call_tool("aztfexport_query", {
     "query": "type =~ 'Microsoft.Storage/storageAccounts' and location == 'eastus'",
+    "output_folder_name": "exported-eastus-storage",
     "provider": "azurerm",
     "dry_run": true
 })

@@ -6,39 +6,49 @@ This guide provides detailed installation instructions for the Azure Terraform M
 
 | Method | Best For | Setup Time | What You Need |
 |--------|----------|------------|---------------|
-| **🐳 Docker** | Production, quick start | 2 minutes | Docker only |
+| **🐳 Docker** | VS Code MCP integration | 2 minutes | Docker + VS Code |
 | **⚡ UV** | Development, customization | 5 minutes | Python 3.11+ |
 | **🐍 Pip** | Traditional Python setup | 5 minutes | Python 3.11+ |
 
 ### 📋 What's the Difference?
 
+- **Docker**: Run as MCP server for VS Code integration (stdio transport)
+- **UV/Pip**: Run locally or as HTTP server for direct API access
 
-**→ New to this? Start with Docker** - it's the easiest way to get running immediately.
+**→ For VS Code MCP integration? Use Docker with stdio transport**
 
-## 🐳 Option 1: Docker (Easiest & Recommended)
+## 🐳 Option 1: Docker (For VS Code MCP Integration)
 
 **What you need:**
+- Docker installed and running
+- VS Code with MCP support
+- (Optional) Azure Service Principal for full functionality
 
 **What's included automatically:**
+- Python 3.11+ runtime
+- All Python dependencies  
+- TFLint (latest version)
+- Conftest (latest version)
+- aztfexport (latest version)
+- Terraform CLI
+- All security policies and configurations
 
 ### 1️⃣ Basic Setup (No Azure needed)
 Perfect for trying out documentation features:
 
-**Linux/macOS:**
+**Create docker command for VS Code MCP integration:**
 ```bash
-docker run -d --name tf-mcp-server -p 8000:8000 ghcr.io/liuwuliuyun/tf-mcp-server:latest
-```
-
-**Windows PowerShell:**
-```powershell
-docker run -d --name tf-mcp-server -p 8000:8000 ghcr.io/liuwuliuyun/tf-mcp-server:latest
+# This is the command VS Code will run via MCP
+docker run --rm -i -v /path/to/your/workspace:/workspace ghcr.io/liuwuliuyun/tf-mcp-server:latest
 ```
 
 ### 2️⃣ With Azure Service Principal (Recommended for production)
 
-**Linux/macOS:**
+**For VS Code MCP integration with Azure features:**
 ```bash
-docker run -d --name tf-mcp-server -p 8000:8000 \
+# This is the command VS Code will run via MCP
+docker run --rm -i \
+  -v /path/to/your/workspace:/workspace \
   -e ARM_CLIENT_ID=your-client-id \
   -e ARM_CLIENT_SECRET=your-client-secret \
   -e ARM_SUBSCRIPTION_ID=your-subscription-id \
@@ -46,32 +56,35 @@ docker run -d --name tf-mcp-server -p 8000:8000 \
   ghcr.io/liuwuliuyun/tf-mcp-server:latest
 ```
 
-**Windows PowerShell:**
-```powershell
-docker run -d --name tf-mcp-server -p 8000:8000 `
-  -e ARM_CLIENT_ID=your-client-id `
-  -e ARM_CLIENT_SECRET=your-client-secret `
-  -e ARM_SUBSCRIPTION_ID=your-subscription-id `
-  -e ARM_TENANT_ID=your-tenant-id `
-  ghcr.io/liuwuliuyun/tf-mcp-server:latest
-```
+### ✅ VS Code MCP Configuration:
 
-### ✅ Verify it's working:
-
-**Linux/macOS:**
-```bash
-curl http://localhost:8000/health
-# Should return: {"status": "healthy"}
-```
-
-**Windows PowerShell:**
-```powershell
-Invoke-RestMethod -Uri "http://localhost:8000/health"
-# Should return: {"status": "healthy"}
+Add this to your VS Code `mcp.json`:
+```json
+{
+  "mcpServers": {
+    "tf-mcp-server": {
+      "command": "docker",
+      "args": [
+        "run", "--rm", "-i",
+        "-v", "${workspaceFolder}:/workspace",
+        "-e", "ARM_CLIENT_ID=your-client-id",
+        "-e", "ARM_CLIENT_SECRET=your-client-secret", 
+        "-e", "ARM_SUBSCRIPTION_ID=your-subscription-id",
+        "-e", "ARM_TENANT_ID=your-tenant-id",
+        "ghcr.io/liuwuliuyun/tf-mcp-server:latest"
+      ]
+    }
+  }
+}
 ```
 
 **📦 What's in the Docker image:**
+- **Runtime**: Python 3.11+, all dependencies
+- **Tools**: TFLint, Conftest, aztfexport, Terraform CLI  
+- **Policies**: Pre-loaded security validation rules
+- **Transport**: FastMCP stdio for VS Code integration
 
+**💡 Pro Tip**: For direct API access (not VS Code), see our [Docker guide](docker.md) for HTTP server setup.
 
 ## ⚡ Option 2: UV Installation (For Development)
 
@@ -144,21 +157,46 @@ pip install -e .
 python -m tf_mcp_server
 ```
 
-## VS Code Setup
+## VS Code MCP Setup
 
-Once your server is running, create or edit `.vscode/mcp.json` in your workspace:
+Once you have the Docker command ready, configure VS Code MCP integration by creating or editing `mcp.json` in your workspace root:
 
 ```json
 {
-    "servers": {
-        "Azure Terraform MCP Server": {
-            "url": "http://localhost:8000/mcp/"
-        }
+  "mcpServers": {
+    "tf-mcp-server": {
+      "command": "docker",
+      "args": [
+        "run", "--rm", "-i",
+        "-v", "${workspaceFolder}:/workspace",
+        "ghcr.io/liuwuliuyun/tf-mcp-server:latest"
+      ]
     }
+  }
 }
 ```
 
-**💡 Note:** The server runs on port `8000` by default. Make sure the URL matches your server's actual port.
+**With Azure credentials:**
+```json
+{
+  "mcpServers": {
+    "tf-mcp-server": {
+      "command": "docker",
+      "args": [
+        "run", "--rm", "-i",
+        "-v", "${workspaceFolder}:/workspace",
+        "-e", "ARM_CLIENT_ID=your-client-id",
+        "-e", "ARM_CLIENT_SECRET=your-client-secret",
+        "-e", "ARM_SUBSCRIPTION_ID=your-subscription-id", 
+        "-e", "ARM_TENANT_ID=your-tenant-id",
+        "ghcr.io/liuwuliuyun/tf-mcp-server:latest"
+      ]
+    }
+  }
+}
+```
+
+**💡 Note:** The MCP server uses stdio transport, not HTTP. VS Code communicates directly via stdin/stdout.
 
 
 ## 🔧 Optional Tools (For Full Features)
@@ -199,31 +237,26 @@ Download from: https://github.com/open-policy-agent/conftest/releases
 
 ## Configuration
 
-### Environment Variables
+### Environment Variables (For UV/Pip installations)
 ```bash
-# Server configuration
-export MCP_HOST=localhost          # Default: localhost
-export MCP_PORT=8000              # Default: 8000
-export MCP_DEBUG=false            # Default: false
-
 # Azure authentication (Service Principal method)
 export ARM_CLIENT_ID=<your_client_id>           # Required for Azure operations
-export ARM_CLIENT_SECRET=<your_client_secret>   # Required for Azure operations
+export ARM_CLIENT_SECRET=<your_client_secret>   # Required for Azure operations  
 export ARM_SUBSCRIPTION_ID=<your_subscription_id> # Required for Azure operations
 export ARM_TENANT_ID=<your_tenant_id>           # Required for Azure operations
 
 # Optional: GitHub token for AVM module access (to avoid rate limiting)
 export GITHUB_TOKEN=<your_github_token_here>
+
+# For HTTP server mode (non-MCP)
+export MCP_HOST=localhost          # Default: localhost
+export MCP_PORT=8000              # Default: 8000
+export MCP_DEBUG=false            # Default: false
 ```
 
 ### Configuration File (.env.local)
 Create a `.env.local` file in the project root for local configuration:
 ```bash
-# Server configuration
-MCP_HOST=localhost
-MCP_PORT=8000
-MCP_DEBUG=false
-
 # Azure authentication (Service Principal method)
 ARM_CLIENT_ID=<your_client_id>
 ARM_CLIENT_SECRET=<your_client_secret>
@@ -232,6 +265,11 @@ ARM_TENANT_ID=<your_tenant_id>
 
 # Optional: GitHub token for AVM module access (to avoid rate limiting)
 GITHUB_TOKEN=<your_github_token_here>
+
+# For HTTP server mode (non-MCP) - only needed for UV/Pip installations
+MCP_HOST=localhost
+MCP_PORT=8000
+MCP_DEBUG=false
 ```
 
 ## Troubleshooting
@@ -244,7 +282,7 @@ GITHUB_TOKEN=<your_github_token_here>
    pip install -r requirements.txt
    ```
 
-2. **Port Conflicts**
+2. **Port Conflicts (UV/Pip HTTP mode only)**
    ```bash
    # Change port via environment variable
    export MCP_PORT=8002
@@ -304,9 +342,12 @@ Check logs in `tf-mcp-server.log` for detailed information.
 ## Next Steps
 
 After installation:
-1. **Test the server**: Use the health check endpoint to verify it's running
-2. **Configure Azure authentication**: Set up service principal credentials
-3. **Integrate with VS Code**: Add the MCP configuration to your workspace
+1. **Configure VS Code MCP**: Add the server configuration to your workspace `mcp.json`
+2. **Set up Azure authentication**: Configure service principal credentials (if using Azure features)
+3. **Test the integration**: Try the MCP tools in VS Code
 4. **Explore the tools**: Check out the [main README](../README.md) for available tools and usage examples
 
-For more information on usage and available tools, see the [main README](../README.md).
+For more information:
+- **VS Code MCP integration**: See the [main README](../README.md) 
+- **Docker deployment patterns**: See the [Docker guide](docker.md)
+- **Azure authentication setup**: See the [Azure authentication guide](azure-authentication.md)

@@ -40,11 +40,10 @@ $sp = New-AzADServicePrincipal -DisplayName "terraform-mcp-server" -Role "Contri
 # - Subscription ID: (Get-AzContext).Subscription.Id (ARM_SUBSCRIPTION_ID)
 ```
 
-**Docker with Service Principal:**
+**Docker with Service Principal (VS Code MCP):**
 ```bash
-docker run -d \
-  --name tf-mcp-server \
-  -p 8000:8000 \
+docker run --rm -i \
+  -v $(pwd):/workspace \
   -e ARM_CLIENT_ID=<your_client_id> \
   -e ARM_CLIENT_SECRET=<your_client_secret> \
   -e ARM_SUBSCRIPTION_ID=<your_subscription_id> \
@@ -55,22 +54,20 @@ docker run -d \
 **MCP Configuration for VS Code:**
 ```json
 {
-  "command": "docker",
-  "args": [
-    "run", "-d", "--name", "azure-terraform-mcp-server", "-p", "8000:8000",
-    "ghcr.io/liuwuliuyun/tf-mcp-server:latest"
-  ],
-  "env": {
-    "ARM_CLIENT_ID": "<your_client_id>",
-    "ARM_CLIENT_SECRET": "<your_client_secret>",
-    "ARM_SUBSCRIPTION_ID": "<your_subscription_id>",
-    "ARM_TENANT_ID": "<your_tenant_id>",
-    "MCP_SERVER_HOST": "0.0.0.0",
-    "MCP_SERVER_PORT": "8000"
-  },
-  "transport": "http", 
-  "host": "localhost",
-  "port": 8000
+  "mcpServers": {
+    "tf-mcp-server": {
+      "command": "docker",
+      "args": [
+        "run", "--rm", "-i",
+        "-v", "${workspaceFolder}:/workspace",
+        "-e", "ARM_CLIENT_ID=<your_client_id>",
+        "-e", "ARM_CLIENT_SECRET=<your_client_secret>",
+        "-e", "ARM_SUBSCRIPTION_ID=<your_subscription_id>",
+        "-e", "ARM_TENANT_ID=<your_tenant_id>",
+        "ghcr.io/liuwuliuyun/tf-mcp-server:latest"
+      ]
+    }
+  }
 }
 ```
 
@@ -78,10 +75,9 @@ docker run -d \
 
 When running on Azure VMs with managed identity:
 ```bash
-# No additional authentication needed - uses VM's managed identity
-docker run -d \
-  --name tf-mcp-server \
-  -p 8000:8000 \
+# For VS Code MCP integration (no additional authentication needed)  
+docker run --rm -i \
+  -v $(pwd):/workspace \
   ghcr.io/liuwuliuyun/tf-mcp-server:latest
 ```
 
@@ -98,6 +94,8 @@ docker run -d \
 | Use Case | Development/Testing | Production/Automation | Azure Resources |
 
 ### Docker Compose with Authentication
+
+**💡 Note:** Docker Compose is for HTTP server mode, not VS Code MCP integration.
 
 Create a `docker-compose.yml` with your preferred authentication method:
 

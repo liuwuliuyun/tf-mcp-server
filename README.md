@@ -437,6 +437,7 @@ tf-mcp-server/
 │           ├── avm_docs_provider.py     # Azure Verified Modules provider
 │           ├── azapi_docs_provider.py   # AzAPI documentation provider  
 │           ├── azurerm_docs_provider.py # AzureRM documentation provider
+│           ├── aztfexport_runner.py     # Azure Export for Terraform (aztfexport) integration
 │           ├── conftest_avm_runner.py   # Conftest policy validation
 │           ├── terraform_runner.py      # Terraform command execution
 │           └── tflint_runner.py         # TFLint static analysis
