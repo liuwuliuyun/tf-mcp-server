@@ -13,6 +13,8 @@ from pathlib import Path
 from typing import Dict, Any, List, Optional, Union
 from enum import Enum
 
+from ..core.utils import get_workspace_root, resolve_workspace_path
+
 logger = logging.getLogger(__name__)
 
 
@@ -157,18 +159,20 @@ class AztfexportRunner:
         Get the output directory path, creating it if necessary.
         
         Args:
-            output_folder_name: Custom folder name to create under /workspace, or None for auto-generated
+            output_folder_name: Custom folder name to create under the workspace root, or None for auto-generated
             
         Returns:
             Path object for the output directory
         """
+        workspace_root = get_workspace_root()
+
         if output_folder_name:
-            # Use provided folder name under /workspace
-            work_dir = Path("/workspace") / output_folder_name
+            # Use provided folder name relative to the workspace root
+            work_dir = resolve_workspace_path(output_folder_name)
         else:
-            # Generate unique folder name in /workspace
+            # Generate unique folder name within the workspace root
             folder_name = self._generate_output_folder_name()
-            work_dir = Path("/workspace") / folder_name
+            work_dir = workspace_root / folder_name
         
         # Create directory if it doesn't exist
         work_dir.mkdir(parents=True, exist_ok=True)

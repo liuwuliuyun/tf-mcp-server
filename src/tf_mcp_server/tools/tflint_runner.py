@@ -7,7 +7,7 @@ import json
 import subprocess
 import tempfile
 from typing import Dict, Any, Optional, List
-from ..core.utils import extract_hcl_from_markdown
+from ..core.utils import extract_hcl_from_markdown, resolve_workspace_path
 
 
 class TFLintRunner:
@@ -306,7 +306,8 @@ plugin "azurerm" {
         Run TFLint on a workspace folder containing Terraform configuration files.
         
         Args:
-            workspace_folder: Path to the workspace folder containing Terraform files
+            workspace_folder: Path to the workspace folder containing Terraform files (relative
+                paths are resolved against the configured workspace root)
             output_format: Output format (json, default, checkstyle, junit, compact, sarif)
             enable_azure_plugin: Whether to enable the Azure ruleset plugin
             enable_rules: List of specific rules to enable
@@ -331,7 +332,20 @@ plugin "azurerm" {
             }
         
         # Resolve workspace folder path
-        folder_path = os.path.abspath(workspace_folder.strip())
+        try:
+            folder_path = str(resolve_workspace_path(workspace_folder.strip()))
+        except ValueError as exc:
+            return {
+                'success': False,
+                'error': str(exc),
+                'issues': [],
+                'summary': {
+                    'total_issues': 0,
+                    'errors': 0,
+                    'warnings': 0,
+                    'notices': 0
+                }
+            }
         
         # Check if folder exists
         if not os.path.exists(folder_path):

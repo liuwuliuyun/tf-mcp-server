@@ -136,6 +136,35 @@ docker run -d `
   ghcr.io/liuwuliuyun/tf-mcp-server:latest
 ```
 
+  #### 4a. Mounting Workspace Content
+
+  Many tools expect Terraform configuration to live under a writable workspace root. By default the
+  container uses `/workspace`, but you can change this by mounting your host directory and setting
+  the `MCP_WORKSPACE_ROOT` environment variable.
+
+  **Linux/macOS:**
+  ```bash
+  docker run -d \
+    --name tf-mcp-server \
+    -p 8000:8000 \
+    -e MCP_WORKSPACE_ROOT=/workspaces/projects \
+    -v /path/to/terraform:/workspaces/projects \
+    ghcr.io/liuwuliuyun/tf-mcp-server:latest
+  ```
+
+  **Windows PowerShell:**
+  ```powershell
+  docker run -d `
+    --name tf-mcp-server `
+    -p 8000:8000 `
+    -e MCP_WORKSPACE_ROOT=/workspaces/projects `
+    -v "C:\\terraform:/workspaces/projects" `
+    ghcr.io/liuwuliuyun/tf-mcp-server:latest
+  ```
+
+  With this setup tools such as TFLint, Conftest, and aztfexport will automatically resolve relative
+  paths against `/workspaces/projects`. Absolute paths outside this root are rejected for safety.
+
 #### 5. Using Docker Compose (Recommended)
 
 **Linux/macOS:**

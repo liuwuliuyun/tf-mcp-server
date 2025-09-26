@@ -7,7 +7,11 @@ import json
 import subprocess
 import tempfile
 from typing import Dict, Any, Optional, List
-from ..core.utils import extract_hcl_from_markdown, strip_ansi_escape_sequences
+from ..core.utils import (
+    extract_hcl_from_markdown,
+    strip_ansi_escape_sequences,
+    resolve_workspace_path,
+)
 
 
 class ConftestAVMRunner:
@@ -337,7 +341,8 @@ exception contains rules if {
         Validate Terraform files in a workspace folder against Azure Verified Modules policies.
         
         Args:
-            folder_name: Name of the folder in the workspace to validate
+            folder_name: Name of the folder in the workspace to validate (relative paths
+                are resolved against the configured workspace root)
             policy_set: Policy set to use ('all', 'Azure-Proactive-Resiliency-Library-v2', 'avmsec')
             severity_filter: Filter by severity for avmsec policies ('high', 'medium', 'low', 'info')
             custom_policies: List of custom policy paths to include
@@ -359,8 +364,7 @@ exception contains rules if {
         
         try:
             # Build workspace folder path
-            from pathlib import Path
-            workspace_path = Path("/workspace") / folder_name.strip()
+            workspace_path = resolve_workspace_path(folder_name.strip())
             
             # Check if folder exists
             if not workspace_path.exists():
@@ -480,6 +484,7 @@ exception contains rules if {
         
         Args:
             folder_name: Name of the folder in the workspace containing the plan file
+                (relative paths are resolved against the configured workspace root)
             policy_set: Policy set to use ('all', 'Azure-Proactive-Resiliency-Library-v2', 'avmsec')
             severity_filter: Filter by severity for avmsec policies ('high', 'medium', 'low', 'info')
             custom_policies: List of custom policy paths to include
@@ -501,8 +506,7 @@ exception contains rules if {
         
         try:
             # Build workspace folder path
-            from pathlib import Path
-            workspace_path = Path("/workspace") / folder_name.strip()
+            workspace_path = resolve_workspace_path(folder_name.strip())
             
             # Check if folder exists
             if not workspace_path.exists():

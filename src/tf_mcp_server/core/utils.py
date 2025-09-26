@@ -2,9 +2,11 @@
 Utility functions for Azure Terraform MCP Server.
 """
 
+import os
 import re
 import logging
-from typing import List, Dict, Any, Optional
+from functools import lru_cache
+from typing import List, Dict, Any, Optional, Union
 from pathlib import Path
 
 
@@ -302,3 +304,95 @@ def safe_filename(filename: str) -> str:
     if not safe_name:
         safe_name = "unnamed"
     return safe_name
+
+
+@lru_cache(maxsize=1)
+def get_workspace_root() -> Path:
+    """
+    Determine the root directory for workspace operations.
+
+    The resolution order is:
+    1. Environment variable ``MCP_WORKSPACE_ROOT`` if set
+    2. ``/workspace`` when running inside containers that mount this path
+    3. Current working directory as a safe fallback
+
+    Returns:
+        Path to the workspace root directory (may not exist yet)
+    """
+    env_path = os.getenv("MCP_WORKSPACE_ROOT")
+    candidates = []
+
+    if env_path:
+        candidates.append(Path(env_path).expanduser())
+
+    candidates.append(Path("/workspace"))
+    candidates.append(Path.cwd())
+
+    for index, candidate in enumerate(candidates):
+        try:
+            resolved = candidate.resolve(strict=False)
+        except (FileNotFoundError, RuntimeError):
+            resolved = candidate
+
+        if resolved.exists():
+            return resolved
+
+        # Try to create the path when explicitly configured via env var
+        if index == 0 and env_path:
+            try:
+                resolved.mkdir(parents=True, exist_ok=True)
+                return resolved.resolve(strict=False)
+            except Exception:
+                continue
+
+    # Fall back to the last candidate even if it doesn't exist yet
+    fallback = candidates[-1]
+    try:
+        return fallback.resolve(strict=False)
+    except (FileNotFoundError, RuntimeError):
+        return fallback
+
+
+def resolve_workspace_path(
+    path_like: Optional[Union[str, Path]],
+    *,
+    allow_external_absolute: bool = False
+) -> Path:
+    """
+    Resolve a workspace-relative path to an absolute location.
+
+    Args:
+        path_like: Relative or absolute path provided by the caller
+        allow_external_absolute: When False (default), absolute paths must reside
+            within the workspace root. Set to True to allow arbitrary absolute paths.
+
+    Returns:
+        Absolute path pointing to the requested location
+
+    Raises:
+        ValueError: If an absolute path outside the workspace root is provided
+                    while ``allow_external_absolute`` is False.
+    """
+    workspace_root = get_workspace_root().resolve(strict=False)
+
+    if not path_like or (isinstance(path_like, str) and not path_like.strip()):
+        return workspace_root
+
+    candidate = Path(path_like).expanduser()
+
+    if candidate.is_absolute():
+        resolved = candidate.resolve(strict=False)
+
+        if allow_external_absolute:
+            return resolved
+
+        try:
+            resolved.relative_to(workspace_root)
+            return resolved
+        except ValueError as exc:
+            raise ValueError(
+                f"Path '{resolved}' is outside the configured workspace root '{workspace_root}'"
+            ) from exc
+
+    resolved = (workspace_root / candidate).resolve(strict=False)
+    return resolved

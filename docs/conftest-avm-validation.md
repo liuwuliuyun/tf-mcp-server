@@ -53,10 +53,10 @@ This tool supports comprehensive validation of Azure resources using azurerm, az
 
 Validate Terraform files in a workspace folder against Azure security policies and best practices using Conftest.
 
-This tool validates all `.tf` files in the specified workspace folder, similar to how aztfexport creates folders under `/workspace`. It automatically runs `terraform init`, `terraform plan`, and validates the resulting plan.
+This tool validates all `.tf` files in the specified workspace folder, similar to how aztfexport creates folders under the workspace root (default: `/workspace`). It automatically runs `terraform init`, `terraform plan`, and validates the resulting plan. You can customise the root path by setting the `MCP_WORKSPACE_ROOT` environment variable.
 
 **Parameters:**
-- `folder_name` (required): Name of the folder under `/workspace` to validate (e.g., "exported-rg-acctest0001")
+- `folder_name` (required): Name of the folder under the configured workspace root to validate (e.g., "exported-rg-acctest0001")
 - `policy_set` (optional, default: "all"): Policy set to use
 - `severity_filter` (optional): Severity filter for avmsec policies  
 - `custom_policies` (optional): Comma-separated list of custom policy paths
@@ -88,10 +88,10 @@ This tool validates a pre-generated Terraform plan in JSON format, useful when y
 
 Validate Terraform plan files in a workspace folder against Azure security policies using Conftest.
 
-This tool validates existing plan files (`.tfplan`, `tfplan.binary`) in the specified workspace folder, or creates a new plan if only `.tf` files are present. Works with folders created by aztfexport or other Terraform operations in the `/workspace` directory.
+This tool validates existing plan files (`.tfplan`, `tfplan.binary`) in the specified workspace folder, or creates a new plan if only `.tf` files are present. Works with folders created by aztfexport or other Terraform operations in the workspace root.
 
 **Parameters:**
-- `folder_name` (required): Name of the folder under `/workspace` containing the plan file (e.g., "exported-rg-acctest0001")
+- `folder_name` (required): Name of the folder under the configured workspace root containing the plan file (e.g., "exported-rg-acctest0001")
 - `policy_set` (optional, default: "all"): Policy set to use
 - `severity_filter` (optional): Severity filter for avmsec policies
 - `custom_policies` (optional): Comma-separated list of custom policy paths
