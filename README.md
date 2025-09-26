@@ -101,7 +101,7 @@ The server provides the following MCP tools:
 - **`get_avm_outputs`**: Retrieve the output definitions for a specific AVM module version
 
 #### Terraform Command Tools
-- **`run_terraform_command`**: Execute any Terraform command (init, plan, apply, destroy, validate, fmt) with provided HCL content
+- **`run_terraform_command`**: Execute Terraform CLI commands (init, plan, apply, destroy, validate, fmt) inside a workspace folder that already contains configuration files
 
 #### Security Tools
 - **`run_conftest_workspace_validation`**: Validate Terraform files in a workspace folder against Azure security policies (works with aztfexport folders)
@@ -126,32 +126,44 @@ The server provides the following MCP tools:
 ### Example Usage
 
 #### Execute Terraform Commands
+Prepare a workspace directory (for example `workspace/demo`) containing your Terraform configuration files before invoking the tool.
+
 ```python
-# Initialize Terraform with HCL content
+# Initialize Terraform in a workspace directory
 {
   "tool": "run_terraform_command",
   "arguments": {
     "command": "init",
-    "hcl_content": "resource \"azurerm_storage_account\" \"example\" {\n  name = \"mystorageaccount\"\n  resource_group_name = \"myresourcegroup\"\n  location = \"East US\"\n  account_tier = \"Standard\"\n  account_replication_type = \"LRS\"\n}",
+    "workspace_folder": "workspace/demo",
     "upgrade": true
   }
 }
 
-# Validate HCL code
+# Generate an execution plan
 {
   "tool": "run_terraform_command",
   "arguments": {
-    "command": "validate",
-    "hcl_content": "resource \"azurerm_storage_account\" \"example\" {\n  name = \"mystorageaccount\"\n  resource_group_name = \"myresourcegroup\"\n  location = \"East US\"\n  account_tier = \"Standard\"\n  account_replication_type = \"LRS\"\n}"
+    "command": "plan",
+    "workspace_folder": "workspace/demo"
   }
 }
 
-# Format HCL code
+# Apply changes (auto-approve optional)
+{
+  "tool": "run_terraform_command",
+  "arguments": {
+    "command": "apply",
+    "workspace_folder": "workspace/demo",
+    "auto_approve": true
+  }
+}
+
+# Format Terraform files in the workspace
 {
   "tool": "run_terraform_command",
   "arguments": {
     "command": "fmt",
-    "hcl_content": "resource\"azurerm_storage_account\"\"example\"{\nname=\"mystorageaccount\"\n}"
+    "workspace_folder": "workspace/demo"
   }
 }
 ```
@@ -191,7 +203,7 @@ The server provides the following MCP tools:
 ```
 
 #### Azure Policy Validation
-Conftest validation now operates on Terraform workspaces or plan files. Save your configuration to disk (for example, using `run_terraform_command` or aztfexport) and point the tools at those files:
+Conftest validation operates on Terraform workspaces or plan files. Save your configuration to disk (for example, using aztfexport or manual edits) and point the tools at those files. You can use `run_terraform_command` to run Terraform inside that workspace for init/plan/apply steps:
 
 ```python
 # Validate Terraform files in a workspace folder (works with aztfexport folders)

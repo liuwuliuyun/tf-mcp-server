@@ -12,21 +12,14 @@ This guide provides detailed installation instructions for the Azure Terraform M
 
 ### 📋 What's the Difference?
 
-- **🐳 Docker (Recommended)**: Everything pre-installed, just run one command
-- **⚡ UV**: Modern Python package manager, great for development  
-- **🐍 Pip**: Traditional Python setup, works everywhere
 
 **→ New to this? Start with Docker** - it's the easiest way to get running immediately.
 
 ## 🐳 Option 1: Docker (Easiest & Recommended)
 
 **What you need:**
-- ✅ Docker installed on your computer
-- ✅ Azure Service Principal (only if you want Azure authentication)
 
 **What's included automatically:**
-- ✅ Python, Terraform, TFLint, Conftest - all pre-installed
-- ✅ No manual setup required
 
 ### 1️⃣ Basic Setup (No Azure needed)
 Perfect for trying out documentation features:
@@ -78,19 +71,11 @@ Invoke-RestMethod -Uri "http://localhost:8000/health"
 ```
 
 **📦 What's in the Docker image:**
-- ✅ Python 3.11+, Terraform, TFLint, Conftest
-- ✅ Alpine Linux (lightweight & secure)
-- ✅ Multi-platform support (Intel & Apple Silicon)
-- ✅ Auto-built from latest code
 
----
 
 ## ⚡ Option 2: UV Installation (For Development)
 
 **What you need:**
-- ✅ Python 3.11 or higher
-- ✅ Git
-- ⚠️ Optional: [TFLint](https://github.com/terraform-linters/tflint), [Conftest](https://www.conftest.dev/) for full features
 
 ### 1️⃣ Install UV
 
@@ -118,14 +103,10 @@ uv sync --dev             # Install dev dependencies
 uv run pytest            # Run tests
 ```
 
----
 
 ## 🐍 Option 3: Traditional Python Installation
 
 **What you need:**
-- ✅ Python 3.11 or higher
-- ✅ pip (usually comes with Python)
-- ⚠️ Optional: [TFLint](https://github.com/terraform-linters/tflint), [Conftest](https://www.conftest.dev/)
 
 ### Step-by-step:
 
@@ -179,7 +160,6 @@ Once your server is running, create or edit `.vscode/mcp.json` in your workspace
 
 **💡 Note:** The server runs on port `8000` by default. Make sure the URL matches your server's actual port.
 
----
 
 ## 🔧 Optional Tools (For Full Features)
 

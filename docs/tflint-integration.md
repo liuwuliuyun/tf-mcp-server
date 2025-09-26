@@ -77,7 +77,7 @@ Checks if TFLint is installed and returns version information.
 
 ### Preparing a Workspace
 
-Save your Terraform configuration to a workspace directory that the server can access. You can create the folder manually, generate it with `run_terraform_command`, or reuse aztfexport output.
+Save your Terraform configuration to a workspace directory that the server can access. Create the folder manually or reuse aztfexport output.
 
 ```
 terraform-project/
