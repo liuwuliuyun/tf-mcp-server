@@ -340,6 +340,54 @@ class TerraformExecutor:
             Workspace creation result
         """
         return await self._run_terraform_command(['workspace', 'new', workspace_name], working_dir, strip_ansi)
+
+    async def execute_in_workspace(
+        self, 
+        command: str, 
+        workspace_path: str, 
+        strip_ansi: bool = True,
+        **kwargs
+    ) -> Dict[str, Any]:
+        """
+        Execute a generic Terraform command in a workspace directory.
+        
+        Args:
+            command: The Terraform command to execute (e.g., 'validate', 'plan', 'apply')
+            workspace_path: Path to the workspace directory containing Terraform files
+            strip_ansi: Whether to clean ANSI codes from output
+            **kwargs: Additional command-specific arguments
+            
+        Returns:
+            Command execution result with stdout, stderr, exit_code
+        """
+        # Build the command list
+        cmd_parts = [command]
+        
+        # Handle common command-specific options
+        if command == 'plan':
+            if kwargs.get('var_file'):
+                cmd_parts.extend(['-var-file', kwargs['var_file']])
+            if kwargs.get('detailed_exitcode'):
+                cmd_parts.append('-detailed-exitcode')
+        elif command == 'apply':
+            if kwargs.get('var_file'):
+                cmd_parts.extend(['-var-file', kwargs['var_file']])
+            if kwargs.get('auto_approve'):
+                cmd_parts.append('-auto-approve')
+        elif command == 'destroy':
+            if kwargs.get('var_file'):
+                cmd_parts.extend(['-var-file', kwargs['var_file']])
+            if kwargs.get('auto_approve'):
+                cmd_parts.append('-auto-approve')
+        elif command == 'init':
+            if kwargs.get('upgrade'):
+                cmd_parts.append('-upgrade')
+        
+        # Add no-color flag for most commands (unless explicitly disabled)
+        if not kwargs.get('allow_color', False):
+            cmd_parts.append('-no-color')
+        
+        return await self._run_terraform_command(cmd_parts, workspace_path, strip_ansi)
     
     def _clean_output_text(self, text: str) -> str:
         """
