@@ -545,7 +545,7 @@ def create_server(config: Config) -> FastMCP:
 
     @mcp.tool("run_conftest_workspace_validation")
     async def run_conftest_workspace_validation(
-        folder_name: str,
+        workspace_folder: str,
         policy_set: str = Field(
             "all", description="Policy set: 'all', 'Azure-Proactive-Resiliency-Library-v2', 'avmsec'"),
         severity_filter: str = Field(
@@ -561,7 +561,7 @@ def create_server(config: Config) -> FastMCP:
         with comprehensive security checks, compliance rules, and operational best practices.
 
         Args:
-            folder_name: Name of the folder under the configured workspace root to validate (e.g., "exported-rg-acctest0001")
+            workspace_folder: Path to the workspace folder to validate (relative paths resolve against the workspace root)
             policy_set: Policy set to use ('all', 'Azure-Proactive-Resiliency-Library-v2', 'avmsec')
             severity_filter: Filter by severity for avmsec policies ('high', 'medium', 'low', 'info')
             custom_policies: Comma-separated list of custom policy paths
@@ -577,7 +577,7 @@ def create_server(config: Config) -> FastMCP:
 
             # Run validation on workspace folder
             result = await conftest_avm_runner.validate_workspace_folder_with_avm_policies(
-                folder_name=folder_name,
+                workspace_folder=workspace_folder,
                 policy_set=policy_set,
                 severity_filter=severity,
                 custom_policies=custom_policies_list
@@ -590,60 +590,6 @@ def create_server(config: Config) -> FastMCP:
             return {
                 'success': False,
                 'error': f'Conftest workspace validation failed: {str(e)}',
-                'violations': [],
-                'summary': {
-                    'total_violations': 0,
-                    'failures': 0,
-                    'warnings': 0
-                }
-            }
-
-    @mcp.tool("run_conftest_plan_validation")
-    async def run_conftest_plan_validation(
-        terraform_plan_json: str,
-        policy_set: str = Field(
-            "all", description="Policy set: 'all', 'Azure-Proactive-Resiliency-Library-v2', 'avmsec'"),
-        severity_filter: str = Field(
-            "", description="Severity filter for avmsec policies: 'high', 'medium', 'low', 'info'"),
-        custom_policies: str = Field(
-            "", description="Comma-separated list of custom policy paths")
-    ) -> Dict[str, Any]:
-        """
-        Validate Terraform plan JSON against Azure security policies and best practices using Conftest.
-
-        Supports validation of Azure resources using azurerm, azapi, and AVM (Azure Verified Modules) providers
-        with comprehensive security checks, compliance rules, and operational best practices.
-
-        Args:
-            terraform_plan_json: Terraform plan in JSON format
-            policy_set: Policy set to use ('all', 'Azure-Proactive-Resiliency-Library-v2', 'avmsec')
-            severity_filter: Filter by severity for avmsec policies ('high', 'medium', 'low', 'info')
-            custom_policies: Comma-separated list of custom policy paths
-
-        Returns:
-            Policy validation results with violations and recommendations
-        """
-        try:
-            # Parse custom policies if provided
-            custom_policies_list = [p.strip() for p in custom_policies.split(
-                ',') if p.strip()] if custom_policies else None
-            severity = severity_filter if severity_filter else None
-
-            # Run validation
-            result = await conftest_avm_runner.validate_with_avm_policies(
-                terraform_plan_json=terraform_plan_json,
-                policy_set=policy_set,
-                severity_filter=severity,
-                custom_policies=custom_policies_list
-            )
-
-            return result
-
-        except Exception as e:
-            logger.error(f"Error running Conftest AVM plan validation: {e}")
-            return {
-                'success': False,
-                'error': f'Conftest AVM plan validation failed: {str(e)}',
                 'violations': [],
                 'summary': {
                     'total_violations': 0,

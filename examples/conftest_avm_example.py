@@ -135,14 +135,14 @@ async def main() -> None:
     try:
         # 1. Validate the workspace folder with all policies
         workspace_result = await runner.validate_workspace_folder_with_avm_policies(
-            folder_name=folder_name,
+            workspace_folder=folder_name,
             policy_set="all"
         )
         _print_result("Workspace Validation (All Policies)", workspace_result)
 
         # 2. Validate the same workspace with avmsec high severity policies
         severity_result = await runner.validate_workspace_folder_with_avm_policies(
-            folder_name=folder_name,
+            workspace_folder=folder_name,
             policy_set="avmsec",
             severity_filter="high"
         )

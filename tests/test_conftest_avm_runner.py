@@ -146,7 +146,7 @@ class TestConftestAVMRunner:
         result = await runner.validate_workspace_folder_with_avm_policies("")
         
         assert result['success'] is False
-        assert 'No folder name provided' in result['error']
+        assert 'No workspace folder provided' in result['error']
         assert result['violations'] == []
         assert result['summary']['total_violations'] == 0
 
@@ -156,7 +156,7 @@ class TestConftestAVMRunner:
         result = await runner.validate_workspace_folder_with_avm_policies("nonexistent_folder")
         
         assert result['success'] is False
-        assert 'does not exist' in result['error']
+        assert 'Workspace folder "nonexistent_folder" does not exist' in result['error']
         assert result['violations'] == []
 
     @pytest.mark.asyncio

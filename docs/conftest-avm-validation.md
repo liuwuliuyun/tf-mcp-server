@@ -39,7 +39,7 @@ Validate Terraform files in a workspace folder against Azure security policies a
 This tool validates all `.tf` files in the specified workspace folder, similar to how aztfexport creates folders under the workspace root (default: `/workspace`). It automatically runs `terraform init`, `terraform plan`, and validates the resulting plan. You can customise the root path by setting the `MCP_WORKSPACE_ROOT` environment variable.
 
 **Parameters:**
-- `folder_name` (required): Name of the folder under the configured workspace root to validate (e.g., "exported-rg-acctest0001")
+- `workspace_folder` (required): Path to the workspace folder to validate (relative paths resolve against the configured workspace root)
 - `policy_set` (optional, default: "all"): Policy set to use
 - `severity_filter` (optional): Severity filter for avmsec policies  
 - `custom_policies` (optional): Comma-separated list of custom policy paths
@@ -49,23 +49,6 @@ This tool validates all `.tf` files in the specified workspace folder, similar t
 - List of policy violations
 - Summary with violation counts
 - Workspace folder information and list of Terraform files
-
-### `run_conftest_plan_validation`
-
-Validate Terraform plan JSON against Azure security policies and best practices using Conftest.
-
-This tool validates a pre-generated Terraform plan in JSON format, useful when you already have a plan file.
-
-**Parameters:**
-- `terraform_plan_json` (required): Terraform plan in JSON format
-- `policy_set` (optional, default: "all"): Policy set to use
-- `severity_filter` (optional): Severity filter for avmsec policies
-- `custom_policies` (optional): Comma-separated list of custom policy paths
-
-**Returns:**
-- Validation success status
-- List of policy violations
-- Summary with violation counts
 
 ### `run_conftest_workspace_plan_validation`
 
@@ -115,7 +98,7 @@ async def validate_workspace():
   runner = get_conftest_avm_runner()
 
   result = await runner.validate_workspace_folder_with_avm_policies(
-    folder_name="exported-rg-acctest0001",
+    workspace_folder="exported-rg-acctest0001",
     policy_set="all"
   )
 
@@ -132,7 +115,7 @@ asyncio.run(validate_workspace())
 
 ```python
 result = await runner.validate_workspace_folder_with_avm_policies(
-  folder_name="exported-rg-acctest0001",
+  workspace_folder="exported-rg-acctest0001",
   policy_set="avmsec",
   severity_filter="high"
 )
@@ -253,7 +236,6 @@ If Terraform operations fail:
 These tools are automatically integrated into the Azure Terraform MCP Server and can be accessed via the MCP protocol. The tools are registered as:
 
 - `run_conftest_workspace_validation` - Validate .tf files in a workspace folder
-- `run_conftest_plan_validation` - Validate raw plan JSON content  
 - `run_conftest_workspace_plan_validation` - Validate plan files in a workspace folder
 
 ### Workflow Integration

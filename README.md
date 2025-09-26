@@ -38,37 +38,34 @@ This MCP server provides support for Azure Terraform development, including:
 
 ## Quick Start
 
-The fastest way to get started is with Docker (recommended):
-
-```bash
-# Basic setup - perfect for trying out documentation features
-docker run -d --name tf-mcp-server -p 8000:8000 ghcr.io/liuwuliuyun/tf-mcp-server:latest
-
-# Verify it's working
-curl http://localhost:8000/health
-# Should return: {"status": "healthy"}
-```
-
-**For Windows PowerShell users:**
-```powershell
-# Basic setup
-docker run -d --name tf-mcp-server -p 8000:8000 ghcr.io/liuwuliuyun/tf-mcp-server:latest
-
-# Verify it's working
-Invoke-RestMethod -Uri "http://localhost:8000/health"
-```
-
-### VS Code Setup
-
-Once your server is running, create or edit `.vscode/mcp.json` in your workspace:
+Create or edit `.vscode/mcp.json` in your workspace:
 
 ```json
 {
-    "servers": {
-        "Azure Terraform MCP Server": {
-            "url": "http://localhost:8000/mcp/"
-        }
+  "servers": {
+    "tf-mcp-server": {
+      "command": "docker",
+      "args": [
+        "run",
+        "--rm",
+        "-i",
+        "--name", "tf-mcp-server-instance",
+        "-v", "${workspaceFolder}:/workspace",
+        "-e", "ARM_CLIENT_ID=${env:ARM_CLIENT_ID}",
+        "-e", "ARM_CLIENT_SECRET=${env:ARM_CLIENT_SECRET}",
+        "-e", "ARM_SUBSCRIPTION_ID=${env:ARM_SUBSCRIPTION_ID}",
+        "-e", "ARM_TENANT_ID=${env:ARM_TENANT_ID}",
+        "-e", "LOG_LEVEL=INFO",
+        "ghcr.io/liuwuliuyun/tf-mcp-server:latest"
+      ],
+      "env": {
+        "ARM_CLIENT_ID": "${env:ARM_CLIENT_ID}",
+        "ARM_CLIENT_SECRET": "${env:ARM_CLIENT_SECRET}",
+        "ARM_SUBSCRIPTION_ID": "${env:ARM_SUBSCRIPTION_ID}",
+        "ARM_TENANT_ID": "${env:ARM_TENANT_ID}"
+      }
     }
+  }
 }
 ```
 
@@ -105,7 +102,6 @@ The server provides the following MCP tools:
 
 #### Security Tools
 - **`run_conftest_workspace_validation`**: Validate Terraform files in a workspace folder against Azure security policies (works with aztfexport folders)
-- **`run_conftest_plan_validation`**: Validate Terraform plan JSON against Azure security policies and best practices using Conftest
 - **`run_conftest_workspace_plan_validation`**: Validate Terraform plan files in a workspace folder against Azure security policies
 
 #### Static Analysis Tools
@@ -210,18 +206,9 @@ Conftest validation operates on Terraform workspaces or plan files. Save your co
 {
   "tool": "run_conftest_workspace_validation",
   "arguments": {
-    "folder_name": "exported-rg-acctest0001",
+    "workspace_folder": "exported-rg-acctest0001",
     "policy_set": "avmsec",
     "severity_filter": "high"
-  }
-}
-
-# Validate plan JSON directly
-{
-  "tool": "run_conftest_plan_validation", 
-  "arguments": {
-    "terraform_plan_json": "{\"planned_values\": {\"root_module\": {\"resources\": [...]}}}",
-    "policy_set": "Azure-Proactive-Resiliency-Library-v2"
   }
 }
 
@@ -321,7 +308,7 @@ The conftest tools are designed to work seamlessly with aztfexport for a complet
 {
   "tool": "run_conftest_workspace_validation", 
   "arguments": {
-    "folder_name": "exported-storage-account",
+    "workspace_folder": "exported-storage-account",
     "policy_set": "avmsec",
     "severity_filter": "high"
   }
