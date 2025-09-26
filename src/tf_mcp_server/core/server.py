@@ -321,19 +321,17 @@ def create_server(config: Config) -> FastMCP:
     async def run_terraform_command(
         command: str = Field(
             ..., description="Terraform command to execute (init, plan, apply, destroy, validate, fmt)"),
-        hcl_content: str = Field(...,
-                                 description="HCL content to execute the command against"),
-        var_file_content: str = Field(
-            "", description="Optional Terraform variables content (terraform.tfvars format)"),
+        workspace_folder: str = Field(
+            ..., description="Workspace folder containing Terraform files."),
         auto_approve: bool = Field(
             False, description="Auto-approve for apply/destroy commands (USE WITH CAUTION!)"),
         upgrade: bool = Field(
             False, description="Upgrade providers/modules for init command")
     ) -> Dict[str, Any]:
         """
-        Execute any Terraform command with provided HCL content.
+        Execute a Terraform command within an existing workspace directory.
 
-        This unified tool replaces individual terraform_init, terraform_plan, terraform_apply, 
+        This unified tool replaces individual terraform_init, terraform_plan, terraform_apply,
         terraform_destroy, terraform_format, and terraform_execute_command tools.
 
         Args:
@@ -344,31 +342,24 @@ def create_server(config: Config) -> FastMCP:
                 - 'destroy': Destroy Terraform-managed resources
                 - 'validate': Validate configuration files
                 - 'fmt': Format configuration files
-            hcl_content: HCL content to execute the command against
-            var_file_content: Optional Terraform variables content
+            workspace_folder: Workspace folder containing Terraform files
             auto_approve: Auto-approve for destructive operations (apply/destroy)
             upgrade: Upgrade providers/modules during init
 
         Returns:
-            Command execution result with details based on command type:
-            - For 'fmt': Returns formatted HCL content as string
-            - For others: Returns Dict with exit_code, stdout, stderr, and command-specific data
+            Command execution result with exit_code, stdout, stderr, and command metadata.
         """
-        vars_content = var_file_content if var_file_content.strip() else None
-
-        # Handle format command separately as it returns formatted content
-        if command == 'fmt':
-            formatted_content = await terraform_runner.format_hcl_code(hcl_content)
+        workspace_name = workspace_folder.strip()
+        if not workspace_name:
             return {
-                "command": "fmt",
-                "success": True,
-                "formatted_content": formatted_content,
-                "exit_code": 0,
-                "stdout": "Successfully formatted HCL content",
-                "stderr": ""
+                "command": command,
+                "success": False,
+                "error": "workspace_folder is required",
+                "exit_code": 1,
+                "stdout": "",
+                "stderr": "workspace_folder is required"
             }
 
-        # Handle other commands using the unified execution method
         kwargs = {}
         if command in ['apply', 'destroy'] and auto_approve:
             kwargs['auto_approve'] = auto_approve
@@ -376,35 +367,11 @@ def create_server(config: Config) -> FastMCP:
             kwargs['upgrade'] = upgrade
 
         try:
-            # Use the existing execute_terraform_command method
-            result = await terraform_runner.execute_terraform_command(command, hcl_content, vars_content or "", **kwargs)
-
-            # Ensure result is a dictionary
-            if isinstance(result, str):
-                # If the validator returns a string, wrap it in a proper response
-                return {
-                    "command": command,
-                    "success": True,
-                    "output": result,
-                    "exit_code": 0,
-                    "stdout": result,
-                    "stderr": ""
-                }
-            elif isinstance(result, dict):
-                # Add command info to the result
-                result["command"] = command
-                return result
-            else:
-                # Fallback for unexpected return types
-                return {
-                    "command": command,
-                    "success": False,
-                    "output": str(result),
-                    "exit_code": 1,
-                    "stdout": "",
-                    "stderr": f"Unexpected result type: {type(result)}"
-                }
-
+            result = await terraform_runner.execute_terraform_command(
+                command=command,
+                workspace_folder=workspace_name,
+                **kwargs
+            )
         except Exception as e:
             return {
                 "command": command,
@@ -414,6 +381,19 @@ def create_server(config: Config) -> FastMCP:
                 "stdout": "",
                 "stderr": str(e)
             }
+
+        if isinstance(result, dict):
+            result["command"] = command
+            return result
+
+        return {
+            "command": command,
+            "success": True,
+            "output": str(result),
+            "exit_code": 0,
+            "stdout": str(result),
+            "stderr": ""
+        }
 
     # ==========================================
     # UTILITY TOOLS
