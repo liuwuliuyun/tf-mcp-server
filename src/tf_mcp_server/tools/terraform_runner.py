@@ -99,7 +99,7 @@ class TerraformRunner:
             for pattern in ("*.tf", "*.tf.json"):
                 if next(workspace_path.rglob(pattern), None) is not None:
                     return True
-        except Exception:
+        except (OSError, PermissionError):
             return False
         return False
 
