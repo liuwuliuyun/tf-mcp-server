@@ -427,12 +427,24 @@ exception contains rules if {
                     }
 
                 # Delegate to plan JSON validation
-                result = await self.validate_with_avm_policies(
-                    terraform_plan_json=show_result.stdout,
-                    policy_set=policy_set,
-                    severity_filter=severity_filter,
-                    custom_policies=custom_policies
-                )
+                try:
+                    result = await self.validate_with_avm_policies(
+                        terraform_plan_json=show_result.stdout,
+                        policy_set=policy_set,
+                        severity_filter=severity_filter,
+                        custom_policies=custom_policies
+                    )
+                except Exception as exc:
+                    return {
+                        'success': False,
+                        'error': f'Error during AVM policy validation: {exc}',
+                        'violations': [],
+                        'summary': {
+                            'total_violations': 0,
+                            'failures': 0,
+                            'warnings': 0
+                        }
+                    }
 
                 # Provide context about the temporary workspace used
                 result.setdefault('workspace_path', str(temp_path))
