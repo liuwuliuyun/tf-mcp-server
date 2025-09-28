@@ -5,6 +5,7 @@ TFLint runner utilities for Azure Terraform MCP Server.
 import os
 import json
 import subprocess
+import tempfile
 from typing import Dict, Any, Optional, List
 from ..core.utils import resolve_workspace_path
 
