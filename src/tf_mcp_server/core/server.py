@@ -948,8 +948,8 @@ def create_server(config: Config) -> FastMCP:
     # TERRAFORM SOURCE CODE QUERY TOOLS
     # ==========================================
     
-    @mcp.tool("terraform_source_code_query_get_supported_providers")
-    def get_supported_terraform_providers() -> Dict[str, Any]:
+    @mcp.tool("get_terraform_source_providers")
+    def get_terraform_source_providers() -> Dict[str, Any]:
         """
         Get all supported Terraform provider names available for source code query.
         
@@ -974,8 +974,8 @@ def create_server(config: Config) -> FastMCP:
                 "supported_providers": []
             }
     
-    @mcp.tool("query_terraform_block_implementation_source_code")
-    async def query_terraform_block_implementation_source_code(
+    @mcp.tool("query_terraform_source_code")
+    async def query_terraform_source_code(
         block_type: str = Field(..., description="Terraform block type: resource, data, ephemeral"),
         terraform_type: str = Field(..., description="Terraform type (e.g., azurerm_resource_group)"),
         entrypoint_name: str = Field(..., description="Function/method name (create, read, update, delete, schema, etc.)"),
@@ -1013,8 +1013,8 @@ def create_server(config: Config) -> FastMCP:
     # GOLANG SOURCE CODE ANALYSIS TOOLS
     # ==========================================
     
-    @mcp.tool("golang_source_code_server_get_supported_golang_namespaces")
-    def get_supported_golang_namespaces() -> Dict[str, Any]:
+    @mcp.tool("get_golang_namespaces")
+    def get_golang_namespaces() -> Dict[str, Any]:
         """
         Get all indexed golang namespaces available for source code analysis.
         
@@ -1039,8 +1039,8 @@ def create_server(config: Config) -> FastMCP:
                 "supported_namespaces": []
             }
     
-    @mcp.tool("golang_source_code_server_get_supported_tags")
-    def get_supported_golang_tags(
+    @mcp.tool("get_golang_namespace_tags")
+    def get_golang_namespace_tags(
         namespace: str = Field(..., description="Golang namespace to get tags for")
     ) -> Dict[str, Any]:
         """

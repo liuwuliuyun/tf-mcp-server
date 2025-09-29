@@ -130,12 +130,12 @@ The server provides the following MCP tools:
 - **`set_aztfexport_config`**: Set aztfexport configuration settings
 
 #### Terraform Source Code Analysis Tools
-- **`terraform_source_code_query_get_supported_providers`**: Get supported providers for source code analysis
-- **`query_terraform_block_implementation_source_code`**: Read Terraform provider source code implementations
+- **`get_terraform_source_providers`**: Get supported providers for source code analysis
+- **`query_terraform_source_code`**: Read Terraform provider source code implementations
 
 #### Golang Source Code Analysis Tools
-- **`golang_source_code_server_get_supported_golang_namespaces`**: Get available golang namespaces for analysis
-- **`golang_source_code_server_get_supported_tags`**: Get supported version tags for a golang namespace
+- **`get_golang_namespaces`**: Get available golang namespaces for analysis
+- **`get_golang_namespace_tags`**: Get supported version tags for a golang namespace
 - **`query_golang_source_code`**: Read golang source code for functions, methods, types, and variables
 
 ### Example Usage

@@ -13,7 +13,7 @@ The integration adds powerful tools for analyzing Terraform providers and their 
 
 ### Terraform Source Code Analysis Tools
 
-#### `terraform_source_code_query_get_supported_providers`
+#### `get_terraform_source_providers`
 Get all supported Terraform provider names available for source code query.
 
 **Parameters:** None
@@ -25,7 +25,7 @@ Get all supported Terraform provider names available for source code query.
 - Find available providers before querying specific functions or methods
 - Understand the scope of providers available for source code analysis
 
-#### `query_terraform_block_implementation_source_code`
+#### `query_terraform_source_code`
 Read Terraform provider source code for a given Terraform block.
 
 **Parameters:**
@@ -56,7 +56,7 @@ Read Terraform provider source code for a given Terraform block.
 
 ### Golang Source Code Analysis Tools
 
-#### `golang_source_code_server_get_supported_golang_namespaces`
+#### `get_golang_namespaces`
 Get all indexed golang namespaces available for source code analysis.
 
 **Parameters:** None
@@ -68,7 +68,7 @@ Get all indexed golang namespaces available for source code analysis.
 - Find available namespaces before querying specific code symbols
 - Understand the scope of indexed golang codebases
 
-#### `golang_source_code_server_get_supported_tags`
+#### `get_golang_namespace_tags`
 Get all supported tags/versions for a specific golang namespace.
 
 **Parameters:**
@@ -121,12 +121,12 @@ Read golang source code for given type, variable, constant, function or method d
 
 1. **Discover available providers:**
    ```json
-   Use: terraform_source_code_query_get_supported_providers
+   Use: get_terraform_source_providers
    ```
 
 2. **Find the resource implementation:**
    ```json
-   Use: query_terraform_block_implementation_source_code
+   Use: query_terraform_source_code
    Parameters: {
      "block_type": "resource",
      "terraform_type": "azurerm_resource_group", 
