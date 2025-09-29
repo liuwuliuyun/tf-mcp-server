@@ -158,18 +158,19 @@ black --check src/tf_mcp_server/ tests/
 
 ### Example Function Documentation
 ```python
-async def analyze_azure_resources(hcl_content: str) -> Dict[str, Any]:
-    """Analyze Azure resources in Terraform configurations.
+async def run_terraform_command(command: str, workspace_folder: str) -> Dict[str, Any]:
+    """Execute a Terraform command within a workspace directory.
     
     Args:
-        hcl_content: Terraform HCL content to analyze
+        command: Terraform command to execute (init, plan, apply, destroy)
+        workspace_folder: Workspace folder containing Terraform files
         
     Returns:
-        Analysis results with resource information and recommendations
+        Command execution result with exit_code, stdout, stderr
         
     Raises:
-        ValidationError: If HCL content is invalid
-        ProcessingError: If analysis fails
+        ValidationError: If command or workspace is invalid
+        ExecutionError: If terraform command fails
     """
 ```
 
@@ -502,7 +503,6 @@ The server provides the following MCP tools (as defined in `src/tf_mcp_server/co
 - `run_conftest_workspace_plan_validation` - Validate Terraform plan files against Azure security policies and best practices using Conftest
 - `run_tflint_workspace_analysis` - Run TFLint static analysis on Terraform workspaces with Azure plugin support
 - `check_tflint_installation` - Check TFLint installation status and get version information
-- `analyze_azure_resources` - Analyze Azure resources in Terraform configurations with recommendations
 
 **Azure Export Tools (aztfexport Integration):**
 - `check_aztfexport_installation` - Check Azure Export for Terraform (aztfexport) installation status and version

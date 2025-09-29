@@ -29,7 +29,6 @@ This MCP server provides support for Azure Terraform development, including:
 - **HCL Validation**: Syntax validation and error reporting for Terraform code
 - **HCL Formatting**: Automatic code formatting for Terraform configurations
 - **TFLint Integration**: Static analysis with TFLint including Azure ruleset support for Terraform workspaces
-- **Resource Analysis**: Analyze Azure resources in Terraform configurations
 - **Azure Export for Terraform (aztfexport)**: Export existing Azure resources to Terraform configuration and state
 
 ### 📋 Schema & Provider Analysis
@@ -119,9 +118,6 @@ The server provides the following MCP tools:
 #### Static Analysis Tools
 - **`run_tflint_workspace_analysis`**: Run TFLint static analysis on workspace folders containing Terraform files (supports recursive analysis)
 - **`check_tflint_installation`**: Check TFLint installation status and get version information
-
-#### Analysis Tools
-- **`analyze_azure_resources`**: Analyze Azure resources in Terraform configurations
 
 #### Azure Export Tools (aztfexport Integration)
 - **`check_aztfexport_installation`**: Check Azure Export for Terraform (aztfexport) installation status and version
@@ -293,17 +289,6 @@ Conftest validation operates on Terraform workspaces or plan files. Save your co
   "arguments": {
     "module_name": "avm-res-compute-virtualmachine",
     "module_version": "0.19.3"
-  }
-}
-```
-
-#### Analyze Azure Resources
-```python
-# Analyze Terraform configuration for Azure resources
-{
-  "tool": "analyze_azure_resources",
-  "arguments": {
-    "hcl_content": "resource \"azurerm_storage_account\" \"example\" {\n  name = \"mystorageaccount\"\n  resource_group_name = \"myresourcegroup\"\n}\n\nresource \"azurerm_virtual_machine\" \"example\" {\n  name = \"myvm\"\n  resource_group_name = \"myresourcegroup\"\n}"
   }
 }
 ```

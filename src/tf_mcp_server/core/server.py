@@ -403,59 +403,6 @@ def create_server(config: Config) -> FastMCP:
     # UTILITY TOOLS
     # ==========================================
 
-    @mcp.tool("analyze_azure_resources")
-    async def analyze_azure_resources(hcl_content: str) -> Dict[str, Any]:
-        """
-        Analyze Azure resources in Terraform configurations.
-
-        Args:
-            hcl_content: Terraform HCL content to analyze
-
-        Returns:
-            Analysis results with resource information and recommendations
-        """
-        try:
-            # This is a simplified analysis - in a real implementation,
-            # you would parse the HCL and extract detailed resource information
-
-            resources_found = []
-            lines = hcl_content.split('\n')
-
-            for line in lines:
-                line = line.strip()
-                if line.startswith('resource ') and 'azurerm_' in line:
-                    # Extract resource type and name
-                    parts = line.split('"')
-                    if len(parts) >= 4:
-                        resource_type = parts[1]
-                        resource_name = parts[3]
-                        resources_found.append({
-                            "type": resource_type,
-                            "name": resource_name
-                        })
-
-            return {
-                "total_resources": len(resources_found),
-                "azure_resources": resources_found,
-                "analysis_summary": f"Found {len(resources_found)} Azure resources in the configuration",
-                "recommendations": [
-                    "Review security configurations for all resources",
-                    "Ensure proper tagging strategy is implemented",
-                    "Validate resource naming conventions",
-                    "Check for best practices compliance"
-                ]
-            }
-
-        except Exception as e:
-            logger.error(f"Error analyzing Azure resources: {e}")
-            return {
-                "error": f"Failed to analyze resources: {str(e)}",
-                "total_resources": 0,
-                "azure_resources": [],
-                "analysis_summary": "Analysis failed",
-                "recommendations": []
-            }
-
     @mcp.tool("check_tflint_installation")
     async def check_tflint_installation() -> Dict[str, Any]:
         """
