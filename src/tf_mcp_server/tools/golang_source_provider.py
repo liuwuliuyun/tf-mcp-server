@@ -136,6 +136,9 @@ class GolangSourceProvider:
             source_code = await self._fetch_golang_source_code(namespace, symbol, name, receiver, tag, remote_key)
             return source_code
             
+        except ValueError:
+            # Re-raise validation errors as-is for proper test handling
+            raise
         except Exception as e:
             logger.error(f"Error querying golang source code: {str(e)}")
             return f"Error: Failed to query golang source code: {str(e)}"
@@ -188,6 +191,9 @@ class GolangSourceProvider:
             source_code = await self._fetch_terraform_source_code(block_type, terraform_type, entrypoint_name, tag)
             return source_code
             
+        except ValueError:
+            # Re-raise validation errors as-is for proper test handling
+            raise
         except Exception as e:
             logger.error(f"Error querying terraform source code: {str(e)}")
             return f"Error: Failed to query terraform source code: {str(e)}"

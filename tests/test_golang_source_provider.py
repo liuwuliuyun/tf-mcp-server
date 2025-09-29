@@ -384,7 +384,7 @@ func resourceResourceGroupCreateUpdate(d *pluginsdk.ResourceData, meta interface
         with pytest.raises(ValueError, match="Invalid terraform type"):
             await golang_provider.query_terraform_source_code(
                 block_type="resource",
-                terraform_type="invalid_type_format",
+                terraform_type="invalid",  # Only one segment, should trigger validation error
                 entrypoint_name="create"
             )
 
@@ -450,7 +450,7 @@ func resourceResourceGroupCreateUpdate(d *pluginsdk.ResourceData, meta interface
             mock_response.status_code = 401
             mock_client.return_value.__aenter__.return_value.get.return_value = mock_response
             
-            with pytest.raises(Exception, match="GitHub API access denied.*GITHUB_TOKEN"):
+            with pytest.raises(Exception, match="GitHub API authentication failed.*GITHUB_TOKEN"):
                 await golang_provider._read_github_content(
                     owner="lonegunmanb",
                     repo="terraform-provider-azurerm-index",
@@ -491,7 +491,11 @@ func resourceResourceGroupCreateUpdate(d *pluginsdk.ResourceData, meta interface
             assert "type Client struct" in result
             # Verify tag was passed to _read_github_content
             call_args = mock_read.call_args
-            assert call_args[1]['tag'] == "v4.25.0"
+            # The method calls _read_github_content with: owner, repo, path, tag
+            # mock_read.call_args[0] contains positional args (self excluded for patch.object)
+            # So args are: [owner, repo, path, tag]
+            assert len(call_args[0]) >= 4, f"Expected at least 4 args, got {len(call_args[0])}: {call_args[0]}"
+            assert call_args[0][3] == "v4.25.0"  # tag is the 4th argument (index 3)
 
     @pytest.mark.asyncio
     async def test_fetch_terraform_source_code_ephemeral(self, golang_provider):
@@ -525,7 +529,11 @@ func resourceResourceGroupCreateUpdate(d *pluginsdk.ResourceData, meta interface
             assert "OpenRequest" in result
             # Verify ephemeral path is used (not "ephemerals")
             index_call = mock_read.call_args_list[0]
-            assert "index/ephemeral/" in index_call[1]['path']
+            # The method calls _read_github_content with: owner, repo, path, tag
+            # index_call[0] contains positional args: [owner, repo, path, tag]
+            assert len(index_call[0]) >= 3, f"Expected at least 3 args, got {len(index_call[0])}: {index_call[0]}"
+            path_arg = index_call[0][2]  # path is the 3rd argument (index 2)
+            assert "index/ephemeral/" in path_arg
 
     @pytest.mark.asyncio
     async def test_query_golang_source_code_with_var_symbol(self, golang_provider):

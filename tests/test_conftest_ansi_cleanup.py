@@ -49,20 +49,35 @@ class TestAnsiCleanup:
         """Test that ConftestAVMRunner cleans ANSI sequences from errors."""
         runner = ConftestAVMRunner()
         
-        # Mock subprocess to return error with ANSI sequences
-        mock_result = MagicMock()
-        mock_result.returncode = 1
-        mock_result.stderr = "\u001b[31mError: \u001b[0mTerraform plan failed with ANSI colors"
-        mock_result.stdout = ""
+        # Mock multiple subprocess calls that happen during terraform execution
+        def subprocess_side_effect(cmd, **kwargs):
+            mock_result = MagicMock()
+            if cmd[0] == 'terraform' and cmd[1] == 'init':
+                # Successful init
+                mock_result.returncode = 0
+                mock_result.stderr = ""
+                mock_result.stdout = ""
+            elif cmd[0] == 'terraform' and cmd[1] == 'plan':
+                # Failed plan with ANSI sequences
+                mock_result.returncode = 1
+                mock_result.stderr = "\u001b[31mError: \u001b[0mTerraform plan failed with ANSI colors"
+                mock_result.stdout = ""
+            else:
+                # Default case
+                mock_result.returncode = 1
+                mock_result.stderr = "Unknown command"
+                mock_result.stdout = ""
+            return mock_result
         
-        with patch('subprocess.run', return_value=mock_result):
+        with patch('subprocess.run', side_effect=subprocess_side_effect):
             with patch('tempfile.TemporaryDirectory') as mock_temp_dir:
                 # Mock the temporary directory context manager
                 mock_temp_dir.return_value.__enter__.return_value = "/fake/temp/dir"
                 with patch('builtins.open', create=True):
-                    result = await runner.validate_terraform_hcl_with_avm_policies(
-                        hcl_content='resource "azurerm_resource_group" "test" {}'
-                    )
+                    with patch('pathlib.Path.write_text'):  # Mock file writing
+                        result = await runner.validate_terraform_hcl_with_avm_policies(
+                            terraform_hcl='resource "azurerm_resource_group" "test" {}'
+                        )
         
         # Check that the error message has ANSI sequences removed
         assert result['success'] is False

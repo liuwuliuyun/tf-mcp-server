@@ -206,7 +206,7 @@ plugin "azurerm" {
         
         # Resolve workspace folder path
         try:
-            folder_path = str(resolve_workspace_path(workspace_folder.strip()))
+            folder_path = str(resolve_workspace_path(workspace_folder.strip(), allow_external_absolute=True))
         except ValueError as exc:
             return {
                 'success': False,
