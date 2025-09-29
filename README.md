@@ -100,8 +100,8 @@ For detailed configuration options including environment variables, configuratio
 The server provides the following MCP tools:
 
 #### Documentation Tools
-- **`azurerm_terraform_documentation_retriever`**: Retrieve specific AzureRM resource or data source documentation with optional argument/attribute lookup
-- **`azapi_terraform_documentation_retriever`**: Retrieve AzAPI resource schemas and documentation
+- **`get_azurerm_provider_documentation`**: Retrieve specific AzureRM resource or data source documentation with optional argument/attribute lookup
+- **`get_azapi_provider_documentation`**: Retrieve AzAPI resource schemas and documentation
 - **`get_avm_modules`**: Retrieve all available Azure Verified Modules with descriptions and source information
 - **`get_avm_latest_version`**: Get the latest version of a specific Azure Verified Module
 - **`get_avm_versions`**: Get all available versions of a specific Azure Verified Module
@@ -225,7 +225,7 @@ Prepare a workspace directory (for example `workspace/demo`) containing your Ter
 ```python
 # Get detailed resource documentation
 {
-  "tool": "azurerm_terraform_documentation_retriever",
+  "tool": "get_azurerm_provider_documentation",
   "arguments": {
     "resource_type_name": "storage_account",
     "doc_type": "resource"
@@ -234,7 +234,7 @@ Prepare a workspace directory (for example `workspace/demo`) containing your Ter
 
 # Get specific argument details
 {
-  "tool": "azurerm_terraform_documentation_retriever",
+  "tool": "get_azurerm_provider_documentation",
   "arguments": {
     "resource_type_name": "storage_account",
     "doc_type": "resource",
@@ -247,7 +247,7 @@ Prepare a workspace directory (for example `workspace/demo`) containing your Ter
 ```python
 # Using the main documentation tool for data sources
 {
-  "tool": "azurerm_terraform_documentation_retriever",
+  "tool": "get_azurerm_provider_documentation",
   "arguments": {
     "resource_type_name": "virtual_machine",
     "doc_type": "data-source"
@@ -283,7 +283,7 @@ Conftest validation operates on Terraform workspaces or plan files. Save your co
 ```python
 # Get AzAPI resource schema
 {
-  "tool": "azapi_terraform_documentation_retriever",
+  "tool": "get_azapi_provider_documentation",
   "arguments": {
     "resource_type_name": "Microsoft.Storage/storageAccounts@2021-04-01"
   }

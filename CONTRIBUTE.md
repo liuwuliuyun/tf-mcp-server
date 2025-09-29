@@ -487,8 +487,8 @@ result = await runner.validate_workspace_folder_with_avm_policies(
 The server provides the following MCP tools (as defined in `src/tf_mcp_server/core/server.py`):
 
 **Documentation Tools:**
-- `azurerm_terraform_documentation_retriever` - Get detailed AzureRM resource/data source documentation with optional argument/attribute lookup
-- `azapi_terraform_documentation_retriever` - Get AzAPI resource schemas and documentation
+- `get_azurerm_provider_documentation` - Get detailed AzureRM resource/data source documentation with optional argument/attribute lookup
+- `get_azapi_provider_documentation` - Get AzAPI resource schemas and documentation
 - `get_avm_modules` - Retrieve all available Azure Verified Modules with descriptions
 - `get_avm_latest_version` - Get the latest version of a specific Azure Verified Module
 - `get_avm_versions` - Get all available versions of a specific Azure Verified Module

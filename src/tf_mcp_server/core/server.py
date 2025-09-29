@@ -144,8 +144,8 @@ def create_server(config: Config) -> FastMCP:
                 f"Error: get_avm_outputs({module_name}, {module_version}): {str(e)}")
             return "failed to retrieve module outputs"
 
-    @mcp.tool("azurerm_terraform_documentation_retriever")
-    async def retrieve_azurerm_docs(
+    @mcp.tool("get_azurerm_provider_documentation")
+    async def get_azurerm_provider_documentation(
         resource_type_name: str,
         doc_type: str = Field(
             "resource", description="Type of documentation: 'resource' for resources or 'data-source' for data sources"),
@@ -273,8 +273,8 @@ def create_server(config: Config) -> FastMCP:
                 "resource_type": resource_type_name
             }
 
-    @mcp.tool("azapi_terraform_documentation_retriever")
-    async def retrieve_azapi_docs(resource_type_name: str) -> str:
+    @mcp.tool("get_azapi_provider_documentation")
+    async def get_azapi_provider_documentation(resource_type_name: str) -> str:
         """
         Retrieve documentation for a specific AzAPI resource type in Terraform.
 

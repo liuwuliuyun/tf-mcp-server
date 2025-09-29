@@ -107,7 +107,7 @@ The tool specifically highlights that in AzAPI 2.x:
 ## Integration with Existing Tools
 
 This tool complements the existing Terraform MCP server tools:
-- Use alongside `azurerm_terraform_documentation_retriever` for detailed resource documentation
-- Combine with `azapi_terraform_documentation_retriever` for AzAPI-specific resources
+- Use alongside `get_azurerm_provider_documentation` for detailed resource documentation
+- Combine with `get_azapi_provider_documentation` for AzAPI-specific resources
 - Reference before using `run_terraform_command` for proper configuration
 - Apply recommendations when using `tflint` for code quality checks
