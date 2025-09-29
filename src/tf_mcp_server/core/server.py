@@ -627,8 +627,8 @@ def create_server(config: Config) -> FastMCP:
                 'status': 'Installation check failed'
             }
 
-    @mcp.tool("aztfexport_resource")
-    async def aztfexport_resource(
+    @mcp.tool("export_azure_resource")
+    async def export_azure_resource(
         resource_id: str = Field(...,
                                  description="Azure resource ID to export"),
         output_folder_name: str = Field(
@@ -703,8 +703,8 @@ def create_server(config: Config) -> FastMCP:
                 'exit_code': -1
             }
 
-    @mcp.tool("aztfexport_resource_group")
-    async def aztfexport_resource_group(
+    @mcp.tool("export_azure_resource_group")
+    async def export_azure_resource_group(
         resource_group_name: str = Field(...,
                                          description="Name of the resource group to export"),
         output_folder_name: str = Field(
@@ -779,8 +779,8 @@ def create_server(config: Config) -> FastMCP:
                 'exit_code': -1
             }
 
-    @mcp.tool("aztfexport_query")
-    async def aztfexport_query(
+    @mcp.tool("export_azure_resources_by_query")
+    async def export_azure_resources_by_query(
         query: str = Field(...,
                            description="Azure Resource Graph query (WHERE clause)"),
         output_folder_name: str = Field(
@@ -861,8 +861,8 @@ def create_server(config: Config) -> FastMCP:
                 'exit_code': -1
             }
 
-    @mcp.tool("aztfexport_get_config")
-    async def aztfexport_get_config(
+    @mcp.tool("get_aztfexport_config")
+    async def get_aztfexport_config(
         key: str = Field(
             "", description="Specific config key to retrieve (optional)")
     ) -> Dict[str, Any]:
@@ -890,8 +890,8 @@ def create_server(config: Config) -> FastMCP:
                 'error': f'Failed to get configuration: {str(e)}'
             }
 
-    @mcp.tool("aztfexport_set_config")
-    async def aztfexport_set_config(
+    @mcp.tool("set_aztfexport_config")
+    async def set_aztfexport_config(
         key: str = Field(..., description="Configuration key to set"),
         value: str = Field(..., description="Configuration value to set")
     ) -> Dict[str, Any]:

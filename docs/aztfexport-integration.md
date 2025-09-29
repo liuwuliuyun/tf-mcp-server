@@ -112,7 +112,7 @@ Check if aztfexport and its dependencies are properly installed.
 result = await mcp_client.call_tool("check_aztfexport_installation")
 ```
 
-### 2. aztfexport_resource
+### 2. export_azure_resource
 
 Export a single Azure resource to Terraform configuration.
 
@@ -136,7 +136,7 @@ Export a single Azure resource to Terraform configuration.
 
 **Example:**
 ```python
-result = await mcp_client.call_tool("aztfexport_resource", {
+result = await mcp_client.call_tool("export_azure_resource", {
     "resource_id": "/subscriptions/12345678-1234-1234-1234-123456789012/resourceGroups/my-rg/providers/Microsoft.Storage/storageAccounts/mystorageacct",
     "output_folder_name": "exported-storage-account",
     "provider": "azurerm",
@@ -144,7 +144,7 @@ result = await mcp_client.call_tool("aztfexport_resource", {
 })
 ```
 
-### 3. aztfexport_resource_group
+### 3. export_azure_resource_group
 
 Export an entire Azure resource group and its resources.
 
@@ -159,11 +159,11 @@ Export an entire Azure resource group and its resources.
 - `parallelism` (optional): Number of parallel operations
 - `continue_on_error` (optional): Continue if some resources fail
 
-**Returns:** Same structure as `aztfexport_resource`
+**Returns:** Same structure as `export_azure_resource`
 
 **Example:**
 ```python
-result = await mcp_client.call_tool("aztfexport_resource_group", {
+result = await mcp_client.call_tool("export_azure_resource_group", {
     "resource_group_name": "my-production-rg",
     "output_folder_name": "exported-production-rg",
     "provider": "azurerm",
@@ -172,7 +172,7 @@ result = await mcp_client.call_tool("aztfexport_resource_group", {
 })
 ```
 
-### 4. aztfexport_query
+### 4. export_azure_resources_by_query
 
 Export Azure resources using Azure Resource Graph queries.
 
@@ -187,7 +187,7 @@ Export Azure resources using Azure Resource Graph queries.
 - `parallelism` (optional): Number of parallel operations
 - `continue_on_error` (optional): Continue if some resources fail
 
-**Returns:** Same structure as `aztfexport_resource`
+**Returns:** Same structure as `export_azure_resource`
 
 **Query Examples:**
 - All storage accounts: `"type =~ 'Microsoft.Storage/storageAccounts'"`
@@ -197,7 +197,7 @@ Export Azure resources using Azure Resource Graph queries.
 
 **Example:**
 ```python
-result = await mcp_client.call_tool("aztfexport_query", {
+result = await mcp_client.call_tool("export_azure_resources_by_query", {
     "query": "type =~ 'Microsoft.Storage/storageAccounts' and location == 'eastus'",
     "output_folder_name": "exported-eastus-storage",
     "provider": "azurerm",
@@ -205,7 +205,7 @@ result = await mcp_client.call_tool("aztfexport_query", {
 })
 ```
 
-### 5. aztfexport_get_config
+### 5. get_aztfexport_config
 
 Get aztfexport configuration settings.
 
@@ -223,15 +223,15 @@ Get aztfexport configuration settings.
 **Example:**
 ```python
 # Get all configuration
-result = await mcp_client.call_tool("aztfexport_get_config")
+result = await mcp_client.call_tool("get_aztfexport_config")
 
 # Get specific key
-result = await mcp_client.call_tool("aztfexport_get_config", {
+result = await mcp_client.call_tool("get_aztfexport_config", {
     "key": "telemetry_enabled"
 })
 ```
 
-### 6. aztfexport_set_config
+### 6. set_aztfexport_config
 
 Set aztfexport configuration settings.
 
@@ -248,7 +248,7 @@ Set aztfexport configuration settings.
 **Example:**
 ```python
 # Disable telemetry
-result = await mcp_client.call_tool("aztfexport_set_config", {
+result = await mcp_client.call_tool("set_aztfexport_config", {
     "key": "telemetry_enabled",
     "value": "false"
 })
@@ -261,7 +261,7 @@ result = await mcp_client.call_tool("aztfexport_set_config", {
 Always use `dry_run: true` first to validate your export without creating files:
 
 ```python
-result = await mcp_client.call_tool("aztfexport_resource", {
+result = await mcp_client.call_tool("export_azure_resource", {
     "resource_id": "/subscriptions/.../my-resource",
     "dry_run": true
 })
@@ -278,7 +278,7 @@ result = await mcp_client.call_tool("aztfexport_resource", {
 Enable `continue_on_error` for bulk operations:
 
 ```python
-result = await mcp_client.call_tool("aztfexport_resource_group", {
+result = await mcp_client.call_tool("export_azure_resource_group", {
     "resource_group_name": "large-rg",
     "continue_on_error": true,
     "parallelism": 5
@@ -295,7 +295,7 @@ result = await mcp_client.call_tool("aztfexport_resource_group", {
 Always review the generated Terraform configuration before applying:
 
 ```python
-result = await mcp_client.call_tool("aztfexport_resource_group", {
+result = await mcp_client.call_tool("export_azure_resource_group", {
     "resource_group_name": "my-rg"
 })
 
@@ -311,7 +311,7 @@ if result["success"]:
 
 ```python
 # Export a storage account
-result = await mcp_client.call_tool("aztfexport_resource", {
+result = await mcp_client.call_tool("export_azure_resource", {
     "resource_id": "/subscriptions/12345678-1234-1234-1234-123456789012/resourceGroups/storage-rg/providers/Microsoft.Storage/storageAccounts/mystorageacct",
     "resource_name": "primary_storage",
     "provider": "azurerm"
@@ -322,7 +322,7 @@ result = await mcp_client.call_tool("aztfexport_resource", {
 
 ```python
 # Export entire resource group
-result = await mcp_client.call_tool("aztfexport_resource_group", {
+result = await mcp_client.call_tool("export_azure_resource_group", {
     "resource_group_name": "production-environment",
     "provider": "azurerm",
     "include_role_assignment": true,
@@ -335,7 +335,7 @@ result = await mcp_client.call_tool("aztfexport_resource_group", {
 
 ```python
 # Export all App Services across subscriptions
-result = await mcp_client.call_tool("aztfexport_query", {
+result = await mcp_client.call_tool("export_azure_resources_by_query", {
     "query": "type =~ 'Microsoft.Web/sites'",
     "name_pattern": "app_service_{name}",
     "provider": "azurerm"
@@ -346,7 +346,7 @@ result = await mcp_client.call_tool("aztfexport_query", {
 
 ```python
 # Export all production resources
-result = await mcp_client.call_tool("aztfexport_query", {
+result = await mcp_client.call_tool("export_azure_resources_by_query", {
     "query": "tags['Environment'] == 'Production'",
     "provider": "azurerm",
     "continue_on_error": true
@@ -382,7 +382,7 @@ result = await mcp_client.call_tool("aztfexport_query", {
 Enable verbose output by checking the `stdout` and `stderr` fields in responses:
 
 ```python
-result = await mcp_client.call_tool("aztfexport_resource", {
+result = await mcp_client.call_tool("export_azure_resource", {
     "resource_id": "/subscriptions/.../my-resource"
 })
 

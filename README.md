@@ -122,11 +122,11 @@ The server provides the following MCP tools:
 
 #### Azure Export Tools (aztfexport Integration)
 - **`check_aztfexport_installation`**: Check Azure Export for Terraform (aztfexport) installation status and version
-- **`aztfexport_resource`**: Export a single Azure resource to Terraform configuration using aztfexport
-- **`aztfexport_resource_group`**: Export an entire Azure resource group and its resources to Terraform configuration
-- **`aztfexport_query`**: Export Azure resources using Azure Resource Graph queries to Terraform configuration
-- **`aztfexport_get_config`**: Get aztfexport configuration settings
-- **`aztfexport_set_config`**: Set aztfexport configuration settings
+- **`export_azure_resource`**: Export a single Azure resource to Terraform configuration using aztfexport
+- **`export_azure_resource_group`**: Export an entire Azure resource group and its resources to Terraform configuration
+- **`export_azure_resources_by_query`**: Export Azure resources using Azure Resource Graph queries to Terraform configuration
+- **`get_aztfexport_config`**: Get aztfexport configuration settings
+- **`set_aztfexport_config`**: Set aztfexport configuration settings
 
 #### Terraform Source Code Analysis Tools
 - **`terraform_source_code_query_get_supported_providers`**: Get supported providers for source code analysis
@@ -342,7 +342,7 @@ The conftest tools are designed to work seamlessly with aztfexport for a complet
 ```python
 # 1. Export Azure resource to workspace folder
 {
-  "tool": "aztfexport_resource",
+  "tool": "export_azure_resource",
   "arguments": {
     "resource_id": "/subscriptions/12345678-1234-1234-1234-123456789abc/resourceGroups/my-rg/providers/Microsoft.Storage/storageAccounts/mystorageaccount",
     "output_folder_name": "exported-storage-account",
@@ -409,7 +409,7 @@ TFLint now runs against Terraform workspaces. Save your configuration to disk, t
 
 # Export a single Azure resource to Terraform configuration
 {
-  "tool": "aztfexport_resource",
+  "tool": "export_azure_resource",
   "arguments": {
     "resource_id": "/subscriptions/12345678-1234-1234-1234-123456789012/resourceGroups/my-rg/providers/Microsoft.Storage/storageAccounts/mystorageacct",
     "provider": "azurerm",
@@ -420,7 +420,7 @@ TFLint now runs against Terraform workspaces. Save your configuration to disk, t
 
 # Export an entire resource group
 {
-  "tool": "aztfexport_resource_group",
+  "tool": "export_azure_resource_group",
   "arguments": {
     "resource_group_name": "production-environment",
     "provider": "azurerm",
@@ -432,7 +432,7 @@ TFLint now runs against Terraform workspaces. Save your configuration to disk, t
 
 # Export resources using Azure Resource Graph query
 {
-  "tool": "aztfexport_query",
+  "tool": "export_azure_resources_by_query",
   "arguments": {
     "query": "type =~ 'Microsoft.Storage/storageAccounts' and location == 'eastus'",
     "provider": "azurerm",
@@ -443,7 +443,7 @@ TFLint now runs against Terraform workspaces. Save your configuration to disk, t
 
 # Get aztfexport configuration
 {
-  "tool": "aztfexport_get_config",
+  "tool": "get_aztfexport_config",
   "arguments": {
     "key": "telemetry_enabled"
   }
@@ -451,7 +451,7 @@ TFLint now runs against Terraform workspaces. Save your configuration to disk, t
 
 # Set aztfexport configuration (disable telemetry)
 {
-  "tool": "aztfexport_set_config",
+  "tool": "set_aztfexport_config",
   "arguments": {
     "key": "telemetry_enabled",
     "value": "false"

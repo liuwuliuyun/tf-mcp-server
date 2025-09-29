@@ -506,11 +506,11 @@ The server provides the following MCP tools (as defined in `src/tf_mcp_server/co
 
 **Azure Export Tools (aztfexport Integration):**
 - `check_aztfexport_installation` - Check Azure Export for Terraform (aztfexport) installation status and version
-- `aztfexport_resource` - Export a single Azure resource to Terraform configuration using aztfexport
-- `aztfexport_resource_group` - Export an entire Azure resource group and its resources to Terraform configuration
-- `aztfexport_query` - Export Azure resources using Azure Resource Graph queries to Terraform configuration
-- `aztfexport_get_config` - Get aztfexport configuration settings
-- `aztfexport_set_config` - Set aztfexport configuration settings
+- `export_azure_resource` - Export a single Azure resource to Terraform configuration using aztfexport
+- `export_azure_resource_group` - Export an entire Azure resource group and its resources to Terraform configuration
+- `export_azure_resources_by_query` - Export Azure resources using Azure Resource Graph queries to Terraform configuration
+- `get_aztfexport_config` - Get aztfexport configuration settings
+- `set_aztfexport_config` - Set aztfexport configuration settings
 
 When adding new tools, follow the established patterns and ensure they integrate well with existing functionality.
 

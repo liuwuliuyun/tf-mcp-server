@@ -242,7 +242,7 @@ These tools are automatically integrated into the Azure Terraform MCP Server and
 
 The workspace-based tools are designed to work seamlessly with other tools in the MCP server:
 
-1. **With AzTFExport**: After using `aztfexport_resource` to export Azure resources to a workspace folder, use `run_conftest_workspace_validation` to validate the exported Terraform files.
+1. **With AzTFExport**: After using `export_azure_resource` to export Azure resources to a workspace folder, use `run_conftest_workspace_validation` to validate the exported Terraform files.
 
 2. **Continuous Validation**: Run workspace validation after making changes to Terraform files in workspace folders to ensure compliance with Azure policies.
 
