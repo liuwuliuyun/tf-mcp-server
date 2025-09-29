@@ -605,6 +605,28 @@ def create_server(config: Config) -> FastMCP:
                 }
             }
 
+    @mcp.tool("check_conftest_installation")
+    async def check_conftest_installation() -> Dict[str, Any]:
+        """
+        Check if Conftest is installed and get version information.
+        
+        Conftest is an Open Policy Agent (OPA) tool for testing structured configuration data.
+        It's used in this server to validate Terraform configurations against Azure security
+        policies and best practices.
+        
+        Returns:
+            Installation status, version information, and installation instructions if needed
+        """
+        try:
+            return await conftest_avm_runner.check_conftest_installation()
+        except Exception as e:
+            logger.error(f"Error checking Conftest installation: {e}")
+            return {
+                'installed': False,
+                'error': f'Failed to check Conftest installation: {str(e)}',
+                'status': 'Installation check failed'
+            }
+
     # ==========================================
     # AZURE EXPORT FOR TERRAFORM (AZTFEXPORT) TOOLS
     # ==========================================

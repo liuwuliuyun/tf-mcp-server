@@ -499,6 +499,7 @@ The server provides the following MCP tools (as defined in `src/tf_mcp_server/co
 - `run_terraform_command` - Execute any Terraform command (init, plan, apply, destroy, validate, fmt) within existing workspace directories
 
 **Security & Analysis Tools:**
+- `check_conftest_installation` - Check Conftest installation status and get version information
 - `run_conftest_workspace_validation` - Validate Terraform workspaces against Azure security policies and best practices using Conftest
 - `run_conftest_workspace_plan_validation` - Validate Terraform plan files against Azure security policies and best practices using Conftest
 - `run_tflint_workspace_analysis` - Run TFLint static analysis on Terraform workspaces with Azure plugin support

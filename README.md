@@ -113,12 +113,13 @@ The server provides the following MCP tools:
 - **`run_terraform_command`**: Execute Terraform CLI commands (init, plan, apply, destroy, validate, fmt) inside a workspace folder that already contains configuration files
 
 #### Security Tools
+- **`check_conftest_installation`**: Check Conftest installation status and get version information
 - **`run_conftest_workspace_validation`**: Validate Terraform files in a workspace folder against Azure security policies (works with aztfexport folders)
 - **`run_conftest_workspace_plan_validation`**: Validate Terraform plan files in a workspace folder against Azure security policies
 
 #### Static Analysis Tools
-- **`run_tflint_workspace_analysis`**: Run TFLint static analysis on workspace folders containing Terraform files (supports recursive analysis)
 - **`check_tflint_installation`**: Check TFLint installation status and get version information
+- **`run_tflint_workspace_analysis`**: Run TFLint static analysis on workspace folders containing Terraform files (supports recursive analysis)
 
 #### Azure Export Tools (aztfexport Integration)
 - **`check_aztfexport_installation`**: Check Azure Export for Terraform (aztfexport) installation status and version
@@ -390,6 +391,12 @@ TFLint now runs against Terraform workspaces. Save your configuration to disk, t
     "enable_rules": ["azurerm_storage_account_min_tls_version"],
     "disable_rules": ["terraform_unused_declarations"]
   }
+}
+
+# Check Conftest installation
+{
+  "tool": "check_conftest_installation",
+  "arguments": {}
 }
 
 # Check TFLint installation
