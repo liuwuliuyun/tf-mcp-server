@@ -107,6 +107,7 @@ The server provides the following MCP tools:
 - **`get_avm_versions`**: Get all available versions of a specific Azure Verified Module
 - **`get_avm_variables`**: Retrieve the input variables schema for a specific AVM module version
 - **`get_avm_outputs`**: Retrieve the output definitions for a specific AVM module version
+- **`get_azure_best_practices`**: Get comprehensive Azure and Terraform best practices for specific resources and actions (supports AzureRM 4.x and AzAPI 2.x recommendations)
 
 #### Terraform Command Tools
 - **`run_terraform_command`**: Execute Terraform CLI commands (init, plan, apply, destroy, validate, fmt) inside a workspace folder that already contains configuration files
@@ -137,6 +138,45 @@ The server provides the following MCP tools:
 - **`query_golang_source_code`**: Read golang source code for functions, methods, types, and variables
 
 ### Example Usage
+
+#### Get Azure Best Practices
+```python
+# Get general Azure Terraform best practices for code generation
+{
+  "tool": "get_azure_best_practices",
+  "arguments": {
+    "resource": "general",
+    "action": "code-generation"
+  }
+}
+
+# Get AzAPI 2.x specific best practices (including HCL object usage)
+{
+  "tool": "get_azure_best_practices",
+  "arguments": {
+    "resource": "azapi",
+    "action": "code-generation"
+  }
+}
+
+# Get security best practices for Azure resources
+{
+  "tool": "get_azure_best_practices",
+  "arguments": {
+    "resource": "security",
+    "action": "security"
+  }
+}
+
+# Get deployment best practices
+{
+  "tool": "get_azure_best_practices",
+  "arguments": {
+    "resource": "general",
+    "action": "deployment"
+  }
+}
+```
 
 #### Execute Terraform Commands
 Prepare a workspace directory (for example `workspace/demo`) containing your Terraform configuration files before invoking the tool.
