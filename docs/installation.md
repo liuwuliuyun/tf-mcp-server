@@ -235,106 +235,145 @@ brew install conftest
 **Manual Download:**
 Download from: https://github.com/open-policy-agent/conftest/releases
 
+### Azure Export for Terraform (aztfexport)
+
+**Windows (Chocolatey):**
+```powershell
+choco install aztfexport
+```
+
+**macOS (Homebrew):**
+```bash
+brew install aztfexport
+```
+
+**Linux/Manual Download:**
+Download from: https://github.com/Azure/aztfexport/releases
+
+### Terraform CLI
+
+**All Platforms:**
+Download from: https://www.terraform.io/downloads
+
 ## Configuration
 
-### Environment Variables (For UV/Pip installations)
+### Environment Variables
+
+For Azure-enabled features, configure these environment variables:
+
 ```bash
-# Azure authentication (Service Principal method)
+# Azure Authentication (Service Principal method)
 export ARM_CLIENT_ID=<your_client_id>           # Required for Azure operations
 export ARM_CLIENT_SECRET=<your_client_secret>   # Required for Azure operations  
 export ARM_SUBSCRIPTION_ID=<your_subscription_id> # Required for Azure operations
 export ARM_TENANT_ID=<your_tenant_id>           # Required for Azure operations
 
-# Optional: GitHub token for AVM module access (to avoid rate limiting)
+# Optional: GitHub token for enhanced AVM module access
 export GITHUB_TOKEN=<your_github_token_here>
 
-# For HTTP server mode (non-MCP)
+# Optional: Server configuration (for UV/Pip installations in HTTP mode)
 export MCP_HOST=localhost          # Default: localhost
 export MCP_PORT=8000              # Default: 8000
 export MCP_DEBUG=false            # Default: false
+export LOG_LEVEL=INFO             # Default: INFO
 ```
 
 ### Configuration File (.env.local)
-Create a `.env.local` file in the project root for local configuration:
+
+For development with UV/Pip installations, create `.env.local`:
+
 ```bash
-# Azure authentication (Service Principal method)
+# Azure Authentication
 ARM_CLIENT_ID=<your_client_id>
 ARM_CLIENT_SECRET=<your_client_secret>
 ARM_SUBSCRIPTION_ID=<your_subscription_id>
 ARM_TENANT_ID=<your_tenant_id>
 
-# Optional: GitHub token for AVM module access (to avoid rate limiting)
+# Optional: GitHub token
 GITHUB_TOKEN=<your_github_token_here>
 
-# For HTTP server mode (non-MCP) - only needed for UV/Pip installations
+# Optional: Development settings
 MCP_HOST=localhost
 MCP_PORT=8000
-MCP_DEBUG=false
+MCP_DEBUG=true
+LOG_LEVEL=DEBUG
 ```
+
+**Note:** For VS Code MCP integration with Docker, use environment variables in the MCP configuration rather than `.env.local` files.
 
 ## Troubleshooting
 
-### Common Installation Issues
+For comprehensive troubleshooting information, see the [Troubleshooting Guide](troubleshooting.md).
 
-1. **Import Errors**
-   ```bash
-   # Make sure dependencies are installed
-   pip install -r requirements.txt
-   ```
+### Quick Fixes
 
-2. **Port Conflicts (UV/Pip HTTP mode only)**
+1. **Docker Issues**
    ```bash
-   # Change port via environment variable
-   export MCP_PORT=8002
-   python main.py
-   ```
-
-3. **Missing Dependencies**
-   ```bash
-   # Install optional dependencies
-   pip install beautifulsoup4
-   ```
-
-4. **AVM Module Access Issues**
-   ```bash
-   # If you encounter GitHub API rate limiting for AVM modules
-   export GITHUB_TOKEN=your_github_token_here
+   # Verify Docker is running
+   docker --version
+   docker run hello-world
    
-   # Clear AVM cache if modules seem outdated (cache expires after 24 hours)
-   rm -rf __avm_data_cache__
+   # Test server image
+   docker run --rm ghcr.io/liuwuliuyun/tf-mcp-server:latest --version
    ```
 
-5. **Azure Authentication Issues**
+2. **Azure Authentication Issues**
    ```bash
-   # Verify service principal environment variables are set
-   echo $ARM_CLIENT_ID $ARM_CLIENT_SECRET $ARM_SUBSCRIPTION_ID $ARM_TENANT_ID
+   # Test Azure CLI authentication
+   az account show
    
-   # Test authentication with Azure REST API
-   curl -X POST "https://login.microsoftonline.com/$ARM_TENANT_ID/oauth2/v2.0/token" \
-     -H "Content-Type: application/x-www-form-urlencoded" \
-     -d "grant_type=client_credentials&client_id=$ARM_CLIENT_ID&client_secret=$ARM_CLIENT_SECRET&scope=https://management.azure.com/.default"
+   # Test service principal
+   az login --service-principal \
+     --username $ARM_CLIENT_ID \
+     --password $ARM_CLIENT_SECRET \
+     --tenant $ARM_TENANT_ID
    ```
 
-6. **Limited Functionality Without Authentication**
-   
-   If you see errors like "Azure credentials not found" or tools fail with authentication errors:
-   - **Documentation tools work**: AzureRM docs, AzAPI docs, AVM module info, TFLint analysis, HCL formatting
-   - **These tools require Azure auth**: Terraform plan/apply, Conftest validation, resource analysis
-   - **Solution**: Set up authentication using one of the methods in the Configuration section above
+3. **VS Code MCP Integration**
+   - Check VS Code MCP extension is installed and enabled
+   - Verify `mcp.json` configuration is correct
+   - Look at VS Code Developer Console for MCP logs
 
-7. **Windows Path Length Limitations**
-   ```powershell
-   # If you encounter path length issues on Windows when extracting AVM modules
-   # Run this PowerShell command as Administrator to enable long paths:
-   Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem" -Name "LongPathsEnabled" -Value 1
-   ```
+4. **Limited Functionality Without Authentication**
+   
+   **Works without Azure auth:**
+   - AzureRM/AzAPI/AVM documentation
+   - Terraform source code analysis
+   - TFLint static analysis
+   - Terraform command execution (with local auth)
+   
+   **Requires Azure authentication:**
+   - Azure resource export (aztfexport)
+   - Azure-specific best practices
+   - Conftest policy validation with Azure context
 
 ### Debug Mode
 
 Enable debug logging:
+
+**Docker:**
+```json
+{
+  "mcpServers": {
+    "tf-mcp-server": {
+      "command": "docker",
+      "args": [
+        "run", "--rm", "-i",
+        "-v", "${workspaceFolder}:/workspace",
+        "-e", "LOG_LEVEL=DEBUG",
+        "-e", "MCP_DEBUG=true",
+        "ghcr.io/liuwuliuyun/tf-mcp-server:latest"
+      ]
+    }
+  }
+}
+```
+
+**UV/Pip:**
 ```bash
 export MCP_DEBUG=true
-python main.py
+export LOG_LEVEL=DEBUG
+uv run tf-mcp-server
 ```
 
 Check logs in `tf-mcp-server.log` for detailed information.
@@ -342,12 +381,77 @@ Check logs in `tf-mcp-server.log` for detailed information.
 ## Next Steps
 
 After installation:
-1. **Configure VS Code MCP**: Add the server configuration to your workspace `mcp.json`
-2. **Set up Azure authentication**: Configure service principal credentials (if using Azure features)
-3. **Test the integration**: Try the MCP tools in VS Code
-4. **Explore the tools**: Check out the [main README](../README.md) for available tools and usage examples
 
-For more information:
-- **VS Code MCP integration**: See the [main README](../README.md) 
-- **Docker deployment patterns**: See the [Docker guide](docker.md)
-- **Azure authentication setup**: See the [Azure authentication guide](azure-authentication.md)
+1. **📖 Read the Documentation**: 
+   - [Documentation Index](README.md) - Overview of all documentation
+   - [API Reference](api-reference.md) - Complete tool reference
+   - [Configuration Guide](configuration.md) - Advanced configuration options
+
+2. **🔧 Configure VS Code MCP**: 
+   - Add server configuration to your workspace `.vscode/mcp.json`
+   - See examples in the VS Code MCP Setup section above
+
+3. **🔐 Set up Azure Authentication** (for Azure features):
+   - [Azure Authentication Guide](azure-authentication.md) - Detailed authentication setup
+   - Configure service principal credentials
+   - Test with basic Azure operations
+
+4. **🧪 Test the Integration**:
+   - Try basic tools like `get_avm_modules`
+   - Test documentation lookup with `get_azurerm_provider_documentation`
+   - Validate workspace with `run_terraform_command`
+
+5. **🎯 Explore Key Features**:
+   - [Azure Documentation Tools](azure-documentation-tools.md) - AzureRM, AzAPI, AVM docs
+   - [Terraform Commands](terraform-commands.md) - Execute Terraform operations
+   - [Security Policies](security-policies.md) - Policy-based validation
+   - [Azure Export Integration](aztfexport-integration.md) - Export existing resources
+
+6. **🔍 Advanced Usage**:
+   - [Source Code Analysis](terraform-golang-source-tools.md) - Analyze provider implementations
+   - [Azure Best Practices](azure-best-practices-tool.md) - Get Azure recommendations
+   - [TFLint Integration](tflint-integration.md) - Static code analysis
+
+### Quick Verification
+
+Test your installation with these commands:
+
+```json
+// Test basic functionality (no Azure auth needed)
+{
+  "tool": "get_avm_modules",
+  "arguments": {}
+}
+
+// Test Azure documentation (no Azure auth needed)  
+{
+  "tool": "get_azurerm_provider_documentation",
+  "arguments": {
+    "resource_type_name": "storage_account",
+    "doc_type": "resource"
+  }
+}
+
+// Test Azure integration (requires Azure auth)
+{
+  "tool": "check_aztfexport_installation",
+  "arguments": {}
+}
+```
+
+### Need Help?
+
+- **📚 Documentation**: Check the [docs](README.md) directory for comprehensive guides
+- **❓ Troubleshooting**: See the [Troubleshooting Guide](troubleshooting.md) for common issues
+- **🐛 Issues**: Report bugs on the [GitHub repository](https://github.com/liuwuliuyun/tf-mcp-server/issues)
+- **💬 Discussions**: Join community discussions for help and tips
+
+### What's Next?
+
+Once you have the server running:
+
+- **🏗️ Export Existing Resources**: Use aztfexport to convert existing Azure infrastructure to Terraform
+- **🛡️ Implement Security Policies**: Set up automated policy validation with Conftest
+- **📊 Analyze Code Quality**: Use TFLint for static analysis and best practices
+- **🔍 Explore Implementations**: Use source code analysis to understand how Terraform providers work
+- **⚡ Optimize Workflows**: Integrate the tools into your CI/CD pipelines
