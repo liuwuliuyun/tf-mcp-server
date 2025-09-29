@@ -131,9 +131,7 @@ The server provides the following MCP tools:
 - **`aztfexport_get_config`**: Get aztfexport configuration settings
 - **`aztfexport_set_config`**: Set aztfexport configuration settings
 
-#### Terraform Schema & Provider Analysis Tools
-- **`query_terraform_schema`**: Query fine-grained Terraform schema information for any provider
-- **`list_terraform_provider_items`**: List all available items (resources, data sources, functions) for a provider
+#### Terraform Source Code Analysis Tools
 - **`terraform_source_code_query_get_supported_providers`**: Get supported providers for source code analysis
 - **`query_terraform_block_implementation_source_code`**: Read Terraform provider source code implementations
 
