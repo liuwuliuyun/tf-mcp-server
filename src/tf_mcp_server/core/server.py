@@ -1047,7 +1047,7 @@ def create_server(config: Config) -> FastMCP:
             }
     
     @mcp.tool("get_golang_namespace_tags")
-    def get_golang_namespace_tags(
+    async def get_golang_namespace_tags(
         namespace: str = Field(..., description="Golang namespace to get tags for")
     ) -> Dict[str, Any]:
         """
@@ -1063,7 +1063,7 @@ def create_server(config: Config) -> FastMCP:
             Dictionary with supported tags for the namespace
         """
         try:
-            tags = golang_source_provider.get_supported_tags(namespace)
+            tags = await golang_source_provider.get_supported_tags(namespace)
             return {
                 "namespace": namespace,
                 "supported_tags": tags,
