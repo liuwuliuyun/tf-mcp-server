@@ -8,6 +8,8 @@ import logging
 import os
 import httpx
 import base64
+import hashlib
+from pathlib import Path
 from typing import Dict, List, Any, Optional
 from dataclasses import dataclass
 
@@ -55,6 +57,10 @@ class GolangSourceProvider:
         }
         
         self.supported_providers = ["azurerm", "azapi"]
+        
+        # Initialize cache directory
+        self.cache_dir = self._get_cache_dir()
+        self._ensure_cache_dir()
     
     def get_supported_namespaces(self) -> List[str]:
         """Get all supported golang namespaces."""
@@ -67,23 +73,41 @@ class GolangSourceProvider:
         
         remote_index = self.remote_index_map[namespace]
         
+        # Check cache first
+        tags_cache_path = self._get_tags_cache_path(namespace)
+        cached_tags = self._read_tags_from_cache(tags_cache_path)
+        
+        if cached_tags:
+            logger.debug(f"Using cached tags for {namespace}")
+            return cached_tags
+        
         try:
             async with httpx.AsyncClient() as client:
-                # Set up GitHub token if available
-                headers = {"Accept": "application/vnd.github.v3+json"}
-                github_token = os.getenv("GITHUB_TOKEN")
-                if github_token:
-                    headers["Authorization"] = f"Bearer {github_token}"
-                
                 # Query GitHub API for tags
                 url = f"https://api.github.com/repos/{remote_index.github_owner}/{remote_index.github_repo}/tags"
+                
+                # First try: attempt download without auth header
+                headers = {"Accept": "application/vnd.github.v3+json"}
                 response = await client.get(url, headers=headers)
+                
+                # If first attempt fails and we have a token, try with auth
+                github_token = os.getenv("GITHUB_TOKEN")
+                if response.status_code in [401, 403] and github_token:
+                    logger.info(f"First attempt failed with status {response.status_code}, retrying with authentication")
+                    headers["Authorization"] = f"Bearer {github_token}"
+                    response = await client.get(url, headers=headers)
+                
                 response.raise_for_status()
                 
                 tags_data = response.json()
                 tags = [tag["name"] for tag in tags_data]
                 
-                return tags if tags else ["latest"]
+                result_tags = tags if tags else ["latest"]
+                
+                # Cache the tags
+                self._write_tags_to_cache(tags_cache_path, result_tags)
+                
+                return result_tags
                 
         except Exception as e:
             logger.error(f"Error fetching tags for {namespace}: {str(e)}")
@@ -92,6 +116,179 @@ class GolangSourceProvider:
     def get_supported_providers(self) -> List[str]:
         """Get supported Terraform providers for source code analysis."""
         return self.supported_providers.copy()
+    
+    def _get_cache_dir(self) -> Path:
+        """Get the cache directory path."""
+        # Get the path to src/data relative to this file
+        current_file = Path(__file__)
+        # Navigate to src/data from src/tf_mcp_server/tools/
+        data_dir = current_file.parent.parent.parent / "data" / "golang_cache"
+        return data_dir
+    
+    def _ensure_cache_dir(self) -> None:
+        """Ensure the cache directory exists."""
+        self.cache_dir.mkdir(parents=True, exist_ok=True)
+    
+    def _get_cache_key(self, owner: str, repo: str, path: str, tag: Optional[str]) -> str:
+        """Generate a cache key for the given parameters."""
+        # Create a hash of the parameters for a unique cache key
+        cache_input = f"{owner}/{repo}/{path}/{tag or 'latest'}"
+        return hashlib.md5(cache_input.encode()).hexdigest()
+    
+    def _get_cache_path(self, owner: str, repo: str, path: str, tag: Optional[str]) -> Path:
+        """Get the cache file path for the given parameters."""
+        cache_key = self._get_cache_key(owner, repo, path, tag)
+        # Create subdirectories based on owner/repo for better organization
+        cache_subdir = self.cache_dir / owner / repo / (tag or "latest")
+        cache_subdir.mkdir(parents=True, exist_ok=True)
+        return cache_subdir / f"{cache_key}.cache"
+    
+    def _is_cache_valid(self, cache_path: Path) -> bool:
+        """Check if the cache file exists and is valid."""
+        return cache_path.exists() and cache_path.is_file()
+    
+    def _read_from_cache(self, cache_path: Path) -> Optional[str]:
+        """Read content from cache file."""
+        try:
+            if self._is_cache_valid(cache_path):
+                with open(cache_path, 'r', encoding='utf-8') as f:
+                    return f.read()
+        except Exception as e:
+            logger.warning(f"Failed to read from cache {cache_path}: {str(e)}")
+        return None
+    
+    def _write_to_cache(self, cache_path: Path, content: str) -> None:
+        """Write content to cache file."""
+        try:
+            with open(cache_path, 'w', encoding='utf-8') as f:
+                f.write(content)
+            logger.debug(f"Cached content to {cache_path}")
+        except Exception as e:
+            logger.warning(f"Failed to write to cache {cache_path}: {str(e)}")
+    
+    def _get_tags_cache_path(self, namespace: str) -> Path:
+        """Get the cache path for tags of a namespace."""
+        remote_index = self.remote_index_map[namespace]
+        cache_subdir = self.cache_dir / remote_index.github_owner / remote_index.github_repo
+        cache_subdir.mkdir(parents=True, exist_ok=True)
+        return cache_subdir / "tags.json"
+    
+    def _read_tags_from_cache(self, cache_path: Path) -> Optional[List[str]]:
+        """Read tags from cache file."""
+        try:
+            if self._is_cache_valid(cache_path):
+                with open(cache_path, 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+                    return data.get('tags', [])
+        except Exception as e:
+            logger.warning(f"Failed to read tags from cache {cache_path}: {str(e)}")
+        return None
+    
+    def _write_tags_to_cache(self, cache_path: Path, tags: List[str]) -> None:
+        """Write tags to cache file."""
+        try:
+            with open(cache_path, 'w', encoding='utf-8') as f:
+                json.dump({'tags': tags}, f, indent=2)
+            logger.debug(f"Cached tags to {cache_path}")
+        except Exception as e:
+            logger.warning(f"Failed to write tags to cache {cache_path}: {str(e)}")
+    
+    def clear_cache(self, owner: Optional[str] = None, repo: Optional[str] = None, tag: Optional[str] = None) -> None:
+        """
+        Clear cache entries. If no parameters are provided, clears all cache.
+        
+        Args:
+            owner: Clear cache for specific GitHub owner
+            repo: Clear cache for specific repository (requires owner)
+            tag: Clear cache for specific tag (requires owner and repo)
+        """
+        try:
+            if owner is None:
+                # Clear all cache
+                if self.cache_dir.exists():
+                    import shutil
+                    shutil.rmtree(self.cache_dir)
+                    self._ensure_cache_dir()
+                    logger.info("Cleared all cache")
+            elif repo is None:
+                # Clear cache for specific owner
+                owner_dir = self.cache_dir / owner
+                if owner_dir.exists():
+                    import shutil
+                    shutil.rmtree(owner_dir)
+                    logger.info(f"Cleared cache for owner: {owner}")
+            elif tag is None:
+                # Clear cache for specific repo
+                repo_dir = self.cache_dir / owner / repo
+                if repo_dir.exists():
+                    import shutil
+                    shutil.rmtree(repo_dir)
+                    logger.info(f"Cleared cache for repo: {owner}/{repo}")
+            else:
+                # Clear cache for specific tag
+                tag_dir = self.cache_dir / owner / repo / tag
+                if tag_dir.exists():
+                    import shutil
+                    shutil.rmtree(tag_dir)
+                    logger.info(f"Cleared cache for tag: {owner}/{repo}:{tag}")
+        except Exception as e:
+            logger.error(f"Failed to clear cache: {str(e)}")
+    
+    def get_cache_info(self) -> Dict[str, Any]:
+        """Get information about the current cache."""
+        try:
+            cache_info = {
+                "cache_dir": str(self.cache_dir),
+                "exists": self.cache_dir.exists(),
+                "size_mb": 0,
+                "entries": 0,
+                "repositories": []
+            }
+            
+            if self.cache_dir.exists():
+                # Calculate cache size and count entries
+                total_size = 0
+                total_entries = 0
+                repositories = []
+                
+                for owner_dir in self.cache_dir.iterdir():
+                    if owner_dir.is_dir():
+                        for repo_dir in owner_dir.iterdir():
+                            if repo_dir.is_dir():
+                                repo_info = {
+                                    "owner": owner_dir.name,
+                                    "repo": repo_dir.name,
+                                    "tags": []
+                                }
+                                
+                                for tag_dir in repo_dir.iterdir():
+                                    if tag_dir.is_dir():
+                                        tag_entries = 0
+                                        tag_size = 0
+                                        for cache_file in tag_dir.iterdir():
+                                            if cache_file.is_file():
+                                                file_size = cache_file.stat().st_size
+                                                total_size += file_size
+                                                tag_size += file_size
+                                                total_entries += 1
+                                                tag_entries += 1
+                                        
+                                        repo_info["tags"].append({
+                                            "tag": tag_dir.name,
+                                            "entries": tag_entries,
+                                            "size_mb": round(tag_size / (1024 * 1024), 2)
+                                        })
+                                
+                                repositories.append(repo_info)
+                
+                cache_info["size_mb"] = round(total_size / (1024 * 1024), 2)
+                cache_info["entries"] = total_entries
+                cache_info["repositories"] = repositories
+            
+            return cache_info
+        except Exception as e:
+            logger.error(f"Failed to get cache info: {str(e)}")
+            return {"error": str(e)}
     
     async def query_golang_source_code(
         self,
@@ -305,23 +502,34 @@ class GolangSourceProvider:
         path: str,
         tag: Optional[str]
     ) -> str:
-        """Read content from GitHub repository using the GitHub API."""
+        """Read content from GitHub repository using the GitHub API with caching."""
+        # Check cache first
+        cache_path = self._get_cache_path(owner, repo, path, tag)
+        cached_content = self._read_from_cache(cache_path)
+        
+        if cached_content is not None:
+            logger.debug(f"Using cached content for {owner}/{repo}/{path} (tag: {tag or 'latest'})")
+            return cached_content
+        
         github_token = os.getenv("GITHUB_TOKEN")
         
         try:
             async with httpx.AsyncClient() as client:
-                # Set up GitHub token if available
-                headers = {"Accept": "application/vnd.github.v3+json"}
-                if github_token:
-                    headers["Authorization"] = f"Bearer {github_token}"
-                
                 # Build GitHub API URL
                 url = f"https://api.github.com/repos/{owner}/{repo}/contents/{path}"
                 params = {}
                 if tag:
                     params["ref"] = tag
                 
+                # First try: attempt download without auth header
+                headers = {"Accept": "application/vnd.github.v3+json"}
                 response = await client.get(url, headers=headers, params=params)
+                
+                # If first attempt fails and we have a token, try with auth
+                if response.status_code in [401, 403] and github_token:
+                    logger.info(f"First attempt failed with status {response.status_code}, retrying with authentication")
+                    headers["Authorization"] = f"Bearer {github_token}"
+                    response = await client.get(url, headers=headers, params=params)
                 
                 if response.status_code == 404:
                     raise Exception("source code not found (404)")
@@ -341,6 +549,10 @@ class GolangSourceProvider:
                     content = base64.b64decode(content_data["content"]).decode("utf-8")
                 else:
                     content = content_data.get("content", "")
+                
+                # Cache the content
+                self._write_to_cache(cache_path, content)
+                logger.debug(f"Downloaded and cached content for {owner}/{repo}/{path} (tag: {tag or 'latest'})")
                 
                 return content
                 
