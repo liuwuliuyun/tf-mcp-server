@@ -411,34 +411,187 @@ class GolangSourceProvider:
             # Trim namespace prefix to get relative path
             namespace_relative = namespace.replace(remote_index.package_path, "").lstrip("/")
             
-            # Build path following terraform-mcp-eva pattern
-            path_components = ["index"]
-            if namespace_relative:
-                path_components.append(namespace_relative)
-
+            # Build filename
             if symbol == "method" and receiver:
                 filename = f"{symbol}.{receiver}.{name}.goindex"
             else:
                 filename = f"{symbol}.{name}.goindex"
-
+            
+            # Try direct path first
+            path_components = ["index"]
+            if namespace_relative:
+                path_components.append(namespace_relative)
             path_components.append(filename)
             path = "/".join(path_components)
             
-            # Fetch content from GitHub
-            source_code = await self._read_github_content(
-                remote_index.github_owner,
-                remote_index.github_repo,
-                path,
-                tag
-            )
-            
-            return source_code
+            try:
+                # Fetch content from GitHub
+                source_code = await self._read_github_content(
+                    remote_index.github_owner,
+                    remote_index.github_repo,
+                    path,
+                    tag
+                )
+                return source_code
+            except Exception as direct_error:
+                if "404" not in str(direct_error):
+                    raise direct_error
+                
+                # If direct path fails with 404, try searching in service subdirectories
+                logger.debug(f"Direct path failed: {path}, searching in service subdirectories")
+                
+                # For azurerm provider, try searching in services subdirectories
+                # But only for function names that look like they belong to services
+                if ("terraform-provider-azurerm" in remote_index.package_path and 
+                    self._should_search_in_services(name, namespace_relative)):
+                    return await self._search_in_service_subdirectories(
+                        remote_index, namespace_relative, filename, tag, name
+                    )
+                else:
+                    # For other cases, just return the original error
+                    raise direct_error
             
         except Exception as e:
             logger.error(f"Error fetching golang source code: {str(e)}")
             if "404" in str(e):
                 return f"Source code not found (404): {symbol} {name} in {namespace}"
             return f"Error: Failed to fetch golang source code: {str(e)}"
+    
+    def _should_search_in_services(self, name: str, namespace_relative: str) -> bool:
+        """Determine if we should search in service subdirectories for this function."""
+        # Don't search in services for functions that are clearly in other namespaces
+        if "clients" in namespace_relative or "utils" in namespace_relative:
+            return False
+        
+        # Search for functions that look like they belong to services
+        lower_name = name.lower()
+        return (lower_name.startswith("resource") or 
+                lower_name.startswith("datasource") or
+                lower_name.startswith("data_source"))
+    
+    async def _search_in_service_subdirectories(
+        self,
+        remote_index: RemoteIndex,
+        namespace_relative: str,
+        filename: str,
+        tag: Optional[str],
+        name: str
+    ) -> str:
+        """Search for the function in service subdirectories."""
+        try:
+            # Build base path for services
+            base_path = "index"
+            if namespace_relative:
+                base_path += f"/{namespace_relative}"
+            
+            # List services directory
+            services_path = f"{base_path}/services"
+            try:
+                services_response = await self._read_github_directory(
+                    remote_index.github_owner,
+                    remote_index.github_repo,
+                    services_path,
+                    tag
+                )
+                
+                # Try to infer service name from function name
+                service_candidates = []
+                
+                # Extract service name from function name patterns
+                lower_name = name.lower()
+                if lower_name.startswith("resource"):
+                    # Extract service from resource name (e.g., resourceKustoCluster -> kusto)
+                    remaining = lower_name[8:]  # Remove "resource"
+                    for service_dir in services_response:
+                        service_name = service_dir['name'].lower()
+                        if remaining.startswith(service_name):
+                            service_candidates.append(service_dir['name'])
+                elif lower_name.startswith("datasource"):
+                    # Extract service from datasource name (e.g., dataSourceKustoCluster -> kusto)
+                    remaining = lower_name[10:]  # Remove "datasource"
+                    for service_dir in services_response:
+                        service_name = service_dir['name'].lower()
+                        if remaining.startswith(service_name):
+                            service_candidates.append(service_dir['name'])
+                
+                # If no candidates found, try all service directories
+                if not service_candidates:
+                    service_candidates = [item['name'] for item in services_response if item['type'] == 'dir']
+                
+                # Try each candidate service directory
+                for service_dir in service_candidates:
+                    try:
+                        service_path = f"{services_path}/{service_dir}/{filename}"
+                        source_code = await self._read_github_content(
+                            remote_index.github_owner,
+                            remote_index.github_repo,
+                            service_path,
+                            tag
+                        )
+                        logger.info(f"Found function {name} in service directory: {service_dir}")
+                        return source_code
+                    except Exception as service_error:
+                        if "404" not in str(service_error):
+                            logger.warning(f"Error checking service {service_dir}: {service_error}")
+                        continue
+                
+                # If not found in any service directory
+                raise Exception(f"Function {name} not found in any service subdirectory")
+                
+            except Exception as services_error:
+                if "404" in str(services_error):
+                    raise Exception(f"Services directory not found: {services_path}")
+                raise services_error
+                
+        except Exception as e:
+            logger.error(f"Error searching in service subdirectories: {str(e)}")
+            raise e
+    
+    async def _read_github_directory(
+        self,
+        owner: str,
+        repo: str,
+        path: str,
+        tag: Optional[str]
+    ) -> List[Dict[str, Any]]:
+        """Read directory contents from GitHub repository."""
+        github_token = os.getenv("GITHUB_TOKEN")
+        
+        try:
+            async with httpx.AsyncClient() as client:
+                # Build GitHub API URL
+                url = f"https://api.github.com/repos/{owner}/{repo}/contents/{path}"
+                params = {}
+                if tag:
+                    params["ref"] = tag
+                
+                # First try: attempt download without auth header
+                headers = {"Accept": "application/vnd.github.v3+json"}
+                response = await client.get(url, headers=headers, params=params)
+                
+                # If first attempt fails and we have a token, try with auth
+                if response.status_code in [401, 403] and github_token:
+                    logger.info(f"First attempt failed with status {response.status_code}, retrying with authentication")
+                    headers["Authorization"] = f"Bearer {github_token}"
+                    response = await client.get(url, headers=headers, params=params)
+                
+                if response.status_code == 404:
+                    raise Exception(f"directory not found (404): {path}")
+                
+                if response.status_code == 401:
+                    if not github_token:
+                        raise Exception(f"GitHub API access denied. The repository {owner}/{repo} requires authentication. Please set GITHUB_TOKEN environment variable with a valid GitHub personal access token.")
+                    else:
+                        raise Exception(f"GitHub API authentication failed. Please check your GITHUB_TOKEN environment variable.")
+                
+                response.raise_for_status()
+                
+                directory_data = response.json()
+                return directory_data
+                
+        except Exception as e:
+            logger.error(f"Error reading GitHub directory: {str(e)}")
+            raise
     
     async def _fetch_terraform_source_code(
         self,
