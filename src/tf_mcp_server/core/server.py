@@ -279,7 +279,14 @@ def create_server(config: Config) -> FastMCP:
         Retrieve documentation for a specific AzAPI resource type in Terraform.
 
         Args:
-            resource_type_name: The name of the AzAPI resource type
+            resource_type_name: The Azure resource type in the format used by Azure REST API. 
+                              This should be the full resource type path including the provider namespace.
+                              Examples:
+                              - Microsoft.Kusto/clusters
+                              - Microsoft.Batch/batchAccounts/pools  
+                              - Microsoft.Compute/virtualMachineScaleSets/virtualmachines
+                              - Microsoft.Storage/storageAccounts
+                              - Microsoft.Network/virtualNetworks/subnets
 
         Returns:
             The documentation for the specified AzAPI resource type
