@@ -412,10 +412,17 @@ class GolangSourceProvider:
             namespace_relative = namespace.replace(remote_index.package_path, "").lstrip("/")
             
             # Build path following terraform-mcp-eva pattern
+            path_components = ["index"]
+            if namespace_relative:
+                path_components.append(namespace_relative)
+
             if symbol == "method" and receiver:
-                path = f"index{namespace_relative}/{symbol}.{receiver}.{name}.goindex"
+                filename = f"{symbol}.{receiver}.{name}.goindex"
             else:
-                path = f"index{namespace_relative}/{symbol}.{name}.goindex"
+                filename = f"{symbol}.{name}.goindex"
+
+            path_components.append(filename)
+            path = "/".join(path_components)
             
             # Fetch content from GitHub
             source_code = await self._read_github_content(
@@ -477,7 +484,12 @@ class GolangSourceProvider:
             namespace_relative = namespace_path.replace(remote_index.package_path, "").lstrip("/")
             
             # Build final source code path
-            source_path = f"index{namespace_relative}/{entrypoint_path}"
+            path_components = ["index"]
+            if namespace_relative:
+                path_components.append(namespace_relative)
+
+            path_components.append(entrypoint_path)
+            source_path = "/".join(path_components)
             
             # Fetch the actual source code
             source_code = await self._read_github_content(

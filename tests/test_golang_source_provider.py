@@ -670,7 +670,7 @@ func resourceResourceGroupCreateUpdate(d *pluginsdk.ResourceData, meta interface
             call_args = mock_read.call_args
             assert call_args[0][0] == "lonegunmanb"  # owner
             assert call_args[0][1] == "terraform-provider-azurerm-index"  # repo
-            assert call_args[0][2] == "indexinternal/clients/type.Client.goindex"  # path
+            assert call_args[0][2] == "index/internal/clients/type.Client.goindex"  # path
             assert call_args[0][3] == "v4.25.0"  # tag
 
     @pytest.mark.asyncio
@@ -699,7 +699,7 @@ func resourceResourceGroupCreateUpdate(d *pluginsdk.ResourceData, meta interface
             call_args = mock_read.call_args
             assert call_args[0][0] == "lonegunmanb"  # owner
             assert call_args[0][1] == "terraform-provider-azurerm-index"  # repo
-            assert call_args[0][2] == "indexinternal/services/resource/method.ResourceGroupResource.Create.goindex"  # path
+            assert call_args[0][2] == "index/internal/services/resource/method.ResourceGroupResource.Create.goindex"  # path
 
     @pytest.mark.asyncio
     async def test_fetch_terraform_source_code_ephemeral(self, golang_provider):
