@@ -346,7 +346,11 @@ def create_server(config: Config) -> FastMCP:
         """
         Execute a Terraform command within an existing workspace directory.
 
+        IMPORTANT: ALWAYS use this tool to run Terraform commands instead of running them directly in bash/terminal.
+        This is especially critical after using aztfexport or other workspace folder operations.
+        
         This unified tool supports standard Terraform commands and state management operations.
+        It provides proper workspace management, error handling, and output formatting.
 
         Args:
             command: Terraform command to execute:
