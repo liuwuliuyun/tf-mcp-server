@@ -10,8 +10,9 @@ This directory contains comprehensive documentation for the Azure Terraform MCP 
 
 ### 🔧 Core Features
 - **[Azure Documentation Tools](azure-documentation-tools.md)** - AzureRM, AzAPI, and AVM documentation access
-- **[Terraform Command Integration](terraform-commands.md)** - Execute Terraform CLI commands
-- **[Azure Best Practices](azure-best-practices-tool.md)** - Get Azure and Terraform best practices
+- **[Terraform Command Integration](terraform-commands.md)** - Execute Terraform CLI commands and state management
+- **[Terraform State Management](terraform-state-management.md)** - Safe resource renaming and state operations
+- **[Azure Best Practices](azure-best-practices-tool.md)** - Get Azure and Terraform best practices with code cleanup guidance
 - **[Source Code Analysis](terraform-golang-source-tools.md)** - Terraform and Golang source code analysis
 
 ### 🛡️ Security & Validation
@@ -36,6 +37,10 @@ This directory contains comprehensive documentation for the Azure Terraform MCP 
 ## 🆕 What's New
 
 The latest version includes:
+- **🔄 Terraform State Management**: Full support for state operations (list, show, mv, rm, pull, push) via run_terraform_command
+- **🧹 Code Cleanup Workflow**: Transform exported Terraform code to production-ready with best practices guidance
+- **📋 Enhanced Best Practices**: New "code-cleanup" action for aztfexport with detailed resource naming and refactoring guidance
+- **🔐 Variables vs Locals Guidance**: Clear recommendations on when to use variables versus locals
 - **Enhanced Terraform Source Code Analysis**: Query provider implementations directly
 - **Golang Source Code Access**: Read Go source code from Terraform providers  
 - **Improved Azure Best Practices**: Comprehensive recommendations for Azure resources
@@ -46,15 +51,16 @@ The latest version includes:
 
 ### Most Used Tools
 - `get_azurerm_provider_documentation` - Get AzureRM resource docs
-- `run_terraform_command` - Execute Terraform commands
-- `get_azure_best_practices` - Get Azure best practices
+- `run_terraform_command` - Execute Terraform commands and state operations
+- `get_azure_best_practices` - Get Azure best practices and code cleanup guidance
 - `export_azure_resource` - Export Azure resources to Terraform
 
 ### Common Workflows
 1. **Documentation Lookup** → [Azure Documentation Tools](azure-documentation-tools.md)
 2. **Resource Export** → [Azure Export Guide](aztfexport-integration.md)
-3. **Security Validation** → [Conftest Validation](conftest-avm-validation.md)
-4. **Code Analysis** → [Source Code Analysis](terraform-golang-source-tools.md)
+3. **Code Cleanup** → [State Management Guide](terraform-state-management.md)
+4. **Security Validation** → [Conftest Validation](conftest-avm-validation.md)
+5. **Code Analysis** → [Source Code Analysis](terraform-golang-source-tools.md)
 
 ## 🤝 Contributing
 

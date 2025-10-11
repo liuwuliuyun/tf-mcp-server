@@ -1,10 +1,10 @@
 # Terraform Command Integration
 
-This guide covers the Terraform command execution capabilities of the MCP server, allowing you to run Terraform CLI commands directly through the MCP interface.
+This guide covers the Terraform command execution capabilities of the MCP server, allowing you to run Terraform CLI commands and state management operations directly through the MCP interface.
 
 ## 🚀 Overview
 
-The `run_terraform_command` tool provides a unified interface to execute all major Terraform CLI commands within workspace directories that contain Terraform configuration files.
+The `run_terraform_command` tool provides a unified interface to execute all major Terraform CLI commands and state management operations within workspace directories that contain Terraform configuration files.
 
 ## 📋 Supported Commands
 
@@ -16,6 +16,7 @@ The `run_terraform_command` tool provides a unified interface to execute all maj
 | `destroy` | Destroy managed infrastructure | Clean up resources |
 | `validate` | Validate configuration syntax | CI/CD validation, debugging |
 | `fmt` | Format configuration files | Code formatting, pre-commit hooks |
+| `state` | State management operations | Resource renaming, state inspection |
 
 ## 🔧 Tool Reference
 
@@ -24,10 +25,12 @@ The `run_terraform_command` tool provides a unified interface to execute all maj
 Execute Terraform CLI commands inside a workspace folder.
 
 **Parameters:**
-- `command` (required): Terraform command to execute
+- `command` (required): Terraform command to execute (init, plan, apply, destroy, validate, fmt, state)
 - `workspace_folder` (required): Path to workspace containing Terraform files
 - `auto_approve` (optional): Auto-approve for apply/destroy (default: false) ⚠️
 - `upgrade` (optional): Upgrade providers/modules for init (default: false)
+- `state_subcommand` (optional): State operation (list, show, mv, rm, pull, push) - required when command='state'
+- `state_args` (optional): Arguments for state subcommand (required for show, mv, rm)
 
 **Returns:**
 ```json
@@ -430,7 +433,169 @@ The `auto_approve` parameter is disabled by default for safety:
 
 ---
 
-## 🛠️ Environment Configuration
+## � State Management Operations
+
+The `run_terraform_command` tool supports full Terraform state management, enabling safe resource renaming and state manipulation.
+
+### Supported State Subcommands
+
+| Subcommand | Description | Requires state_args |
+|------------|-------------|---------------------|
+| `list` | List all resources in state | No |
+| `show` | Show resource details | Yes |
+| `mv` | Move/rename resource | Yes |
+| `rm` | Remove resource from state | Yes |
+| `pull` | Pull current state | No |
+| `push` | Push local state | No |
+
+### State Parameters
+
+When using `command="state"`:
+- `state_subcommand` (required): The state operation to perform
+- `state_args` (required for show/mv/rm): Arguments for the operation
+
+### State Examples
+
+#### List All Resources
+
+```json
+{
+  "tool": "run_terraform_command",
+  "arguments": {
+    "command": "state",
+    "workspace_folder": "workspace/demo",
+    "state_subcommand": "list"
+  }
+}
+```
+
+**Output:**
+```
+azurerm_resource_group.res-0
+azurerm_storage_account.res-1
+azurerm_virtual_network.res-2
+```
+
+#### Show Resource Details
+
+```json
+{
+  "tool": "run_terraform_command",
+  "arguments": {
+    "command": "state",
+    "workspace_folder": "workspace/demo",
+    "state_subcommand": "show",
+    "state_args": "azurerm_resource_group.res-0"
+  }
+}
+```
+
+#### Rename Resource
+
+```json
+{
+  "tool": "run_terraform_command",
+  "arguments": {
+    "command": "state",
+    "workspace_folder": "workspace/demo",
+    "state_subcommand": "mv",
+    "state_args": "azurerm_resource_group.res-0 azurerm_resource_group.main"
+  }
+}
+```
+
+**Important:** Always update your `.tf` files BEFORE running `state mv`!
+
+#### Remove Resource from State
+
+```json
+{
+  "tool": "run_terraform_command",
+  "arguments": {
+    "command": "state",
+    "workspace_folder": "workspace/demo",
+    "state_subcommand": "rm",
+    "state_args": "azurerm_storage_account.old"
+  }
+}
+```
+
+**Warning:** This removes from state but doesn't delete the actual Azure resource.
+
+### Code Cleanup Workflow
+
+Complete workflow for making exported code production-ready:
+
+```json
+# Step 1: Export resources
+{
+  "tool": "export_azure_resource_group",
+  "arguments": {
+    "resource_group_name": "myapp-rg",
+    "output_folder_name": "myapp"
+  }
+}
+
+# Step 2: List resources
+{
+  "tool": "run_terraform_command",
+  "arguments": {
+    "command": "state",
+    "workspace_folder": "myapp",
+    "state_subcommand": "list"
+  }
+}
+# Output: azurerm_resource_group.res-0, azurerm_storage_account.res-1
+
+# Step 3: Get best practices
+{
+  "tool": "get_azure_best_practices",
+  "arguments": {
+    "resource": "aztfexport",
+    "action": "code-cleanup"
+  }
+}
+
+# Step 4: Update .tf files with meaningful names
+# (manually or via AI assistant)
+
+# Step 5: Rename resources in state
+{
+  "tool": "run_terraform_command",
+  "arguments": {
+    "command": "state",
+    "workspace_folder": "myapp",
+    "state_subcommand": "mv",
+    "state_args": "azurerm_resource_group.res-0 azurerm_resource_group.main"
+  }
+}
+
+{
+  "tool": "run_terraform_command",
+  "arguments": {
+    "command": "state",
+    "workspace_folder": "myapp",
+    "state_subcommand": "mv",
+    "state_args": "azurerm_storage_account.res-1 azurerm_storage_account.app_storage"
+  }
+}
+
+# Step 6: Verify no changes
+{
+  "tool": "run_terraform_command",
+  "arguments": {
+    "command": "plan",
+    "workspace_folder": "myapp"
+  }
+}
+# Expected: "No changes. Your infrastructure matches the configuration."
+```
+
+For comprehensive state management guidance, see [Terraform State Management Guide](terraform-state-management.md).
+
+---
+
+## �🛠️ Environment Configuration
 
 ### Azure Authentication
 
@@ -484,7 +649,8 @@ terraform {
 
 ## 🔗 Related Tools
 
+- **[State Management Guide](terraform-state-management.md)**: Detailed state operations and code cleanup workflow
 - **[Static Analysis](tflint-integration.md)**: TFLint integration for code quality
 - **[Security Validation](conftest-avm-validation.md)**: Policy-based security checks
 - **[Azure Export](aztfexport-integration.md)**: Export existing Azure resources
-- **[Best Practices](azure-best-practices-tool.md)**: Get Terraform best practices
+- **[Best Practices](azure-best-practices-tool.md)**: Get Terraform best practices and code cleanup guidance

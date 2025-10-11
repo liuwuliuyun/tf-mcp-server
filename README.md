@@ -25,11 +25,13 @@ This MCP server provides support for Azure Terraform development, including:
 - **Best Practices**: Azure-specific best practices and recommendations
 
 ### 🔧 Development Tools
-- **Unified Terraform Commands**: Single tool to execute all Terraform commands (init, plan, apply, destroy, validate, fmt)
+- **Unified Terraform Commands**: Single tool to execute all Terraform commands (init, plan, apply, destroy, validate, fmt) plus full state management (list, show, mv, rm, pull, push)
+- **State Management**: Safe resource renaming and state manipulation using proper Terraform commands
 - **HCL Validation**: Syntax validation and error reporting for Terraform code
 - **HCL Formatting**: Automatic code formatting for Terraform configurations
 - **TFLint Integration**: Static analysis with TFLint including Azure ruleset support for Terraform workspaces
 - **Azure Export for Terraform (aztfexport)**: Export existing Azure resources to Terraform configuration and state
+- **Code Cleanup Workflow**: Transform exported code into production-ready infrastructure as code
 
 ### 📋 Schema & Provider Analysis
 - **Terraform Schema Query**: Query fine-grained schema information for any Terraform provider
@@ -109,7 +111,7 @@ The server provides comprehensive tools across multiple categories. For complete
 - **`get_avm_outputs`**: Retrieve the output definitions for a specific AVM module version
 
 #### Terraform Command Tools
-- **`run_terraform_command`**: Execute Terraform CLI commands (init, plan, apply, destroy, validate, fmt) inside a workspace folder
+- **`run_terraform_command`**: Execute Terraform CLI commands (init, plan, apply, destroy, validate, fmt) and state management operations (list, show, mv, rm, pull, push) inside a workspace folder
 
 #### Security & Validation Tools
 - **`check_conftest_installation`**: Check Conftest installation status and get version information
@@ -134,7 +136,12 @@ The server provides comprehensive tools across multiple categories. For complete
 - **`query_golang_source_code`**: Read golang source code for functions, methods, types, and variables
 
 #### Best Practices Tools
-- **`get_azure_best_practices`**: Get comprehensive Azure and Terraform best practices for specific resources and actions (supports AzureRM 4.x and AzAPI 2.x recommendations)
+- **`get_azure_best_practices`**: Get comprehensive Azure and Terraform best practices for specific resources and actions
+  - Supports AzureRM 4.x and AzAPI 2.x recommendations
+  - Special "code-cleanup" action for aztfexport workflow
+  - Clear guidance on variables vs locals
+  - State management best practices
+  - Security hardening recommendations
 
 ## 📚 Documentation
 
@@ -149,11 +156,12 @@ For comprehensive guides and examples:
 ### Feature Guides
 
 - **[Azure Documentation Tools](docs/azure-documentation-tools.md)** - AzureRM, AzAPI, and AVM documentation access
-- **[Terraform Commands](docs/terraform-commands.md)** - Execute Terraform operations
+- **[Terraform Commands](docs/terraform-commands.md)** - Execute Terraform operations and state management
+- **[Terraform State Management](docs/terraform-state-management.md)** - Safe resource renaming and state operations
 - **[Security Policies](docs/security-policies.md)** - Policy-based validation and compliance
 - **[Azure Export Integration](docs/aztfexport-integration.md)** - Export existing Azure resources
 - **[Source Code Analysis](docs/terraform-golang-source-tools.md)** - Terraform and Golang code analysis
-- **[Azure Best Practices](docs/azure-best-practices-tool.md)** - Get Azure-specific recommendations
+- **[Azure Best Practices](docs/azure-best-practices-tool.md)** - Get Azure-specific recommendations and code cleanup guidance
 
 ### Example Usage
 

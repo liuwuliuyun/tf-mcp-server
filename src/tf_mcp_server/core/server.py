@@ -331,19 +331,22 @@ def create_server(config: Config) -> FastMCP:
     @mcp.tool("run_terraform_command")
     async def run_terraform_command(
         command: str = Field(
-            ..., description="Terraform command to execute (init, plan, apply, destroy, validate, fmt)"),
+            ..., description="Terraform command to execute (init, plan, apply, destroy, validate, fmt, state)"),
         workspace_folder: str = Field(
             ..., description="Workspace folder containing Terraform files."),
         auto_approve: bool = Field(
             False, description="Auto-approve for apply/destroy commands (USE WITH CAUTION!)"),
         upgrade: bool = Field(
-            False, description="Upgrade providers/modules for init command")
+            False, description="Upgrade providers/modules for init command"),
+        state_subcommand: str = Field(
+            "", description="State subcommand (list, show, mv, rm, pull, push) - required when command='state'"),
+        state_args: str = Field(
+            "", description="Arguments for state subcommand. For 'mv': 'source destination'. For 'show'/'rm': 'address'. Leave empty for 'list'/'pull'/'push'")
     ) -> Dict[str, Any]:
         """
         Execute a Terraform command within an existing workspace directory.
 
-        This unified tool replaces individual terraform_init, terraform_plan, terraform_apply,
-        terraform_destroy, terraform_format, and terraform_execute_command tools.
+        This unified tool supports standard Terraform commands and state management operations.
 
         Args:
             command: Terraform command to execute:
@@ -353,12 +356,27 @@ def create_server(config: Config) -> FastMCP:
                 - 'destroy': Destroy Terraform-managed resources
                 - 'validate': Validate configuration files
                 - 'fmt': Format configuration files
+                - 'state': State management operations (requires state_subcommand)
             workspace_folder: Workspace folder containing Terraform files
             auto_approve: Auto-approve for destructive operations (apply/destroy)
             upgrade: Upgrade providers/modules during init
+            state_subcommand: State operation to perform:
+                - 'list': List all resources in state
+                - 'show': Show details of a specific resource
+                - 'mv': Move/rename a resource in state (requires state_args with 'source destination')
+                - 'rm': Remove a resource from state
+                - 'pull': Pull current state and output to stdout
+                - 'push': Push a local state file to remote backend
+            state_args: Arguments for the state subcommand
 
         Returns:
             Command execution result with exit_code, stdout, stderr, and command metadata.
+            
+        Examples:
+            List all resources: command='state', state_subcommand='list'
+            Show resource: command='state', state_subcommand='show', state_args='azurerm_resource_group.main'
+            Rename resource: command='state', state_subcommand='mv', state_args='azurerm_resource_group.res-0 azurerm_resource_group.main'
+            Remove resource: command='state', state_subcommand='rm', state_args='azurerm_resource_group.old'
         """
         workspace_name = workspace_folder.strip()
         if not workspace_name:
@@ -371,6 +389,85 @@ def create_server(config: Config) -> FastMCP:
                 "stderr": "workspace_folder is required"
             }
 
+        # Handle state commands specially
+        if command == "state":
+            if not state_subcommand:
+                return {
+                    "command": "state",
+                    "success": False,
+                    "error": "state_subcommand is required when command='state'",
+                    "exit_code": 1,
+                    "stdout": "",
+                    "stderr": "state_subcommand must be one of: list, show, mv, rm, pull, push"
+                }
+            
+            # Validate state subcommand
+            valid_subcommands = ['list', 'show', 'mv', 'rm', 'pull', 'push']
+            if state_subcommand not in valid_subcommands:
+                return {
+                    "command": f"state {state_subcommand}",
+                    "success": False,
+                    "error": f"Invalid state subcommand: {state_subcommand}",
+                    "exit_code": 1,
+                    "stdout": "",
+                    "stderr": f"state_subcommand must be one of: {', '.join(valid_subcommands)}"
+                }
+            
+            # Validate state_args for commands that require them
+            if state_subcommand in ['show', 'rm'] and not state_args:
+                return {
+                    "command": f"state {state_subcommand}",
+                    "success": False,
+                    "error": f"state_args is required for 'state {state_subcommand}'",
+                    "exit_code": 1,
+                    "stdout": "",
+                    "stderr": f"state_args must contain the resource address for 'state {state_subcommand}'"
+                }
+            
+            if state_subcommand == 'mv' and not state_args:
+                return {
+                    "command": "state mv",
+                    "success": False,
+                    "error": "state_args is required for 'state mv'",
+                    "exit_code": 1,
+                    "stdout": "",
+                    "stderr": "state_args must contain 'source destination' for 'state mv'"
+                }
+            
+            # Build the full state command
+            full_command = f"state {state_subcommand}"
+            if state_args:
+                full_command += f" {state_args}"
+            
+            try:
+                result = await terraform_runner.execute_terraform_command(
+                    command=full_command,
+                    workspace_folder=workspace_name
+                )
+            except Exception as e:
+                return {
+                    "command": full_command,
+                    "success": False,
+                    "error": str(e),
+                    "exit_code": 1,
+                    "stdout": "",
+                    "stderr": str(e)
+                }
+            
+            if isinstance(result, dict):
+                result["command"] = full_command
+                return result
+            
+            return {
+                "command": full_command,
+                "success": True,
+                "output": str(result),
+                "exit_code": 0,
+                "stdout": str(result),
+                "stderr": ""
+            }
+
+        # Handle regular commands
         kwargs = {}
         if command in ['apply', 'destroy'] and auto_approve:
             kwargs['auto_approve'] = auto_approve
@@ -1346,10 +1443,12 @@ def create_server(config: Config) -> FastMCP:
                             "title": "State File Updates and Management",
                             "recommendations": [
                                 "CRITICAL: Always backup state file before making structural changes",
-                                "Use 'terraform state list' to see all resources in current state",
-                                "Use 'terraform state show <resource>' to inspect specific resource details",
-                                "When renaming resources: 1) Update .tf files, 2) Run 'terraform state mv', 3) Run 'terraform plan' to verify",
-                                "Never manually edit the state JSON file - always use terraform state commands",
+                                "Use run_terraform_command with command='state' and state_subcommand='list' to see all resources",
+                                "Use run_terraform_command with command='state', state_subcommand='show', state_args='<resource_address>' to inspect details",
+                                "Use run_terraform_command with command='state', state_subcommand='mv', state_args='<source> <destination>' to rename resources",
+                                "Example: state_subcommand='mv', state_args='azurerm_resource_group.res-0 azurerm_resource_group.main'",
+                                "When renaming resources: 1) Update .tf files, 2) Run state mv command, 3) Run plan to verify no recreation",
+                                "Never manually edit the state JSON file - always use terraform state commands via run_terraform_command",
                                 "Test all state operations in development/test environment first",
                                 "Keep a log of all terraform state mv commands executed for audit trail"
                             ]
