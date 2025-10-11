@@ -512,7 +512,7 @@ def create_server(config: Config) -> FastMCP:
             "", description="Comma-separated list of custom policy paths")
     ) -> Dict[str, Any]:
         """
-        Validate Terraform files in a workspace folder against Azure security policies and best practices using Conftest.
+        Validate Terraform files in a workspace folder against Azure security policies using Conftest.
 
     This tool validates all .tf files in the specified workspace folder, similar to how aztfexport creates
     folders under the configured workspace root (default: /workspace). Supports validation of Azure resources using azurerm, azapi, and AVM providers
@@ -1126,21 +1126,26 @@ def create_server(config: Config) -> FastMCP:
     def get_azure_best_practices(
         resource: str = Field(
             default="general",
-            description="The Azure resource type or area to get best practices for. Options: 'general', 'azurerm', 'azapi', 'azuread', 'security', 'networking', 'storage', 'compute', 'database', 'monitoring', 'deployment'"
+            description="The Azure resource type or area to get best practices for. Options: 'general', 'azurerm', 'azapi', 'azuread', 'aztfexport', 'security', 'networking', 'storage', 'compute', 'database', 'monitoring', 'deployment'"
         ),
         action: str = Field(
             default="code-generation",
-            description="The type of action to get best practices for. Options: 'code-generation', 'deployment', 'configuration', 'security', 'performance', 'cost-optimization'"
+            description="The type of action to get best practices for. Options: 'code-generation', 'code-cleanup', 'deployment', 'configuration', 'security', 'performance', 'cost-optimization'"
         )
     ) -> str:
         """Get Azure and Terraform best practices for specific resources and actions.
 
         This tool provides comprehensive best practices for working with Azure resources using Terraform,
         including provider-specific recommendations, security guidelines, and optimization tips.
+        
+        Special action 'code-cleanup' for resource 'aztfexport': Provides detailed guidance on making
+        exported Terraform code production-ready, including resource renaming, variable/local usage,
+        state file management, and security hardening.
 
         Args:
             resource: The Azure resource type or area (default: "general")
             action: The type of action (default: "code-generation")
+                   Use 'code-cleanup' with resource='aztfexport' for post-export code refinement
 
         Returns:
             Detailed best practices recommendations as a formatted string
@@ -1271,6 +1276,132 @@ def create_server(config: Config) -> FastMCP:
                                 "Use azapi_data_source for reading resources with full ARM API response",
                                 "Combine AzAPI with AzureRM resources in the same configuration when appropriate",
                                 "Use response_export_values to extract specific values from API responses"
+                            ]
+                        }
+                    }
+            
+            # Aztfexport Best Practices
+            elif resource == "aztfexport":
+                if action == "code-cleanup":
+                    best_practices = {
+                        "resource_naming": {
+                            "title": "Resource Naming and Renaming",
+                            "recommendations": [
+                                "Replace generic exported resource names (e.g., 'res-0', 'res-1') with meaningful, descriptive names",
+                                "Use consistent naming conventions: '<env>-<app>-<resource_type>-<instance>' (e.g., 'prod-webapp-storage-main')",
+                                "CRITICAL: Use 'terraform state mv' command to rename resources in state file to match new names",
+                                "Example: terraform state mv 'azurerm_resource_group.res-0' 'azurerm_resource_group.main'",
+                                "Always run 'terraform plan' after state moves to verify no resources will be recreated",
+                                "Document all resource name changes and corresponding state mv commands for team reference"
+                            ]
+                        },
+                        "variables_vs_locals": {
+                            "title": "Variables vs Locals - When to Use Each",
+                            "recommendations": [
+                                "Use VARIABLES for values likely to be changed by end users: location, resource names, IP ranges, SKU sizes, admin usernames",
+                                "Use LOCALS for computed values, repeated expressions, or values derived from multiple inputs",
+                                "Use LOCALS for standardized tags, resource naming patterns, and categorization logic",
+                                "Use LOCALS for concatenating or transforming variable values (e.g., resource_group_name = '${var.environment}-${var.app_name}-rg')",
+                                "Add descriptive 'description' field to all variables explaining their purpose and valid values",
+                                "Set appropriate 'type' constraints on variables (string, number, bool, list, map, object)",
+                                "Provide sensible defaults for optional variables, but leave required values (like location) without defaults"
+                            ]
+                        },
+                        "code_structure": {
+                            "title": "Code Structure and Organization",
+                            "recommendations": [
+                                "Create separate files: variables.tf (inputs), locals.tf (computed values), main.tf (resources), outputs.tf (outputs)",
+                                "Split large main.tf into logical files: networking.tf, compute.tf, storage.tf, security.tf",
+                                "Group related locals together with comments explaining their purpose",
+                                "Order resources logically: dependencies first, then dependent resources",
+                                "Add comments above complex resource blocks explaining business purpose",
+                                "Remove any sensitive data that may have been exported (connection strings, keys, passwords)"
+                            ]
+                        },
+                        "production_readiness": {
+                            "title": "Production Readiness Improvements",
+                            "recommendations": [
+                                "Add lifecycle blocks with 'prevent_destroy = true' for critical resources (databases, storage with data)",
+                                "Use 'ignore_changes' for properties that may drift or are managed outside Terraform (auto-scaling, tags managed by Azure Policy)",
+                                "Add comprehensive resource tags: environment, application, owner, cost-center, data-classification, created-by",
+                                "Create outputs for resource IDs and properties that other configurations might reference",
+                                "Add validation blocks to variables to catch configuration errors early",
+                                "Document dependencies between resources and any manual steps required",
+                                "Add timeouts block for resources that may take long to create/update/delete"
+                            ]
+                        },
+                        "security_hardening": {
+                            "title": "Security and Compliance Hardening",
+                            "recommendations": [
+                                "Review and tighten network security groups - remove overly permissive rules",
+                                "Enable diagnostic settings and logging for all applicable resources",
+                                "Add Azure Policy compliance tags as required by organization",
+                                "Replace any hardcoded secrets with references to Azure Key Vault using data sources",
+                                "Enable private endpoints where applicable to avoid public internet exposure",
+                                "Add monitoring and alerting resources if not already present",
+                                "Review RBAC assignments and ensure principle of least privilege"
+                            ]
+                        },
+                        "state_file_management": {
+                            "title": "State File Updates and Management",
+                            "recommendations": [
+                                "CRITICAL: Always backup state file before making structural changes",
+                                "Use 'terraform state list' to see all resources in current state",
+                                "Use 'terraform state show <resource>' to inspect specific resource details",
+                                "When renaming resources: 1) Update .tf files, 2) Run 'terraform state mv', 3) Run 'terraform plan' to verify",
+                                "Never manually edit the state JSON file - always use terraform state commands",
+                                "Test all state operations in development/test environment first",
+                                "Keep a log of all terraform state mv commands executed for audit trail"
+                            ]
+                        }
+                    }
+                elif action == "code-generation":
+                    best_practices = {
+                        "export_best_practices": {
+                            "title": "Azure Export Best Practices",
+                            "recommendations": [
+                                "Use aztfexport for exporting existing Azure resources to Terraform",
+                                "Choose appropriate provider: azurerm for most resources, azapi for preview features or unsupported resources",
+                                "Use resource-level export for single resources, resource group export for related resources",
+                                "Use query-based export for bulk operations across multiple resource groups",
+                                "Enable 'continue_on_error' for large exports to avoid failures from individual resources",
+                                "After export, follow 'code-cleanup' action best practices to make code production-ready"
+                            ]
+                        }
+                    }
+                elif action == "deployment":
+                    best_practices = {
+                        "state_management": {
+                            "title": "State Management for Exported Resources",
+                            "recommendations": [
+                                "IMPORTANT: Use 'terraform state mv' commands when renaming exported resources to avoid recreation",
+                                "Always backup state files before making structural changes to exported configurations",
+                                "Test state moves in non-production environments first",
+                                "Use 'terraform plan' after state moves to verify no unexpected changes",
+                                "Consider using 'terraform import' for resources that need to be managed separately",
+                                "Document all state move operations for team knowledge sharing"
+                            ]
+                        },
+                        "testing_and_validation": {
+                            "title": "Testing and Validation",
+                            "recommendations": [
+                                "Run 'terraform plan' after refactoring to ensure no unintended changes",
+                                "Test in development environment before applying to production",
+                                "Use terraform validate and terraform fmt for code quality",
+                                "Implement policy validation using Conftest or Azure Policy",
+                                "Set up monitoring to detect configuration drift",
+                                "Create rollback procedures for critical infrastructure changes"
+                            ]
+                        },
+                        "workflow_integration": {
+                            "title": "CI/CD Workflow Integration",
+                            "recommendations": [
+                                "Integrate exported configurations into existing CI/CD pipelines",
+                                "Add approval gates for production deployments of exported infrastructure",
+                                "Implement automated testing for exported configurations",
+                                "Use branch protection and pull request reviews for changes",
+                                "Set up notifications for infrastructure changes",
+                                "Document the export and refinement process for team adoption"
                             ]
                         }
                     }
