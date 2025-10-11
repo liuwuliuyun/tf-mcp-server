@@ -6,6 +6,7 @@ import asyncio
 import json
 import logging
 import re
+import shlex
 import shutil
 import subprocess
 import tempfile
@@ -352,7 +353,7 @@ class TerraformExecutor:
         Execute a generic Terraform command in a workspace directory.
         
         Args:
-            command: The Terraform command to execute (e.g., 'validate', 'plan', 'apply')
+            command: The Terraform command to execute (e.g., 'validate', 'plan', 'apply', 'state list')
             workspace_path: Path to the workspace directory containing Terraform files
             strip_ansi: Whether to clean ANSI codes from output
             **kwargs: Additional command-specific arguments
@@ -360,26 +361,29 @@ class TerraformExecutor:
         Returns:
             Command execution result with stdout, stderr, exit_code
         """
-        # Build the command list
-        cmd_parts = [command]
+        # Build the command list - split compound commands (e.g., "state list" -> ["state", "list"])
+        cmd_parts = shlex.split(command)
+        
+        # Get the base command for conditional logic
+        base_command = cmd_parts[0] if cmd_parts else command
         
         # Handle common command-specific options
-        if command == 'plan':
+        if base_command == 'plan':
             if kwargs.get('var_file'):
                 cmd_parts.extend(['-var-file', kwargs['var_file']])
             if kwargs.get('detailed_exitcode'):
                 cmd_parts.append('-detailed-exitcode')
-        elif command == 'apply':
+        elif base_command == 'apply':
             if kwargs.get('var_file'):
                 cmd_parts.extend(['-var-file', kwargs['var_file']])
             if kwargs.get('auto_approve'):
                 cmd_parts.append('-auto-approve')
-        elif command == 'destroy':
+        elif base_command == 'destroy':
             if kwargs.get('var_file'):
                 cmd_parts.extend(['-var-file', kwargs['var_file']])
             if kwargs.get('auto_approve'):
                 cmd_parts.append('-auto-approve')
-        elif command == 'init':
+        elif base_command == 'init':
             if kwargs.get('upgrade'):
                 cmd_parts.append('-upgrade')
         
