@@ -1241,12 +1241,13 @@ def create_server(config: Config) -> FastMCP:
         
         Special action 'code-cleanup' for resource 'aztfexport': Provides detailed guidance on making
         exported Terraform code production-ready, including resource renaming, variable/local usage,
-        state file management, and security hardening.
+        terraform.tfvars creation patterns, state file management, and security hardening.
 
         Args:
             resource: The Azure resource type or area (default: "general")
             action: The type of action (default: "code-generation")
                    Use 'code-cleanup' with resource='aztfexport' for post-export code refinement
+                   including comprehensive tfvars generation guidance
 
         Returns:
             Detailed best practices recommendations as a formatted string
@@ -1406,6 +1407,26 @@ def create_server(config: Config) -> FastMCP:
                                 "Add descriptive 'description' field to all variables explaining their purpose and valid values",
                                 "Set appropriate 'type' constraints on variables (string, number, bool, list, map, object)",
                                 "Provide sensible defaults for optional variables, but leave required values (like location) without defaults"
+                            ]
+                        },
+                        "tfvars_generation": {
+                            "title": "Creating terraform.tfvars Files from Exported Code",
+                            "recommendations": [
+                                "STEP 1 - Identify Values to Extract: Review exported .tf files and identify all hardcoded values that should become variables (resource names, locations, SKUs, IP addresses, tags)",
+                                "STEP 2 - Create Variable Definitions: In variables.tf, define each variable with appropriate type, description, and optional default values",
+                                "STEP 3 - Create terraform.tfvars: Create terraform.tfvars file with actual values extracted from exported code. Example: location = 'eastus', environment = 'dev', app_name = 'myapp'",
+                                "STEP 4 - Replace Hardcoded Values: In main.tf and other resource files, replace hardcoded values with var.<variable_name> references",
+                                "PATTERN - Resource Names: Extract patterns like 'myapp-dev-rg-eastus' into variables: var.app_name, var.environment, var.location, then use locals for concatenation",
+                                "PATTERN - Tags: Create a 'common_tags' variable of type map(string) in terraform.tfvars with standard tags: { Environment = 'dev', Owner = 'team@company.com', CostCenter = '12345' }",
+                                "PATTERN - Network Configuration: Extract CIDR blocks, subnet prefixes, NSG rules as structured variables (lists or objects) for flexibility",
+                                "PATTERN - SKUs and Sizes: Extract VM sizes, database SKUs, storage tiers into variables for easy environment-specific customization",
+                                "BEST PRACTICE - Environment-Specific Files: Create multiple tfvars files: terraform-dev.tfvars, terraform-staging.tfvars, terraform-prod.tfvars",
+                                "BEST PRACTICE - Sensitive Values: Never put secrets in .tfvars files. Use Azure Key Vault data sources or environment variables instead",
+                                "BEST PRACTICE - Documentation: Add comments in terraform.tfvars explaining each value and providing examples of valid alternatives",
+                                "EXAMPLE - Basic Structure: variables.tf defines 'variable \"location\" { type = string }', terraform.tfvars provides 'location = \"eastus\"', main.tf uses 'location = var.location'",
+                                "EXAMPLE - Complex Object: For multiple VMs, use: variable \"vms\" { type = map(object({ size = string, disk_size = number })) }, then in tfvars: vms = { web = { size = \"Standard_D2s_v3\", disk_size = 128 } }",
+                                "VALIDATION - After creating tfvars: Run 'terraform plan' with '-var-file=terraform.tfvars' to verify all variables resolve correctly and no hardcoded values remain",
+                                "TESTING - Test each environment's tfvars file independently to ensure proper value isolation and no cross-environment contamination"
                             ]
                         },
                         "code_structure": {
