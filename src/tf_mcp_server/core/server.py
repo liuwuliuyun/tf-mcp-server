@@ -16,6 +16,7 @@ from ..tools.terraform_runner import get_terraform_runner
 from ..tools.tflint_runner import get_tflint_runner
 from ..tools.conftest_avm_runner import get_conftest_avm_runner
 from ..tools.aztfexport_runner import get_aztfexport_runner
+from ..tools.coverage_auditor import get_coverage_auditor
 
 from ..tools.golang_source_provider import get_golang_source_provider
 
@@ -42,6 +43,7 @@ def create_server(config: Config) -> FastMCP:
     tflint_runner = get_tflint_runner()
     conftest_avm_runner = get_conftest_avm_runner()
     aztfexport_runner = get_aztfexport_runner()
+    coverage_auditor = get_coverage_auditor(terraform_runner, aztfexport_runner)
     golang_source_provider = get_golang_source_provider()
 
     # ==========================================
@@ -1049,6 +1051,101 @@ def create_server(config: Config) -> FastMCP:
             return {
                 'success': False,
                 'error': f'Failed to set configuration: {str(e)}'
+            }
+
+    # ==========================================
+    # TERRAFORM COVERAGE AUDIT TOOLS
+    # ==========================================
+
+    @mcp.tool("audit_terraform_coverage")
+    async def audit_terraform_coverage(
+        workspace_folder: str = Field(..., description="Terraform workspace to audit"),
+        scope: str = Field(default="resource-group", description="Audit scope: 'resource-group', 'subscription', 'query'"),
+        scope_value: str = Field(..., description="Resource group name, subscription ID, or ARG query"),
+        include_non_terraform_resources: bool = Field(default=True, description="Include resources not in Terraform"),
+        include_orphaned_terraform_resources: bool = Field(default=True, description="Include Terraform resources not in Azure")
+    ) -> Dict[str, Any]:
+        """
+        Audit Terraform coverage of Azure resources.
+
+        This tool analyzes your Azure environment and compares it against your Terraform state
+        to identify coverage gaps, orphaned resources, and provide recommendations for
+        infrastructure management.
+
+        **Use Cases:**
+        - Identify Azure resources not yet under Terraform management
+        - Find orphaned Terraform resources (deleted in Azure but still in state)
+        - Measure Terraform coverage percentage
+        - Get actionable recommendations for closing gaps
+
+        **Audit Scopes:**
+        - 'resource-group': Audit a specific resource group (provide RG name in scope_value)
+        - 'subscription': Audit entire subscription (provide subscription ID in scope_value)
+        - 'query': Custom Azure Resource Graph query (provide ARG WHERE clause in scope_value)
+
+        Args:
+            workspace_folder: Terraform workspace folder to audit (must be initialized with state)
+            scope: Scope of the audit (resource-group, subscription, or query)
+            scope_value: Scope-specific value (RG name, subscription ID, or ARG query)
+            include_non_terraform_resources: Include Azure resources not in Terraform state
+            include_orphaned_terraform_resources: Include Terraform resources not found in Azure
+
+        Returns:
+            Coverage audit report with summary, matched resources, missing resources, orphaned
+            resources, and recommendations
+
+        **Prerequisites:**
+        - Terraform workspace must be initialized with `terraform init`
+        - State file must exist (not empty)
+        - Azure CLI must be authenticated (`az login`)
+        - Azure Resource Graph access required
+
+        **Example Usage:**
+        ```
+        # Audit a resource group
+        audit_terraform_coverage(
+            workspace_folder="workspace/my-terraform",
+            scope="resource-group",
+            scope_value="my-resource-group"
+        )
+
+        # Audit entire subscription
+        audit_terraform_coverage(
+            workspace_folder="workspace/my-terraform",
+            scope="subscription",
+            scope_value="12345678-1234-1234-1234-123456789012"
+        )
+
+        # Custom query for specific resources
+        audit_terraform_coverage(
+            workspace_folder="workspace/my-terraform",
+            scope="query",
+            scope_value="type =~ 'Microsoft.Storage/storageAccounts'"
+        )
+        ```
+
+        **Report Structure:**
+        - **summary**: Coverage statistics (percentage, counts)
+        - **managed_resources**: Resources properly managed by Terraform
+        - **missing_resources**: Azure resources not in Terraform (with export commands)
+        - **orphaned_resources**: Terraform resources not found in Azure
+        - **recommendations**: Actionable steps to improve coverage
+        """
+        try:
+            result = await coverage_auditor.audit_coverage(
+                workspace_folder=workspace_folder,
+                scope=scope,
+                scope_value=scope_value,
+                include_non_terraform_resources=include_non_terraform_resources,
+                include_orphaned_terraform_resources=include_orphaned_terraform_resources
+            )
+            return result
+
+        except Exception as e:
+            logger.error(f"Error auditing Terraform coverage: {e}")
+            return {
+                'success': False,
+                'error': f'Failed to audit coverage: {str(e)}'
             }
 
 
