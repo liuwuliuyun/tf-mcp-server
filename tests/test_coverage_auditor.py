@@ -262,7 +262,11 @@ class TestCoverageAuditor:
     @pytest.fixture
     def auditor(self, mock_terraform_runner, mock_aztfexport_runner):
         """Create a CoverageAuditor instance."""
-        return CoverageAuditor(mock_terraform_runner, mock_aztfexport_runner)
+        auditor = CoverageAuditor(mock_terraform_runner, mock_aztfexport_runner)
+        # Mark auth as attempted to skip authentication in tests
+        auditor.auth_attempted = True
+        auditor.auth_successful = True
+        return auditor
     
     @pytest.mark.asyncio
     async def test_get_terraform_state_resources_success(self, auditor, mock_terraform_runner):
@@ -328,12 +332,12 @@ class TestCoverageAuditor:
         
         # Mock Terraform state list
         def state_command_mock(command, workspace_folder, **kwargs):
-            if kwargs.get('state_subcommand') == 'list':
+            if command == 'state list':
                 return {
                     'exit_code': 0,
                     'stdout': 'azurerm_storage_account.test\n'
                 }
-            elif kwargs.get('state_subcommand') == 'show':
+            elif command.startswith('state show'):
                 return {
                     'exit_code': 0,
                     'stdout': f'''
@@ -390,12 +394,12 @@ resource "azurerm_storage_account" "test" {{
         """Test audit coverage with missing and orphaned resources."""
         # Mock Terraform state with orphaned resource
         def state_command_mock(command, workspace_folder, **kwargs):
-            if kwargs.get('state_subcommand') == 'list':
+            if command == 'state list':
                 return {
                     'exit_code': 0,
                     'stdout': 'azurerm_storage_account.orphaned\n'
                 }
-            elif kwargs.get('state_subcommand') == 'show':
+            elif command.startswith('state show'):
                 return {
                     'exit_code': 0,
                     'stdout': '''
@@ -468,6 +472,84 @@ resource "azurerm_storage_account" "orphaned" {
         assert report['summary']['terraform_managed'] == 1
         assert report['summary']['coverage_percentage'] == 50.0
         assert len(report['recommendations']) > 0
+    
+    @pytest.mark.asyncio
+    async def test_authenticate_azure_cli_with_service_principal(self, mock_terraform_runner, mock_aztfexport_runner):
+        """Test Azure CLI authentication with service principal credentials."""
+        with patch('os.environ.get') as mock_env, \
+             patch('asyncio.create_subprocess_exec') as mock_subprocess:
+            
+            # Mock environment variables
+            env_values = {
+                'ARM_CLIENT_ID': 'test-client-id',
+                'ARM_CLIENT_SECRET': 'test-secret',
+                'ARM_TENANT_ID': 'test-tenant-id',
+                'ARM_SUBSCRIPTION_ID': 'test-sub-id'
+            }
+            mock_env.side_effect = lambda key: env_values.get(key)
+            
+            # Mock successful authentication
+            mock_process = AsyncMock()
+            mock_process.returncode = 0
+            mock_process.communicate.return_value = (b'Success', b'')
+            mock_subprocess.return_value = mock_process
+            
+            auditor = CoverageAuditor(mock_terraform_runner, mock_aztfexport_runner)
+            auditor.auth_attempted = False
+            await auditor._authenticate_azure_cli()
+            
+            assert auditor.auth_attempted is True
+            assert auditor.auth_successful is True
+    
+    @pytest.mark.asyncio
+    async def test_authenticate_azure_cli_no_credentials(self, mock_terraform_runner, mock_aztfexport_runner):
+        """Test Azure CLI authentication without service principal credentials."""
+        with patch('os.environ.get') as mock_env, \
+             patch('asyncio.create_subprocess_exec') as mock_subprocess:
+            
+            # Mock no environment variables
+            mock_env.return_value = None
+            
+            # Mock existing az login session
+            mock_process = AsyncMock()
+            mock_process.returncode = 0
+            mock_process.communicate.return_value = (b'{"id": "test"}', b'')
+            mock_subprocess.return_value = mock_process
+            
+            auditor = CoverageAuditor(mock_terraform_runner, mock_aztfexport_runner)
+            auditor.auth_attempted = False
+            await auditor._authenticate_azure_cli()
+            
+            assert auditor.auth_attempted is True
+            assert auditor.auth_successful is True
+    
+    @pytest.mark.asyncio
+    async def test_authenticate_azure_cli_failure_continues(self, mock_terraform_runner, mock_aztfexport_runner):
+        """Test that authentication failure does not crash the auditor."""
+        with patch('os.environ.get') as mock_env, \
+             patch('asyncio.create_subprocess_exec') as mock_subprocess:
+            
+            # Mock environment variables
+            env_values = {
+                'ARM_CLIENT_ID': 'test-client-id',
+                'ARM_CLIENT_SECRET': 'test-secret',
+                'ARM_TENANT_ID': 'test-tenant-id'
+            }
+            mock_env.side_effect = lambda key: env_values.get(key)
+            
+            # Mock failed authentication
+            mock_process = AsyncMock()
+            mock_process.returncode = 1
+            mock_process.communicate.return_value = (b'', b'Authentication failed')
+            mock_subprocess.return_value = mock_process
+            
+            auditor = CoverageAuditor(mock_terraform_runner, mock_aztfexport_runner)
+            auditor.auth_attempted = False
+            await auditor._authenticate_azure_cli()
+            
+            # Should complete without exception
+            assert auditor.auth_attempted is True
+            assert auditor.auth_successful is False
 
 
 def test_get_coverage_auditor():

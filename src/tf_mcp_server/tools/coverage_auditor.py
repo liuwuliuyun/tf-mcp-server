@@ -8,6 +8,7 @@ to identify coverage gaps, orphaned resources, and provide recommendations.
 import asyncio
 import json
 import logging
+import os
 import re
 from typing import Dict, Any, List, Optional, Set, Tuple
 from pathlib import Path
@@ -91,10 +92,8 @@ class ResourceMatcher:
             try:
                 # Use terraform state show to get resource details
                 result = await terraform_runner.execute_terraform_command(
-                    command="state",
-                    workspace_folder=workspace_folder,
-                    state_subcommand="show",
-                    state_args=address
+                    command=f"state show {address}",
+                    workspace_folder=workspace_folder
                 )
                 
                 if result.get('exit_code') == 0:
@@ -290,6 +289,104 @@ class CoverageAuditor:
         self.terraform_runner = terraform_runner
         self.aztfexport_runner = aztfexport_runner
         self.resource_matcher = ResourceMatcher()
+        self.auth_attempted = False
+        self.auth_successful = False
+    
+    async def _authenticate_azure_cli(self):
+        """
+        Attempt to authenticate Azure CLI using service principal credentials from environment.
+        
+        This method checks for ARM environment variables and attempts to login with Azure CLI.
+        If authentication fails or credentials are not available, it logs a warning but does not fail.
+        """
+        if self.auth_attempted:
+            return
+        
+        self.auth_attempted = True
+        
+        # Check for service principal credentials
+        client_id = os.environ.get('ARM_CLIENT_ID')
+        client_secret = os.environ.get('ARM_CLIENT_SECRET')
+        tenant_id = os.environ.get('ARM_TENANT_ID')
+        
+        if not all([client_id, client_secret, tenant_id]):
+            logger.warning(
+                "Azure service principal credentials not found in environment variables. "
+                "Coverage auditor will attempt to use existing Azure CLI authentication. "
+                "Set ARM_CLIENT_ID, ARM_CLIENT_SECRET, and ARM_TENANT_ID for service principal authentication."
+            )
+            # Check if user is already logged in with az CLI
+            try:
+                check_process = await asyncio.create_subprocess_exec(
+                    'az', 'account', 'show',
+                    stdout=asyncio.subprocess.PIPE,
+                    stderr=asyncio.subprocess.PIPE
+                )
+                stdout, stderr = await check_process.communicate()
+                
+                if check_process.returncode == 0:
+                    logger.info("Using existing Azure CLI authentication session")
+                    self.auth_successful = True
+                else:
+                    logger.warning(
+                        "No active Azure CLI session found. Please run 'az login' or set service principal credentials. "
+                        "Azure resource queries will fail without authentication."
+                    )
+            except Exception as e:
+                logger.warning(f"Failed to check Azure CLI authentication status: {e}")
+            return
+        
+        # Attempt service principal login
+        try:
+            logger.info("Attempting Azure CLI authentication with service principal...")
+            
+            command = [
+                'az', 'login',
+                '--service-principal',
+                '-u', client_id,
+                '-p', client_secret,
+                '--tenant', tenant_id
+            ]
+            
+            process = await asyncio.create_subprocess_exec(
+                *command,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE
+            )
+            
+            stdout, stderr = await process.communicate()
+            
+            if process.returncode == 0:
+                logger.info("Azure CLI authentication successful")
+                self.auth_successful = True
+                
+                # Set default subscription if ARM_SUBSCRIPTION_ID is provided
+                subscription_id = os.environ.get('ARM_SUBSCRIPTION_ID')
+                if subscription_id:
+                    try:
+                        set_sub_process = await asyncio.create_subprocess_exec(
+                            'az', 'account', 'set',
+                            '--subscription', subscription_id,
+                            stdout=asyncio.subprocess.PIPE,
+                            stderr=asyncio.subprocess.PIPE
+                        )
+                        await set_sub_process.communicate()
+                        if set_sub_process.returncode == 0:
+                            logger.info(f"Set default subscription to: {subscription_id}")
+                    except Exception as e:
+                        logger.warning(f"Failed to set default subscription: {e}")
+            else:
+                error_msg = stderr.decode() if stderr else "Unknown error"
+                logger.warning(
+                    f"Azure CLI authentication failed: {error_msg}. "
+                    "Coverage auditor will continue but Azure resource queries may fail."
+                )
+        
+        except Exception as e:
+            logger.warning(
+                f"Failed to authenticate with Azure CLI: {e}. "
+                "Coverage auditor will continue but Azure resource queries may fail."
+            )
     
     async def audit_coverage(
         self,
@@ -315,6 +412,10 @@ class CoverageAuditor:
         try:
             logger.info(f"Starting coverage audit for workspace: {workspace_folder}")
             
+            # Ensure Azure authentication is attempted before querying
+            if not self.auth_attempted:
+                await self._authenticate_azure_cli()
+            
             # Validate workspace
             try:
                 workspace_path = resolve_workspace_path(workspace_folder)
@@ -337,9 +438,13 @@ class CoverageAuditor:
             # Step 2: Query Azure resources
             azure_resources = await self._query_azure_resources(scope, scope_value)
             if azure_resources is None:
+                error_msg = 'Failed to query Azure resources. '
+                if not self.auth_successful:
+                    error_msg += 'Azure authentication may not be configured. Please run "az login" or set ARM_CLIENT_ID, ARM_CLIENT_SECRET, and ARM_TENANT_ID environment variables. '
+                error_msg += 'Check Azure authentication and scope parameters.'
                 return {
                     'success': False,
-                    'error': 'Failed to query Azure resources. Check Azure authentication and scope parameters.'
+                    'error': error_msg
                 }
             
             logger.info(f"Found {len(azure_resources)} resources in Azure")
@@ -385,9 +490,8 @@ class CoverageAuditor:
         try:
             # Use terraform state list to get all resources
             result = await self.terraform_runner.execute_terraform_command(
-                command="state",
-                workspace_folder=workspace_folder,
-                state_subcommand="list"
+                command="state list",
+                workspace_folder=workspace_folder
             )
             
             if result.get('exit_code') != 0:

@@ -1060,7 +1060,7 @@ def create_server(config: Config) -> FastMCP:
     @mcp.tool("audit_terraform_coverage")
     async def audit_terraform_coverage(
         workspace_folder: str = Field(..., description="Terraform workspace to audit"),
-        scope: str = Field(default="resource-group", description="Audit scope: 'resource-group', 'subscription', 'query'"),
+        scope: str = Field(..., description="Audit scope: 'resource-group', 'subscription', 'query'"),
         scope_value: str = Field(..., description="Resource group name, subscription ID, or ARG query"),
         include_non_terraform_resources: bool = Field(default=True, description="Include resources not in Terraform"),
         include_orphaned_terraform_resources: bool = Field(default=True, description="Include Terraform resources not in Azure")
