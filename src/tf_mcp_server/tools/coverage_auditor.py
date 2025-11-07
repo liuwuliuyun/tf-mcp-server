@@ -76,7 +76,7 @@ class ResourceMatcher:
         resource_addresses: List[str]
     ) -> Dict[str, Dict[str, Any]]:
         """
-        Get detailed information about resources from Terraform state.
+        Get detailed information about resources from Terraform state file.
         
         Args:
             terraform_runner: TerraformRunner instance
@@ -88,32 +88,105 @@ class ResourceMatcher:
         """
         resource_details = {}
         
-        for address in resource_addresses:
-            try:
-                # Use terraform state show to get resource details
-                result = await terraform_runner.execute_terraform_command(
-                    command=f"state show {address}",
-                    workspace_folder=workspace_folder
-                )
+        try:
+            # Read the terraform.tfstate file directly
+            workspace_path = resolve_workspace_path(workspace_folder)
+            tfstate_path = workspace_path / "terraform.tfstate"
+            
+            if not tfstate_path.exists():
+                logger.warning(f"Terraform state file not found at {tfstate_path}")
                 
-                if result.get('exit_code') == 0:
-                    stdout = result.get('stdout', '')
+                # Check if workspace is initialized
+                terraform_dir = workspace_path / ".terraform"
+                if not terraform_dir.exists():
+                    logger.info("Workspace not initialized. Running terraform init...")
+                    init_result = await terraform_runner.execute_terraform_command(
+                        command="init",
+                        workspace_folder=workspace_folder
+                    )
                     
-                    # Parse the output to extract Azure resource ID
-                    azure_id = ResourceMatcher._extract_azure_id_from_state_show(stdout)
+                    if init_result.get('exit_code') != 0:
+                        logger.error(f"Terraform init failed: {init_result.get('stderr')}")
+                        return resource_details
                     
-                    tf_type, tf_name = ResourceMatcher.parse_terraform_address(address)
+                    logger.info("Terraform init completed successfully")
+                    
+                    # Check again for state file after init (in case it's remote)
+                    if not tfstate_path.exists():
+                        logger.warning(
+                            "State file still not found after initialization. "
+                            "This workspace may use remote state or has not been applied yet. "
+                            "Run 'terraform apply' to create resources and generate state."
+                        )
+                        return resource_details
+                else:
+                    logger.warning(
+                        "Workspace is initialized but state file not found. "
+                        "This may be a remote state configuration or resources haven't been created. "
+                        "Run 'terraform apply' to create resources."
+                    )
+                    return resource_details
+            
+            # Load the state file
+            with open(tfstate_path, 'r', encoding='utf-8') as f:
+                state_data = json.load(f)
+            
+            # Extract resources from state file
+            # Terraform state structure: state.resources[] contains all resources
+            resources = state_data.get('resources', [])
+            
+            for resource in resources:
+                resource_type = resource.get('type', '')
+                resource_name = resource.get('name', '')
+                resource_mode = resource.get('mode', 'managed')
+                
+                # Skip data sources, focus on managed resources
+                if resource_mode != 'managed':
+                    continue
+                
+                # Handle both single instances and resource arrays (count/for_each)
+                instances = resource.get('instances', [])
+                
+                for instance in instances:
+                    # Build the resource address
+                    # For single resources: type.name
+                    # For counted/for_each resources: type.name[key]
+                    index_key = instance.get('index_key')
+                    if index_key is not None:
+                        if isinstance(index_key, int):
+                            address = f"{resource_type}.{resource_name}[{index_key}]"
+                        else:
+                            # String key for for_each
+                            address = f'{resource_type}.{resource_name}["{index_key}"]'
+                    else:
+                        address = f"{resource_type}.{resource_name}"
+                    
+                    # Only process if this address is in our list
+                    if address not in resource_addresses:
+                        continue
+                    
+                    # Get the resource attributes
+                    attributes = instance.get('attributes', {})
+                    
+                    # Extract Azure resource ID
+                    azure_id = attributes.get('id', '')
                     
                     resource_details[address] = {
-                        'terraform_type': tf_type,
-                        'terraform_name': tf_name,
+                        'terraform_type': resource_type,
+                        'terraform_name': resource_name,
                         'azure_resource_id': azure_id,
-                        'normalized_name': ResourceMatcher.normalize_resource_name(tf_name)
+                        'normalized_name': ResourceMatcher.normalize_resource_name(resource_name),
+                        'attributes': attributes  # Store full attributes for potential future use
                     }
-                    
-            except Exception as e:
-                logger.warning(f"Failed to get details for {address}: {e}")
-                continue
+            
+            logger.info(f"Extracted details for {len(resource_details)} resources from state file")
+            
+        except FileNotFoundError:
+            logger.error(f"Terraform state file not found in {workspace_folder}")
+        except json.JSONDecodeError as e:
+            logger.error(f"Failed to parse terraform.tfstate file: {e}")
+        except Exception as e:
+            logger.error(f"Failed to read state file: {e}")
         
         return resource_details
     

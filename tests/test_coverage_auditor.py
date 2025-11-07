@@ -67,27 +67,49 @@ resource "azurerm_storage_account" "test" {
         assert result == "/subscriptions/12345/resourceGroups/test-rg/providers/Microsoft.Storage/storageAccounts/testaccount"
     
     @pytest.mark.asyncio
-    async def test_get_state_resource_details(self):
+    async def test_get_state_resource_details(self, tmp_path):
         """Test getting resource details from Terraform state."""
+        import json
+        from pathlib import Path
+        
         mock_runner = MagicMock()
         mock_runner.execute_terraform_command = AsyncMock()
         
-        # Mock state show response
-        mock_runner.execute_terraform_command.return_value = {
-            'exit_code': 0,
-            'stdout': '''
-# azurerm_storage_account.test:
-resource "azurerm_storage_account" "test" {
-    id = "/subscriptions/12345/resourceGroups/test-rg/providers/Microsoft.Storage/storageAccounts/testaccount"
-}
-'''
+        # Create a temporary state file
+        state_data = {
+            "version": 4,
+            "terraform_version": "1.0.0",
+            "resources": [
+                {
+                    "mode": "managed",
+                    "type": "azurerm_storage_account",
+                    "name": "test",
+                    "instances": [
+                        {
+                            "attributes": {
+                                "id": "/subscriptions/12345/resourceGroups/test-rg/providers/Microsoft.Storage/storageAccounts/testaccount",
+                                "name": "testaccount"
+                            }
+                        }
+                    ]
+                }
+            ]
         }
         
-        result = await ResourceMatcher.get_state_resource_details(
-            mock_runner,
-            'test-workspace',
-            ['azurerm_storage_account.test']
-        )
+        # Write state file
+        state_file = tmp_path / "terraform.tfstate"
+        with open(state_file, 'w') as f:
+            json.dump(state_data, f)
+        
+        # Mock resolve_workspace_path to return our tmp_path
+        with patch('src.tf_mcp_server.tools.coverage_auditor.resolve_workspace_path') as mock_resolve:
+            mock_resolve.return_value = tmp_path
+            
+            result = await ResourceMatcher.get_state_resource_details(
+                mock_runner,
+                'test-workspace',
+                ['azurerm_storage_account.test']
+            )
         
         assert 'azurerm_storage_account.test' in result
         assert result['azurerm_storage_account.test']['terraform_type'] == 'azurerm_storage_account'
@@ -95,23 +117,40 @@ resource "azurerm_storage_account" "test" {
         assert '/subscriptions/12345/' in result['azurerm_storage_account.test']['azure_resource_id']
     
     @pytest.mark.asyncio
-    async def test_match_resources_by_azure_id(self):
+    async def test_match_resources_by_azure_id(self, tmp_path):
         """Test matching resources using Azure resource ID from state."""
+        import json
+        
         mock_runner = MagicMock()
         mock_runner.execute_terraform_command = AsyncMock()
         
         azure_id = "/subscriptions/12345/resourceGroups/test-rg/providers/Microsoft.Storage/storageAccounts/mystorageaccount"
         
-        # Mock state show to return resource with Azure ID
-        mock_runner.execute_terraform_command.return_value = {
-            'exit_code': 0,
-            'stdout': f'''
-# azurerm_storage_account.mystorageaccount:
-resource "azurerm_storage_account" "mystorageaccount" {{
-    id = "{azure_id}"
-}}
-'''
+        # Create a temporary state file with the resource
+        state_data = {
+            "version": 4,
+            "terraform_version": "1.0.0",
+            "resources": [
+                {
+                    "mode": "managed",
+                    "type": "azurerm_storage_account",
+                    "name": "mystorageaccount",
+                    "instances": [
+                        {
+                            "attributes": {
+                                "id": azure_id,
+                                "name": "mystorageaccount"
+                            }
+                        }
+                    ]
+                }
+            ]
         }
+        
+        # Write state file
+        state_file = tmp_path / "terraform.tfstate"
+        with open(state_file, 'w') as f:
+            json.dump(state_data, f)
         
         azure_resources = [
             {
@@ -124,12 +163,16 @@ resource "azurerm_storage_account" "mystorageaccount" {{
         
         terraform_resources = ['azurerm_storage_account.mystorageaccount']
         
-        matched, missing, orphaned = await ResourceMatcher.match_resources(
-            azure_resources,
-            mock_runner,
-            'test-workspace',
-            terraform_resources
-        )
+        # Mock resolve_workspace_path to return our tmp_path
+        with patch('src.tf_mcp_server.tools.coverage_auditor.resolve_workspace_path') as mock_resolve:
+            mock_resolve.return_value = tmp_path
+            
+            matched, missing, orphaned = await ResourceMatcher.match_resources(
+                azure_resources,
+                mock_runner,
+                'test-workspace',
+                terraform_resources
+            )
         
         assert len(matched) == 1
         assert len(missing) == 0
@@ -141,21 +184,38 @@ resource "azurerm_storage_account" "mystorageaccount" {{
         assert matched[0]['match_method'] == 'azure_id'
     
     @pytest.mark.asyncio
-    async def test_match_resources_by_name_fallback(self):
+    async def test_match_resources_by_name_fallback(self, tmp_path):
         """Test matching resources using name fallback when Azure ID not in state."""
+        import json
+        
         mock_runner = MagicMock()
         mock_runner.execute_terraform_command = AsyncMock()
         
-        # Mock state show with no valid Azure ID (edge case)
-        mock_runner.execute_terraform_command.return_value = {
-            'exit_code': 0,
-            'stdout': '''
-# azurerm_storage_account.my_storage:
-resource "azurerm_storage_account" "my_storage" {
-    name = "my-storage"
-}
-'''
+        # Create a temporary state file with no Azure ID (edge case)
+        state_data = {
+            "version": 4,
+            "terraform_version": "1.0.0",
+            "resources": [
+                {
+                    "mode": "managed",
+                    "type": "azurerm_storage_account",
+                    "name": "my_storage",
+                    "instances": [
+                        {
+                            "attributes": {
+                                "name": "my-storage",
+                                "id": ""  # Empty ID to force name-based matching
+                            }
+                        }
+                    ]
+                }
+            ]
         }
+        
+        # Write state file
+        state_file = tmp_path / "terraform.tfstate"
+        with open(state_file, 'w') as f:
+            json.dump(state_data, f)
         
         azure_resources = [
             {
@@ -168,22 +228,40 @@ resource "azurerm_storage_account" "my_storage" {
         
         terraform_resources = ['azurerm_storage_account.my_storage']
         
-        matched, missing, orphaned = await ResourceMatcher.match_resources(
-            azure_resources,
-            mock_runner,
-            'test-workspace',
-            terraform_resources
-        )
+        # Mock resolve_workspace_path to return our tmp_path
+        with patch('src.tf_mcp_server.tools.coverage_auditor.resolve_workspace_path') as mock_resolve:
+            mock_resolve.return_value = tmp_path
+            
+            matched, missing, orphaned = await ResourceMatcher.match_resources(
+                azure_resources,
+                mock_runner,
+                'test-workspace',
+                terraform_resources
+            )
         
         # Should still match by normalized name
         assert len(matched) == 1
         assert matched[0]['match_method'] == 'name'
     
     @pytest.mark.asyncio
-    async def test_match_resources_missing_in_terraform(self):
+    async def test_match_resources_missing_in_terraform(self, tmp_path):
         """Test identifying resources missing in Terraform."""
+        import json
+        
         mock_runner = MagicMock()
         mock_runner.execute_terraform_command = AsyncMock()
+        
+        # Create an empty state file (no resources)
+        state_data = {
+            "version": 4,
+            "terraform_version": "1.0.0",
+            "resources": []
+        }
+        
+        # Write state file
+        state_file = tmp_path / "terraform.tfstate"
+        with open(state_file, 'w') as f:
+            json.dump(state_data, f)
         
         azure_resources = [
             {
@@ -196,12 +274,15 @@ resource "azurerm_storage_account" "my_storage" {
         
         terraform_resources = []
         
-        matched, missing, orphaned = await ResourceMatcher.match_resources(
-            azure_resources,
-            mock_runner,
-            'test-workspace',
-            terraform_resources
-        )
+        with patch('src.tf_mcp_server.tools.coverage_auditor.resolve_workspace_path') as mock_resolve:
+            mock_resolve.return_value = tmp_path
+            
+            matched, missing, orphaned = await ResourceMatcher.match_resources(
+                azure_resources,
+                mock_runner,
+                'test-workspace',
+                terraform_resources
+            )
         
         assert len(matched) == 0
         assert len(missing) == 1
@@ -326,8 +407,10 @@ class TestCoverageAuditor:
             assert result[0]['name'] == 'test'
     
     @pytest.mark.asyncio
-    async def test_audit_coverage_full_workflow(self, auditor, mock_terraform_runner):
+    async def test_audit_coverage_full_workflow(self, auditor, mock_terraform_runner, tmp_path):
         """Test complete audit coverage workflow with dynamic matching."""
+        import json
+        
         azure_id = '/subscriptions/12345/resourceGroups/test-rg/providers/Microsoft.Storage/storageAccounts/test'
         
         # Mock Terraform state list
@@ -337,19 +420,35 @@ class TestCoverageAuditor:
                     'exit_code': 0,
                     'stdout': 'azurerm_storage_account.test\n'
                 }
-            elif command.startswith('state show'):
-                return {
-                    'exit_code': 0,
-                    'stdout': f'''
-# azurerm_storage_account.test:
-resource "azurerm_storage_account" "test" {{
-    id = "{azure_id}"
-}}
-'''
-                }
             return {'exit_code': 1}
         
         mock_terraform_runner.execute_terraform_command.side_effect = state_command_mock
+        
+        # Create a temporary state file with the resource
+        state_data = {
+            "version": 4,
+            "terraform_version": "1.0.0",
+            "resources": [
+                {
+                    "mode": "managed",
+                    "type": "azurerm_storage_account",
+                    "name": "test",
+                    "instances": [
+                        {
+                            "attributes": {
+                                "id": azure_id,
+                                "name": "test"
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+        
+        # Write state file
+        state_file = tmp_path / "terraform.tfstate"
+        with open(state_file, 'w') as f:
+            json.dump(state_data, f)
         
         # Mock Azure query
         azure_response = {
@@ -374,8 +473,7 @@ resource "azurerm_storage_account" "test" {{
             mock_subprocess.return_value = mock_process
             
             with patch('src.tf_mcp_server.tools.coverage_auditor.resolve_workspace_path') as mock_resolve:
-                from pathlib import Path
-                mock_resolve.return_value = Path('/workspace/test')
+                mock_resolve.return_value = tmp_path
                 
                 result = await auditor.audit_coverage(
                     workspace_folder='test-workspace',
