@@ -178,6 +178,38 @@ class AztfexportRunner:
         work_dir.mkdir(parents=True, exist_ok=True)
         return work_dir
 
+    def _move_directory_contents(self, source: Path, destination: Path) -> None:
+        """
+        Move all contents from source directory to destination directory.
+        
+        Args:
+            source: Source directory path
+            destination: Destination directory path
+        """
+        try:
+            # Ensure destination exists
+            destination.mkdir(parents=True, exist_ok=True)
+            
+            # Move all files and subdirectories from source to destination
+            for item in source.iterdir():
+                dest_item = destination / item.name
+                
+                # If item already exists in destination, remove it first
+                if dest_item.exists():
+                    if dest_item.is_dir():
+                        shutil.rmtree(dest_item)
+                    else:
+                        dest_item.unlink()
+                
+                # Move the item
+                shutil.move(str(item), str(dest_item))
+                
+            logger.info(f"Successfully moved contents from {source} to {destination}")
+            
+        except Exception as e:
+            logger.error(f"Failed to move directory contents from {source} to {destination}: {e}")
+            raise
+
     async def export_resource(
         self,
         resource_id: str,
@@ -207,9 +239,11 @@ class AztfexportRunner:
         Returns:
             Export result with generated files and status
         """
+        temp_dir = None
         try:
-            # Get output directory
-            work_dir = self._get_output_directory(output_folder_name)
+            # Create a temporary directory for initial export
+            temp_dir = Path(tempfile.mkdtemp(prefix="aztfexport_tmp_"))
+            logger.info(f"Exporting to temporary directory: {temp_dir}")
             
             # Build command
             command = ['aztfexport', 'resource']
@@ -242,8 +276,11 @@ class AztfexportRunner:
             # Add resource ID
             command.append(resource_id)
             
-            # Execute command
-            result = await self._run_command(command, str(work_dir))
+            # Execute command in temporary directory
+            result = await self._run_command(command, str(temp_dir))
+            
+            # Get final output directory
+            work_dir = self._get_output_directory(output_folder_name)
             
             # Process results
             export_result = {
@@ -256,8 +293,10 @@ class AztfexportRunner:
                 'generated_files': {}
             }
             
-            # If successful, read generated files
+            # If successful, move files from temp to destination
             if result['exit_code'] == 0:
+                logger.info(f"Moving exported files from {temp_dir} to {work_dir}")
+                self._move_directory_contents(temp_dir, work_dir)
                 export_result['generated_files'] = await self._read_generated_files(work_dir)
             
             return export_result
@@ -268,6 +307,14 @@ class AztfexportRunner:
                 'success': False,
                 'error': str(e)
             }
+        finally:
+            # Clean up temporary directory
+            if temp_dir and temp_dir.exists():
+                try:
+                    shutil.rmtree(temp_dir)
+                    logger.info(f"Cleaned up temporary directory: {temp_dir}")
+                except Exception as e:
+                    logger.warning(f"Failed to clean up temporary directory {temp_dir}: {e}")
     
     async def export_resource_group(
         self,
@@ -298,9 +345,11 @@ class AztfexportRunner:
         Returns:
             Export result with generated files and status
         """
+        temp_dir = None
         try:
-            # Get output directory
-            work_dir = self._get_output_directory(output_folder_name)
+            # Create a temporary directory for initial export
+            temp_dir = Path(tempfile.mkdtemp(prefix="aztfexport_tmp_"))
+            logger.info(f"Exporting to temporary directory: {temp_dir}")
             
             # Build command
             command = ['aztfexport', 'resource-group']
@@ -333,8 +382,11 @@ class AztfexportRunner:
             # Add resource group name
             command.append(resource_group_name)
             
-            # Execute command
-            result = await self._run_command(command, str(work_dir))
+            # Execute command in temporary directory
+            result = await self._run_command(command, str(temp_dir))
+            
+            # Get final output directory
+            work_dir = self._get_output_directory(output_folder_name)
             
             # Process results
             export_result = {
@@ -347,8 +399,10 @@ class AztfexportRunner:
                 'generated_files': {}
             }
             
-            # If successful, read generated files
+            # If successful, move files from temp to destination
             if result['exit_code'] == 0:
+                logger.info(f"Moving exported files from {temp_dir} to {work_dir}")
+                self._move_directory_contents(temp_dir, work_dir)
                 export_result['generated_files'] = await self._read_generated_files(work_dir)
             
             return export_result
@@ -359,6 +413,14 @@ class AztfexportRunner:
                 'success': False,
                 'error': str(e)
             }
+        finally:
+            # Clean up temporary directory
+            if temp_dir and temp_dir.exists():
+                try:
+                    shutil.rmtree(temp_dir)
+                    logger.info(f"Cleaned up temporary directory: {temp_dir}")
+                except Exception as e:
+                    logger.warning(f"Failed to clean up temporary directory {temp_dir}: {e}")
     
     async def export_query(
         self,
@@ -389,9 +451,11 @@ class AztfexportRunner:
         Returns:
             Export result with generated files and status
         """
+        temp_dir = None
         try:
-            # Get output directory
-            work_dir = self._get_output_directory(output_folder_name)
+            # Create a temporary directory for initial export
+            temp_dir = Path(tempfile.mkdtemp(prefix="aztfexport_tmp_"))
+            logger.info(f"Exporting to temporary directory: {temp_dir}")
             
             # Build command
             command = ['aztfexport', 'query']
@@ -424,8 +488,11 @@ class AztfexportRunner:
             # Add query
             command.append(query)
             
-            # Execute command
-            result = await self._run_command(command, str(work_dir))
+            # Execute command in temporary directory
+            result = await self._run_command(command, str(temp_dir))
+            
+            # Get final output directory
+            work_dir = self._get_output_directory(output_folder_name)
             
             # Process results
             export_result = {
@@ -438,8 +505,10 @@ class AztfexportRunner:
                 'generated_files': {}
             }
             
-            # If successful, read generated files
+            # If successful, move files from temp to destination
             if result['exit_code'] == 0:
+                logger.info(f"Moving exported files from {temp_dir} to {work_dir}")
+                self._move_directory_contents(temp_dir, work_dir)
                 export_result['generated_files'] = await self._read_generated_files(work_dir)
             
             return export_result
@@ -450,6 +519,14 @@ class AztfexportRunner:
                 'success': False,
                 'error': str(e)
             }
+        finally:
+            # Clean up temporary directory
+            if temp_dir and temp_dir.exists():
+                try:
+                    shutil.rmtree(temp_dir)
+                    logger.info(f"Cleaned up temporary directory: {temp_dir}")
+                except Exception as e:
+                    logger.warning(f"Failed to clean up temporary directory {temp_dir}: {e}")
     
     async def _read_generated_files(self, directory: Path) -> Dict[str, str]:
         """
