@@ -137,27 +137,161 @@ Retrieves AzAPI resource schemas and documentation.
 
 ### `run_terraform_command`
 
-Execute Terraform CLI commands inside a workspace folder.
+Execute Terraform CLI commands and state management operations in a workspace folder.
+
+**Description:**  
+A unified tool for running all Terraform commands including initialization, planning, applying changes, validation, formatting, and comprehensive state management operations. This is the primary tool for interacting with Terraform workspaces.
+
+**IMPORTANT:** Always use this tool to run Terraform commands instead of running them directly in bash/terminal, especially after using aztfexport or other workspace folder operations.
 
 **Parameters:**
-- `command` (required): Terraform command ("init", "plan", "apply", "destroy", "validate", "fmt")
+- `command` (required): Terraform command to execute
+  - `"init"` - Initialize Terraform working directory
+  - `"plan"` - Show execution plan for changes
+  - `"apply"` - Apply changes to create/update resources
+  - `"destroy"` - Destroy Terraform-managed resources
+  - `"validate"` - Validate configuration files
+  - `"fmt"` - Format configuration files
+  - `"state"` - State management operations (requires `state_subcommand`)
 - `workspace_folder` (required): Workspace folder containing Terraform files
-- `auto_approve` (optional): Auto-approve for apply/destroy commands (default: false)
-- `upgrade` (optional): Upgrade providers/modules for init command (default: false)
+- `auto_approve` (optional): Auto-approve for apply/destroy commands (default: `false`)
+  - **USE WITH CAUTION!** Bypasses confirmation prompts
+- `upgrade` (optional): Upgrade providers/modules during init (default: `false`)
+- `state_subcommand` (optional): State operation to perform (required when `command="state"`)
+  - `"list"` - List all resources in state
+  - `"show"` - Show details of a specific resource
+  - `"mv"` - Move/rename a resource in state
+  - `"rm"` - Remove a resource from state
+  - `"pull"` - Pull current state and output to stdout
+  - `"push"` - Push a local state file to remote backend
+- `state_args` (optional): Arguments for the state subcommand
+  - For `"mv"`: `"source destination"` (e.g., `"azurerm_resource_group.old azurerm_resource_group.new"`)
+  - For `"show"` or `"rm"`: resource address (e.g., `"azurerm_storage_account.main"`)
+  - Leave empty for `"list"`, `"pull"`, `"push"`
 
-**Returns:** Command execution results including stdout, stderr, and exit code
+**Returns:**
+```json
+{
+  "command": "plan",
+  "success": true,
+  "exit_code": 0,
+  "stdout": "Terraform output...",
+  "stderr": "",
+  "workspace_folder": "workspace/demo"
+}
+```
 
-**Example:**
+**Example - Initialize Workspace:**
+```json
+{
+  "tool": "run_terraform_command",
+  "arguments": {
+    "command": "init",
+    "workspace_folder": "workspace/demo"
+  }
+}
+```
+
+**Example - Plan with Upgrade:**
+```json
+{
+  "tool": "run_terraform_command",
+  "arguments": {
+    "command": "init",
+    "workspace_folder": "workspace/demo",
+    "upgrade": true
+  }
+}
+```
+
+**Example - Plan Changes:**
 ```json
 {
   "tool": "run_terraform_command",
   "arguments": {
     "command": "plan",
-    "workspace_folder": "workspace/demo",
-    "upgrade": false
+    "workspace_folder": "workspace/demo"
   }
 }
 ```
+
+**Example - Apply Changes:**
+```json
+{
+  "tool": "run_terraform_command",
+  "arguments": {
+    "command": "apply",
+    "workspace_folder": "workspace/demo",
+    "auto_approve": false
+  }
+}
+```
+
+**Example - Format Code:**
+```json
+{
+  "tool": "run_terraform_command",
+  "arguments": {
+    "command": "fmt",
+    "workspace_folder": "workspace/demo"
+  }
+}
+```
+
+**Example - List State Resources:**
+```json
+{
+  "tool": "run_terraform_command",
+  "arguments": {
+    "command": "state",
+    "state_subcommand": "list",
+    "workspace_folder": "workspace/demo"
+  }
+}
+```
+
+**Example - Show Resource Details:**
+```json
+{
+  "tool": "run_terraform_command",
+  "arguments": {
+    "command": "state",
+    "state_subcommand": "show",
+    "state_args": "azurerm_resource_group.main",
+    "workspace_folder": "workspace/demo"
+  }
+}
+```
+
+**Example - Rename Resource:**
+```json
+{
+  "tool": "run_terraform_command",
+  "arguments": {
+    "command": "state",
+    "state_subcommand": "mv",
+    "state_args": "azurerm_resource_group.res-0 azurerm_resource_group.main",
+    "workspace_folder": "workspace/demo"
+  }
+}
+```
+
+**Example - Remove Resource from State:**
+```json
+{
+  "tool": "run_terraform_command",
+  "arguments": {
+    "command": "state",
+    "state_subcommand": "rm",
+    "state_args": "azurerm_virtual_network.old",
+    "workspace_folder": "workspace/demo"
+  }
+}
+```
+
+**See Also:**
+- [Terraform Commands Guide](terraform-commands.md)
+- [State Management Guide](terraform-state-management.md)
 
 ---
 
