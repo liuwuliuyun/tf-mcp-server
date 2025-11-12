@@ -55,7 +55,7 @@ audit_terraform_coverage(
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | `workspace_folder` | string | Yes | Terraform workspace folder to audit (relative to workspace root) |
-| `scope` | string | No (default: "resource-group") | Audit scope: `resource-group`, `subscription`, or `query` |
+| `scope` | string | Yes | Audit scope: `resource-group`, `subscription`, or `query` |
 | `scope_value` | string | Yes | Scope-specific value (RG name, subscription ID, or ARG query) |
 | `include_non_terraform_resources` | bool | No (default: true) | Include resources not in Terraform |
 | `include_orphaned_terraform_resources` | bool | No (default: true) | Include Terraform resources not in Azure |
