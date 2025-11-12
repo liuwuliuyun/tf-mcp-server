@@ -93,7 +93,12 @@ class ResourceMatcher:
             tfstate_path = workspace_path / "terraform.tfstate"
             
             if not tfstate_path.exists():
-                logger.warning(f"Terraform state file not found at {tfstate_path}")
+                logger.warning(
+                    f"Terraform state file not found at {tfstate_path}\n\n"
+                    f"Tip: When running in Docker, ensure you're using the correct workspace folder.\n"
+                    f"     Default mount: -v ${{workspaceFolder}}:/workspace\n"
+                    f"     Use relative paths like 'my-folder' which resolves to /workspace/my-folder"
+                )
                 
                 # Check if workspace is initialized
                 terraform_dir = workspace_path / ".terraform"
@@ -181,7 +186,12 @@ class ResourceMatcher:
             logger.info(f"Extracted details for {len(resource_details)} resources from state file")
             
         except FileNotFoundError:
-            logger.error(f"Terraform state file not found in {workspace_folder}")
+            logger.error(
+                f"Terraform state file not found in {workspace_folder}\n\n"
+                f"Tip: When running in Docker, ensure you're using the correct workspace folder.\n"
+                f"     Default mount: -v ${{workspaceFolder}}:/workspace\n"
+                f"     Use relative paths like 'my-folder' which resolves to /workspace/my-folder"
+            )
         except json.JSONDecodeError as e:
             logger.error(f"Failed to parse terraform.tfstate file: {e}")
         except Exception as e:
@@ -494,7 +504,13 @@ class CoverageAuditor:
             except ValueError as e:
                 return {
                     'success': False,
-                    'error': str(e)
+                    'error': (
+                        f'{str(e)}\n\n'
+                        f'Tip: When running in Docker, use relative paths from the mounted workspace.\n'
+                        f'     Default mount: -v ${{workspaceFolder}}:/workspace\n'
+                        f'     Example: Use "my-folder" instead of "/workspace/my-folder"\n'
+                        f'     The path will be automatically resolved to /workspace/my-folder'
+                    )
                 }
             
             # Step 1: Get Terraform state

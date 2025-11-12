@@ -224,7 +224,14 @@ plugin "azurerm" {
         if not os.path.exists(folder_path):
             return {
                 'success': False,
-                'error': f'Workspace folder does not exist: {folder_path}',
+                'error': (
+                    f'Workspace folder does not exist: {folder_path}\n\n'
+                    f'Tip: When running in Docker, use relative paths from the mounted workspace.\n'
+                    f'     Default mount: -v ${{workspaceFolder}}:/workspace\n'
+                    f'     Example: Use "my-folder" instead of "/workspace/my-folder"\n'
+                    f'     The path will be automatically resolved to /workspace/my-folder\n\n'
+                    f'     If your mcp.json uses a different mount point, adjust paths accordingly.'
+                ),
                 'issues': [],
                 'summary': {
                     'total_issues': 0,
@@ -237,7 +244,11 @@ plugin "azurerm" {
         if not os.path.isdir(folder_path):
             return {
                 'success': False,
-                'error': f'Workspace path is not a directory: {folder_path}',
+                'error': (
+                    f'Workspace path is not a directory: {folder_path}\n\n'
+                    f'Tip: Ensure the path points to a directory, not a file.\n'
+                    f'     When running in Docker, use relative paths from /workspace'
+                ),
                 'issues': [],
                 'summary': {
                     'total_issues': 0,

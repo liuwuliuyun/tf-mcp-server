@@ -58,7 +58,14 @@ class TerraformRunner:
                     return {
                         'exit_code': -1,
                         'stdout': '',
-                        'stderr': f"Workspace folder does not exist: {workspace_path}",
+                        'stderr': (
+                            f"Workspace folder does not exist: {workspace_path}\n\n"
+                            f"   Tip: When running in Docker, use relative paths from the mounted workspace.\n"
+                            f"   Default mount: -v ${{workspaceFolder}}:/workspace\n"
+                            f"   Example: Use 'my-folder' instead of '/workspace/my-folder'\n"
+                            f"   The path will be automatically resolved to /workspace/my-folder\n\n"
+                            f"   If your mcp.json uses a different mount point, adjust paths accordingly."
+                        ),
                         'command': command
                     }
 
@@ -66,7 +73,11 @@ class TerraformRunner:
                     return {
                         'exit_code': -1,
                         'stdout': '',
-                        'stderr': f"Workspace path is not a directory: {workspace_path}",
+                        'stderr': (
+                            f"Workspace path is not a directory: {workspace_path}\n\n"
+                            f"💡 Tip: Ensure the path points to a directory, not a file.\n"
+                            f"   When running in Docker, use relative paths from /workspace"
+                        ),
                         'command': command
                     }
 
@@ -74,7 +85,13 @@ class TerraformRunner:
                     return {
                         'exit_code': -1,
                         'stdout': '',
-                        'stderr': f"No Terraform files (.tf or .tf.json) found in workspace folder: {workspace_path}",
+                        'stderr': (
+                            f"No Terraform files (.tf or .tf.json) found in: {workspace_path}\n\n"
+                            f"💡 Tip: Ensure your Terraform files are in the workspace folder.\n"
+                            f"   Default Docker mount: -v ${{workspaceFolder}}:/workspace\n"
+                            f"   Your files should be accessible at /workspace/your-folder\n"
+                            f"   Use relative path: 'your-folder' to access them"
+                        ),
                         'command': command
                     }
 
