@@ -28,6 +28,43 @@ def strip_ansi_escape_sequences(text: Optional[str]) -> Optional[str]:
     return ansi_escape.sub('', text)
 
 
+def get_docker_path_tip(workspace_folder: str) -> str:
+    """
+    Get context-aware tip for Docker path usage.
+    
+    This function provides helpful guidance to users about path usage in Docker containers.
+    It detects whether the provided path looks like an absolute host path or a relative path,
+    and returns appropriate guidance for each case.
+    
+    Args:
+        workspace_folder: The workspace folder name/path provided by user
+        
+    Returns:
+        Appropriate tip message based on whether path looks absolute or relative
+    """
+    if not workspace_folder.startswith('/') and not (len(workspace_folder) > 1 and workspace_folder[1] == ':'):
+        # Looks like a relative path - provide Docker guidance
+        return (
+            "\n\n"
+            "Tip: When running in Docker, use relative paths from the mounted workspace.\n"
+            "     Default mount: -v ${workspaceFolder}:/workspace\n"
+            "     Example: Use 'my-folder' instead of '/workspace/my-folder'\n"
+            "     The path will be automatically resolved to /workspace/my-folder\n\n"
+            "     If your mcp.json uses a different mount point, adjust paths accordingly."
+        )
+    else:
+        # Looks like an absolute path
+        return (
+            "\n\n"
+            "Tip: The specified path does not exist.\n"
+            "     When running in Docker, you cannot access host absolute paths.\n"
+            "     Instead, use relative paths that map to your Docker volume mount.\n"
+            "     Default mount: -v ${workspaceFolder}:/workspace\n"
+            "     Example: If your files are in ${workspaceFolder}/terraform,\n"
+            "              use workspace_folder: 'terraform' (not the full host path)"
+        )
+
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,

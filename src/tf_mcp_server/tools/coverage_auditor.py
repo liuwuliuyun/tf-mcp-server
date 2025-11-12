@@ -12,7 +12,7 @@ import os
 import re
 from typing import Dict, Any, List, Optional, Set, Tuple
 
-from ..core.utils import resolve_workspace_path
+from ..core.utils import resolve_workspace_path, get_docker_path_tip
 
 logger = logging.getLogger(__name__)
 
@@ -504,13 +504,7 @@ class CoverageAuditor:
             except ValueError as e:
                 return {
                     'success': False,
-                    'error': (
-                        f'{str(e)}\n\n'
-                        f'Tip: When running in Docker, use relative paths from the mounted workspace.\n'
-                        f'     Default mount: -v ${{workspaceFolder}}:/workspace\n'
-                        f'     Example: Use "my-folder" instead of "/workspace/my-folder"\n'
-                        f'     The path will be automatically resolved to /workspace/my-folder'
-                    )
+                    'error': f'{str(e)}{get_docker_path_tip(workspace_folder)}'
                 }
             
             # Step 1: Get Terraform state

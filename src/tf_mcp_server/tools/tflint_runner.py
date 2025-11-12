@@ -7,7 +7,7 @@ import json
 import subprocess
 import tempfile
 from typing import Dict, Any, Optional, List
-from ..core.utils import resolve_workspace_path
+from ..core.utils import resolve_workspace_path, get_docker_path_tip
 
 
 class TFLintRunner:
@@ -224,14 +224,7 @@ plugin "azurerm" {
         if not os.path.exists(folder_path):
             return {
                 'success': False,
-                'error': (
-                    f'Workspace folder does not exist: {folder_path}\n\n'
-                    f'Tip: When running in Docker, use relative paths from the mounted workspace.\n'
-                    f'     Default mount: -v ${{workspaceFolder}}:/workspace\n'
-                    f'     Example: Use "my-folder" instead of "/workspace/my-folder"\n'
-                    f'     The path will be automatically resolved to /workspace/my-folder\n\n'
-                    f'     If your mcp.json uses a different mount point, adjust paths accordingly.'
-                ),
+                'error': f'Workspace folder does not exist: {folder_path}{get_docker_path_tip(workspace_folder)}',
                 'issues': [],
                 'summary': {
                     'total_issues': 0,

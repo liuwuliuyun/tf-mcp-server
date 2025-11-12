@@ -12,11 +12,11 @@ from pathlib import Path
 from ..core.utils import (
     strip_ansi_escape_sequences,
     resolve_workspace_path,
+    get_docker_path_tip,
 )
 
 # Set up logger
 logger = logging.getLogger(__name__)
-
 
 class ConftestAVMRunner:
     """Conftest runner for Azure Verified Modules policy validation."""
@@ -129,57 +129,17 @@ class ConftestAVMRunner:
                 plan_file_path = plan_file.name
             
             # Build conftest command
-            cmd = [self.conftest_executable, 'test', '--all-namespaces']
+            cmd = [self.conftest_executable, 'test', '--all-namespaces', '--update']
             
             # Add policy source based on policy_set
-            # First try to pull policies, handling errors gracefully
-            update_cmd = [self.conftest_executable, 'pull']
             if policy_set == "all":
-                update_cmd.append(self.avm_policy_repo)
+                cmd.append(self.avm_policy_repo)
             elif policy_set == "Azure-Proactive-Resiliency-Library-v2":
-                update_cmd.append(f"{self.avm_policy_repo}/Azure-Proactive-Resiliency-Library-v2")
+                cmd.append(f"{self.avm_policy_repo}/Azure-Proactive-Resiliency-Library-v2")
             elif policy_set == "avmsec":
-                update_cmd.append(f"{self.avm_policy_repo}/avmsec")
+                cmd.append(f"{self.avm_policy_repo}/avmsec")
             else:
-                update_cmd.append(f"{self.avm_policy_repo}/{policy_set}")
-            
-            # Try to pull policies, but handle errors elegantly
-            try:
-                pull_result = subprocess.run(update_cmd, capture_output=True, text=True, timeout=120)
-                if pull_result.returncode != 0:
-                    error_msg = pull_result.stderr.lower()
-                    # Expected errors that we can safely ignore
-                    if "already exists" in error_msg or "refusing to overwrite" in error_msg:
-                        logger.info(f"Policy already exists, using cached version: {policy_set}")
-                    # Network or git errors that might resolve with local cache
-                    elif "git" in error_msg or "network" in error_msg or "connection" in error_msg:
-                        logger.warning(f"Policy update failed (will try to use cached policies): {strip_ansi_escape_sequences(pull_result.stderr)}")
-                    # Unexpected errors that we should report but continue
-                    else:
-                        logger.warning(f"Policy pull failed, attempting to use existing policies: {strip_ansi_escape_sequences(pull_result.stderr)}")
-            except subprocess.TimeoutExpired:
-                logger.warning(f"Policy pull timed out after 120 seconds, attempting to use existing policies")
-            except FileNotFoundError:
-                # Conftest not found - this should have been caught earlier, but handle gracefully
-                return {
-                    'success': False,
-                    'error': 'Conftest executable not found. Please ensure conftest is installed.',
-                    'violations': [],
-                    'summary': {'total_violations': 0, 'failures': 0, 'warnings': 0}
-                }
-            except Exception as e:
-                # Unexpected exceptions - log but try to continue with cached policies
-                logger.warning(f"Unexpected error during policy pull: {strip_ansi_escape_sequences(str(e))}")
-            
-            # Now add the local policy path for testing
-            if policy_set == "all":
-                cmd.extend(['--policy', 'policy'])
-            elif policy_set == "Azure-Proactive-Resiliency-Library-v2":
-                cmd.extend(['--policy', 'policy/Azure-Proactive-Resiliency-Library-v2'])
-            elif policy_set == "avmsec":
-                cmd.extend(['--policy', 'policy/avmsec'])
-            else:
-                cmd.extend(['--policy', f'policy/{policy_set}'])
+                cmd.append(f"{self.avm_policy_repo}/{policy_set}")
             
             # Handle severity filtering for avmsec
             exception_content = None
@@ -205,11 +165,23 @@ class ConftestAVMRunner:
             # Add the plan file
             cmd.append(plan_file_path)
             
-            # Run conftest
+            # Run conftest with --update flag first
             result = subprocess.run(cmd, 
                                   capture_output=True, 
                                   text=True, 
                                   timeout=300)  # 5 minute timeout
+            
+            # Check if the error is due to policy already existing
+            if result.returncode != 0 and result.stderr:
+                error_msg = result.stderr.lower()
+                if "policy file already exists" in error_msg or "refusing to overwrite" in error_msg:
+                    logger.info(f"Policy already exists, retrying without --update flag")
+                    # Remove --update flag and retry
+                    cmd_without_update = [c for c in cmd if c != '--update']
+                    result = subprocess.run(cmd_without_update, 
+                                          capture_output=True, 
+                                          text=True, 
+                                          timeout=300)
             
             # Parse results
             violations = []
@@ -568,14 +540,7 @@ exception contains rules if {
             if not workspace_path.exists():
                 return {
                     'success': False,
-                    'error': (
-                        f'Workspace folder "{workspace_folder}" does not exist at {workspace_path}\n\n'
-                        f'Tip: When running in Docker, use relative paths from the mounted workspace.\n'
-                        f'     Default mount: -v ${{workspaceFolder}}:/workspace\n'
-                        f'     Example: Use "my-folder" instead of "/workspace/my-folder"\n'
-                        f'     The path will be automatically resolved to /workspace/my-folder\n\n'
-                        f'     If your mcp.json uses a different mount point, adjust paths accordingly.'
-                    ),
+                    'error': f'Workspace folder "{workspace_folder}" does not exist at {workspace_path}{get_docker_path_tip(workspace_folder)}',
                     'violations': [],
                     'summary': {'total_violations': 0, 'failures': 0, 'warnings': 0}
                 }
@@ -726,14 +691,7 @@ exception contains rules if {
             if not workspace_path.exists():
                 return {
                     'success': False,
-                    'error': (
-                        f'Workspace folder "{folder_name}" does not exist at {workspace_path}\n\n'
-                        f'Tip: When running in Docker, use relative paths from the mounted workspace.\n'
-                        f'     Default mount: -v ${{workspaceFolder}}:/workspace\n'
-                        f'     Example: Use "my-folder" instead of "/workspace/my-folder"\n'
-                        f'     The path will be automatically resolved to /workspace/my-folder\n\n'
-                        f'     If your mcp.json uses a different mount point, adjust paths accordingly.'
-                    ),
+                    'error': f'Workspace folder "{folder_name}" does not exist at {workspace_path}{get_docker_path_tip(folder_name)}',
                     'violations': [],
                     'summary': {'total_violations': 0, 'failures': 0, 'warnings': 0}
                 }
