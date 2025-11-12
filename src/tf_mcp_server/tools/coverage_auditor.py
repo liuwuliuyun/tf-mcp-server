@@ -42,8 +42,8 @@ class ResourceMatcher:
                 provider = parts[provider_index + 1]
                 resource_type = parts[provider_index + 2]
                 return f"{provider}/{resource_type}"
-        except (ValueError, IndexError):
-            pass
+        except (ValueError, IndexError) as e:
+            logger.debug(f"Failed to extract resource type from id '{resource_id}': {e}")
         return ""
     
     @staticmethod
