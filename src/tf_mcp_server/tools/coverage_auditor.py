@@ -11,7 +11,6 @@ import logging
 import os
 import re
 from typing import Dict, Any, List, Optional, Set, Tuple
-from pathlib import Path
 
 from ..core.utils import resolve_workspace_path
 
