@@ -8,6 +8,7 @@ This document provides a complete reference for all available tools in the Azure
 - [Terraform Command Tools](#terraform-command-tools)
 - [Security & Validation Tools](#security--validation-tools)
 - [Azure Export Tools](#azure-export-tools)
+- [Terraform Coverage Audit Tools](#terraform-coverage-audit-tools)
 - [Source Code Analysis Tools](#source-code-analysis-tools)
 - [Best Practices Tools](#best-practices-tools)
 
@@ -136,27 +137,161 @@ Retrieves AzAPI resource schemas and documentation.
 
 ### `run_terraform_command`
 
-Execute Terraform CLI commands inside a workspace folder.
+Execute Terraform CLI commands and state management operations in a workspace folder.
+
+**Description:**  
+A unified tool for running all Terraform commands including initialization, planning, applying changes, validation, formatting, and comprehensive state management operations. This is the primary tool for interacting with Terraform workspaces.
+
+**IMPORTANT:** Always use this tool to run Terraform commands instead of running them directly in bash/terminal, especially after using aztfexport or other workspace folder operations.
 
 **Parameters:**
-- `command` (required): Terraform command ("init", "plan", "apply", "destroy", "validate", "fmt")
+- `command` (required): Terraform command to execute
+  - `"init"` - Initialize Terraform working directory
+  - `"plan"` - Show execution plan for changes
+  - `"apply"` - Apply changes to create/update resources
+  - `"destroy"` - Destroy Terraform-managed resources
+  - `"validate"` - Validate configuration files
+  - `"fmt"` - Format configuration files
+  - `"state"` - State management operations (requires `state_subcommand`)
 - `workspace_folder` (required): Workspace folder containing Terraform files
-- `auto_approve` (optional): Auto-approve for apply/destroy commands (default: false)
-- `upgrade` (optional): Upgrade providers/modules for init command (default: false)
+- `auto_approve` (optional): Auto-approve for apply/destroy commands (default: `false`)
+  - **USE WITH CAUTION!** Bypasses confirmation prompts
+- `upgrade` (optional): Upgrade providers/modules during init (default: `false`)
+- `state_subcommand` (optional): State operation to perform (required when `command="state"`)
+  - `"list"` - List all resources in state
+  - `"show"` - Show details of a specific resource
+  - `"mv"` - Move/rename a resource in state
+  - `"rm"` - Remove a resource from state
+  - `"pull"` - Pull current state and output to stdout
+  - `"push"` - Push a local state file to remote backend
+- `state_args` (optional): Arguments for the state subcommand
+  - For `"mv"`: `"source destination"` (e.g., `"azurerm_resource_group.old azurerm_resource_group.new"`)
+  - For `"show"` or `"rm"`: resource address (e.g., `"azurerm_storage_account.main"`)
+  - Leave empty for `"list"`, `"pull"`, `"push"`
 
-**Returns:** Command execution results including stdout, stderr, and exit code
+**Returns:**
+```json
+{
+  "command": "plan",
+  "success": true,
+  "exit_code": 0,
+  "stdout": "Terraform output...",
+  "stderr": "",
+  "workspace_folder": "workspace/demo"
+}
+```
 
-**Example:**
+**Example - Initialize Workspace:**
+```json
+{
+  "tool": "run_terraform_command",
+  "arguments": {
+    "command": "init",
+    "workspace_folder": "workspace/demo"
+  }
+}
+```
+
+**Example - Plan with Upgrade:**
+```json
+{
+  "tool": "run_terraform_command",
+  "arguments": {
+    "command": "init",
+    "workspace_folder": "workspace/demo",
+    "upgrade": true
+  }
+}
+```
+
+**Example - Plan Changes:**
 ```json
 {
   "tool": "run_terraform_command",
   "arguments": {
     "command": "plan",
-    "workspace_folder": "workspace/demo",
-    "upgrade": false
+    "workspace_folder": "workspace/demo"
   }
 }
 ```
+
+**Example - Apply Changes:**
+```json
+{
+  "tool": "run_terraform_command",
+  "arguments": {
+    "command": "apply",
+    "workspace_folder": "workspace/demo",
+    "auto_approve": false
+  }
+}
+```
+
+**Example - Format Code:**
+```json
+{
+  "tool": "run_terraform_command",
+  "arguments": {
+    "command": "fmt",
+    "workspace_folder": "workspace/demo"
+  }
+}
+```
+
+**Example - List State Resources:**
+```json
+{
+  "tool": "run_terraform_command",
+  "arguments": {
+    "command": "state",
+    "state_subcommand": "list",
+    "workspace_folder": "workspace/demo"
+  }
+}
+```
+
+**Example - Show Resource Details:**
+```json
+{
+  "tool": "run_terraform_command",
+  "arguments": {
+    "command": "state",
+    "state_subcommand": "show",
+    "state_args": "azurerm_resource_group.main",
+    "workspace_folder": "workspace/demo"
+  }
+}
+```
+
+**Example - Rename Resource:**
+```json
+{
+  "tool": "run_terraform_command",
+  "arguments": {
+    "command": "state",
+    "state_subcommand": "mv",
+    "state_args": "azurerm_resource_group.res-0 azurerm_resource_group.main",
+    "workspace_folder": "workspace/demo"
+  }
+}
+```
+
+**Example - Remove Resource from State:**
+```json
+{
+  "tool": "run_terraform_command",
+  "arguments": {
+    "command": "state",
+    "state_subcommand": "rm",
+    "state_args": "azurerm_virtual_network.old",
+    "workspace_folder": "workspace/demo"
+  }
+}
+```
+
+**See Also:**
+- [Terraform Commands Guide](terraform-commands.md)
+- [State Management Guide](terraform-state-management.md)
 
 ---
 
@@ -283,6 +418,117 @@ Set aztfexport configuration settings.
 - `value` (required): Configuration value
 
 **Returns:** Update status
+
+---
+
+## Terraform Coverage Audit Tools
+
+### `audit_terraform_coverage`
+
+Audit Terraform coverage of Azure resources to identify gaps, orphaned resources, and measure management coverage.
+
+**Description:**  
+Analyzes your Azure environment and compares it against your Terraform state to provide a comprehensive coverage report. Helps identify Azure resources not under Terraform management and Terraform resources that no longer exist in Azure.
+
+**Parameters:**
+- `workspace_folder` (required): Terraform workspace folder to audit
+- `scope` (optional): Audit scope - "resource-group", "subscription", or "query" (default: "resource-group")
+- `scope_value` (required): Scope-specific value:
+  - For "resource-group": Resource group name
+  - For "subscription": Azure subscription ID
+  - For "query": Azure Resource Graph WHERE clause
+- `include_non_terraform_resources` (optional): Include Azure resources not in Terraform (default: true)
+- `include_orphaned_terraform_resources` (optional): Include Terraform resources not in Azure (default: true)
+
+**Returns:**
+```json
+{
+  "success": true,
+  "summary": {
+    "total_azure_resources": 45,
+    "total_terraform_resources": 38,
+    "terraform_managed": 36,
+    "coverage_percentage": 80.0,
+    "missing_from_terraform": 9,
+    "orphaned_in_terraform": 2
+  },
+  "managed_resources": [
+    {
+      "azure_resource_id": "/subscriptions/.../storageAccounts/mystore",
+      "azure_resource_type": "Microsoft.Storage/storageAccounts",
+      "azure_resource_name": "mystore",
+      "terraform_address": "azurerm_storage_account.mystore",
+      "match_confidence": "high"
+    }
+  ],
+  "missing_resources": [
+    {
+      "resource_id": "/subscriptions/.../storageAccounts/unmanaged",
+      "resource_type": "Microsoft.Storage/storageAccounts",
+      "resource_name": "unmanaged",
+      "suggested_terraform_types": ["azurerm_storage_account"],
+      "location": "eastus",
+      "export_command": "Use export_azure_resource with resource_id='...'"
+    }
+  ],
+  "orphaned_resources": [
+    {
+      "terraform_address": "azurerm_virtual_network.old_vnet",
+      "reason": "Resource not found in Azure or could not be matched"
+    }
+  ],
+  "recommendations": [
+    "Export 9 unmanaged resources using aztfexport tools",
+    "Review 2 orphaned resources in Terraform state"
+  ]
+}
+```
+
+**Example - Resource Group Audit:**
+```json
+{
+  "tool": "audit_terraform_coverage",
+  "arguments": {
+    "workspace_folder": "workspace/prod-infra",
+    "scope": "resource-group",
+    "scope_value": "prod-rg-eastus"
+  }
+}
+```
+
+**Example - Subscription Audit:**
+```json
+{
+  "tool": "audit_terraform_coverage",
+  "arguments": {
+    "workspace_folder": "workspace/subscription-infra",
+    "scope": "subscription",
+    "scope_value": "12345678-1234-1234-1234-123456789012"
+  }
+}
+```
+
+**Example - Custom Query:**
+```json
+{
+  "tool": "audit_terraform_coverage",
+  "arguments": {
+    "workspace_folder": "workspace/storage-infra",
+    "scope": "query",
+    "scope_value": "type =~ 'Microsoft.Storage/storageAccounts' and location == 'eastus'"
+  }
+}
+```
+
+**Prerequisites:**
+- Terraform workspace must be initialized (`terraform init`)
+- Valid Terraform state file must exist
+- Azure CLI must be authenticated (`az login`)
+- Azure Resource Graph access permissions required
+
+**See Also:**
+- [Terraform Coverage Audit Guide](terraform-coverage-audit.md)
+- [Azure Export Tools](#azure-export-tools)
 
 ---
 

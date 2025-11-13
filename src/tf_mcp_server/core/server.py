@@ -16,6 +16,7 @@ from ..tools.terraform_runner import get_terraform_runner
 from ..tools.tflint_runner import get_tflint_runner
 from ..tools.conftest_avm_runner import get_conftest_avm_runner
 from ..tools.aztfexport_runner import get_aztfexport_runner
+from ..tools.coverage_auditor import get_coverage_auditor
 
 from ..tools.golang_source_provider import get_golang_source_provider
 
@@ -42,6 +43,7 @@ def create_server(config: Config) -> FastMCP:
     tflint_runner = get_tflint_runner()
     conftest_avm_runner = get_conftest_avm_runner()
     aztfexport_runner = get_aztfexport_runner()
+    coverage_auditor = get_coverage_auditor(terraform_runner, aztfexport_runner)
     golang_source_provider = get_golang_source_provider()
 
     # ==========================================
@@ -1051,6 +1053,101 @@ def create_server(config: Config) -> FastMCP:
                 'error': f'Failed to set configuration: {str(e)}'
             }
 
+    # ==========================================
+    # TERRAFORM COVERAGE AUDIT TOOLS
+    # ==========================================
+
+    @mcp.tool("audit_terraform_coverage")
+    async def audit_terraform_coverage(
+        workspace_folder: str = Field(..., description="Terraform workspace to audit"),
+        scope: str = Field(..., description="Audit scope: 'resource-group', 'subscription', 'query'"),
+        scope_value: str = Field(..., description="Resource group name, subscription ID, or ARG query"),
+        include_non_terraform_resources: bool = Field(default=True, description="Include resources not in Terraform"),
+        include_orphaned_terraform_resources: bool = Field(default=True, description="Include Terraform resources not in Azure")
+    ) -> Dict[str, Any]:
+        """
+        Audit Terraform coverage of Azure resources.
+
+        This tool analyzes your Azure environment and compares it against your Terraform state
+        to identify coverage gaps, orphaned resources, and provide recommendations for
+        infrastructure management.
+
+        **Use Cases:**
+        - Identify Azure resources not yet under Terraform management
+        - Find orphaned Terraform resources (deleted in Azure but still in state)
+        - Measure Terraform coverage percentage
+        - Get actionable recommendations for closing gaps
+
+        **Audit Scopes:**
+        - 'resource-group': Audit a specific resource group (provide RG name in scope_value)
+        - 'subscription': Audit entire subscription (provide subscription ID in scope_value)
+        - 'query': Custom Azure Resource Graph query (provide ARG WHERE clause in scope_value)
+
+        Args:
+            workspace_folder: Terraform workspace folder to audit (must be initialized with state)
+            scope: Scope of the audit (resource-group, subscription, or query)
+            scope_value: Scope-specific value (RG name, subscription ID, or ARG query)
+            include_non_terraform_resources: Include Azure resources not in Terraform state
+            include_orphaned_terraform_resources: Include Terraform resources not found in Azure
+
+        Returns:
+            Coverage audit report with summary, matched resources, missing resources, orphaned
+            resources, and recommendations
+
+        **Prerequisites:**
+        - Terraform workspace must be initialized with `terraform init`
+        - State file must exist (not empty)
+        - Azure CLI must be authenticated (`az login`)
+        - Azure Resource Graph access required
+
+        **Example Usage:**
+        ```
+        # Audit a resource group
+        audit_terraform_coverage(
+            workspace_folder="workspace/my-terraform",
+            scope="resource-group",
+            scope_value="my-resource-group"
+        )
+
+        # Audit entire subscription
+        audit_terraform_coverage(
+            workspace_folder="workspace/my-terraform",
+            scope="subscription",
+            scope_value="12345678-1234-1234-1234-123456789012"
+        )
+
+        # Custom query for specific resources
+        audit_terraform_coverage(
+            workspace_folder="workspace/my-terraform",
+            scope="query",
+            scope_value="type =~ 'Microsoft.Storage/storageAccounts'"
+        )
+        ```
+
+        **Report Structure:**
+        - **summary**: Coverage statistics (percentage, counts)
+        - **managed_resources**: Resources properly managed by Terraform
+        - **missing_resources**: Azure resources not in Terraform (with export commands)
+        - **orphaned_resources**: Terraform resources not found in Azure
+        - **recommendations**: Actionable steps to improve coverage
+        """
+        try:
+            result = await coverage_auditor.audit_coverage(
+                workspace_folder=workspace_folder,
+                scope=scope,
+                scope_value=scope_value,
+                include_non_terraform_resources=include_non_terraform_resources,
+                include_orphaned_terraform_resources=include_orphaned_terraform_resources
+            )
+            return result
+
+        except Exception as e:
+            logger.error(f"Error auditing Terraform coverage: {e}")
+            return {
+                'success': False,
+                'error': f'Failed to audit coverage: {str(e)}'
+            }
+
 
     # ==========================================
     # TERRAFORM SOURCE CODE QUERY TOOLS
@@ -1241,12 +1338,13 @@ def create_server(config: Config) -> FastMCP:
         
         Special action 'code-cleanup' for resource 'aztfexport': Provides detailed guidance on making
         exported Terraform code production-ready, including resource renaming, variable/local usage,
-        state file management, and security hardening.
+        terraform.tfvars creation patterns, state file management, and security hardening.
 
         Args:
             resource: The Azure resource type or area (default: "general")
             action: The type of action (default: "code-generation")
                    Use 'code-cleanup' with resource='aztfexport' for post-export code refinement
+                   including comprehensive tfvars generation guidance
 
         Returns:
             Detailed best practices recommendations as a formatted string
@@ -1406,6 +1504,26 @@ def create_server(config: Config) -> FastMCP:
                                 "Add descriptive 'description' field to all variables explaining their purpose and valid values",
                                 "Set appropriate 'type' constraints on variables (string, number, bool, list, map, object)",
                                 "Provide sensible defaults for optional variables, but leave required values (like location) without defaults"
+                            ]
+                        },
+                        "tfvars_generation": {
+                            "title": "Creating terraform.tfvars Files from Exported Code",
+                            "recommendations": [
+                                "STEP 1 - Identify Values to Extract: Review exported .tf files and identify all hardcoded values that should become variables (resource names, locations, SKUs, IP addresses, tags)",
+                                "STEP 2 - Create Variable Definitions: In variables.tf, define each variable with appropriate type, description, and optional default values",
+                                "STEP 3 - Create terraform.tfvars: Create terraform.tfvars file with actual values extracted from exported code. Example: location = 'eastus', environment = 'dev', app_name = 'myapp'",
+                                "STEP 4 - Replace Hardcoded Values: In main.tf and other resource files, replace hardcoded values with var.<variable_name> references",
+                                "PATTERN - Resource Names: Extract patterns like 'myapp-dev-rg-eastus' into variables: var.app_name, var.environment, var.location, then use locals for concatenation",
+                                "PATTERN - Tags: Create a 'common_tags' variable of type map(string) in terraform.tfvars with standard tags: { Environment = 'dev', Owner = 'team@company.com', CostCenter = '12345' }",
+                                "PATTERN - Network Configuration: Extract CIDR blocks, subnet prefixes, NSG rules as structured variables (lists or objects) for flexibility",
+                                "PATTERN - SKUs and Sizes: Extract VM sizes, database SKUs, storage tiers into variables for easy environment-specific customization",
+                                "BEST PRACTICE - Environment-Specific Files: Create multiple tfvars files: terraform-dev.tfvars, terraform-staging.tfvars, terraform-prod.tfvars",
+                                "BEST PRACTICE - Sensitive Values: Never put secrets in .tfvars files. Use Azure Key Vault data sources or environment variables instead",
+                                "BEST PRACTICE - Documentation: Add comments in terraform.tfvars explaining each value and providing examples of valid alternatives",
+                                "EXAMPLE - Basic Structure: variables.tf defines 'variable \"location\" { type = string }', terraform.tfvars provides 'location = \"eastus\"', main.tf uses 'location = var.location'",
+                                "EXAMPLE - Complex Object: For multiple VMs, use: variable \"vms\" { type = map(object({ size = string, disk_size = number })) }, then in tfvars: vms = { web = { size = \"Standard_D2s_v3\", disk_size = 128 } }",
+                                "VALIDATION - After creating tfvars: Run 'terraform plan' with '-var-file=terraform.tfvars' to verify all variables resolve correctly and no hardcoded values remain",
+                                "TESTING - Test each environment's tfvars file independently to ensure proper value isolation and no cross-environment contamination"
                             ]
                         },
                         "code_structure": {

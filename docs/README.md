@@ -12,6 +12,7 @@ This directory contains comprehensive documentation for the Azure Terraform MCP 
 - **[Azure Documentation Tools](azure-documentation-tools.md)** - AzureRM, AzAPI, and AVM documentation access
 - **[Terraform Command Integration](terraform-commands.md)** - Execute Terraform CLI commands and state management
 - **[Terraform State Management](terraform-state-management.md)** - Safe resource renaming and state operations
+- **[Terraform Coverage Audit](terraform-coverage-audit.md)** - Audit Terraform coverage of Azure resources and identify gaps
 - **[Azure Best Practices](azure-best-practices-tool.md)** - Get Azure and Terraform best practices with code cleanup guidance
 - **[Source Code Analysis](terraform-golang-source-tools.md)** - Terraform and Golang source code analysis
 
@@ -54,13 +55,15 @@ The latest version includes:
 - `run_terraform_command` - Execute Terraform commands and state operations
 - `get_azure_best_practices` - Get Azure best practices and code cleanup guidance
 - `export_azure_resource` - Export Azure resources to Terraform
+- `audit_terraform_coverage` - Audit Terraform coverage and identify gaps
 
 ### Common Workflows
 1. **Documentation Lookup** → [Azure Documentation Tools](azure-documentation-tools.md)
 2. **Resource Export** → [Azure Export Guide](aztfexport-integration.md)
 3. **Code Cleanup** → [State Management Guide](terraform-state-management.md)
-4. **Security Validation** → [Conftest Validation](conftest-avm-validation.md)
-5. **Code Analysis** → [Source Code Analysis](terraform-golang-source-tools.md)
+4. **Coverage Audit** → [Coverage Audit Guide](terraform-coverage-audit.md)
+5. **Security Validation** → [Conftest Validation](conftest-avm-validation.md)
+6. **Code Analysis** → [Source Code Analysis](terraform-golang-source-tools.md)
 
 ## 🤝 Contributing
 

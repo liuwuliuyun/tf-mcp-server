@@ -128,6 +128,9 @@ The server provides comprehensive tools across multiple categories. For complete
 - **`get_aztfexport_config`**: Get aztfexport configuration settings
 - **`set_aztfexport_config`**: Set aztfexport configuration settings
 
+#### Coverage Audit Tools
+- **`audit_terraform_coverage`**: Audit Terraform coverage of Azure resources, compare state against Azure Resource Graph to identify gaps, orphaned resources, and get actionable recommendations
+
 #### Source Code Analysis Tools
 - **`get_terraform_source_providers`**: Get supported providers for source code analysis
 - **`query_terraform_source_code`**: Read Terraform provider source code implementations
@@ -158,9 +161,12 @@ For comprehensive guides and examples:
 - **[Azure Documentation Tools](docs/azure-documentation-tools.md)** - AzureRM, AzAPI, and AVM documentation access
 - **[Terraform Commands](docs/terraform-commands.md)** - Execute Terraform operations and state management
 - **[Terraform State Management](docs/terraform-state-management.md)** - Safe resource renaming and state operations
+- **[Terraform Coverage Audit](docs/terraform-coverage-audit.md)** - Audit Terraform coverage and identify infrastructure gaps
 - **[Security Policies](docs/security-policies.md)** - Policy-based validation and compliance
-- **[Azure Export Integration](docs/aztfexport-integration.md)** - Export existing Azure resources
-- **[Source Code Analysis](docs/terraform-golang-source-tools.md)** - Terraform and Golang code analysis
+- **[TFLint Integration](docs/tflint-integration.md)** - Static analysis for Terraform code quality
+- **[Conftest AVM Validation](docs/conftest-avm-validation.md)** - Policy-based security validation with Azure policies
+- **[Azure Export Integration](docs/aztfexport-integration.md)** - Export existing Azure resources to Terraform
+- **[Source Code Analysis](docs/terraform-golang-source-tools.md)** - Terraform and Golang source code analysis
 - **[Azure Best Practices](docs/azure-best-practices-tool.md)** - Get Azure-specific recommendations and code cleanup guidance
 
 ### Example Usage
@@ -190,27 +196,32 @@ tf-mcp-server/
 │       │   └── utils.py            # Shared utility functions
 │       └── tools/                  # Tool implementations
 │           ├── __init__.py
-│           ├── avm_docs_provider.py     # Azure Verified Modules provider
+│           ├── avm_docs_provider.py     # Azure Verified Modules documentation provider
 │           ├── azapi_docs_provider.py   # AzAPI documentation provider  
 │           ├── azurerm_docs_provider.py # AzureRM documentation provider
 │           ├── aztfexport_runner.py     # Azure Export for Terraform (aztfexport) integration
-│           ├── conftest_avm_runner.py   # Conftest policy validation
-│           ├── terraform_runner.py      # Terraform command execution
-│           └── tflint_runner.py         # TFLint static analysis
+│           ├── conftest_avm_runner.py   # Conftest policy validation runner
+│           ├── coverage_auditor.py      # Terraform coverage audit tool
+│           ├── golang_source_provider.py # Golang source code analysis provider
+│           ├── terraform_runner.py      # Terraform command execution and state management
+│           └── tflint_runner.py         # TFLint static analysis runner
 ├── tests/                          # Test suite
 │   ├── __init__.py
 │   ├── conftest.py                 # Test configuration
 │   ├── test_*.py                   # Unit tests
 │   └── integration/                # Integration tests
 ├── tfsample/                       # Sample Terraform configurations
+├── workspace/                      # Default workspace directory for operations
 ├── policy/                         # Security and compliance policies
-│   ├── avmsec/                     # Azure security policies
+│   ├── avmsec/                     # Azure security policies (AVM Security)
 │   ├── Azure-Proactive-Resiliency-Library-v2/ # Azure resiliency policies  
 │   └── common/                     # Common policy utilities
-├── docs/                           # Documentation
-├── examples/                       # Usage examples
+├── docs/                           # Comprehensive documentation
+├── examples/                       # Usage examples and workflows
 ├── pyproject.toml                  # Project configuration (UV/pip)
 ├── uv.lock                         # UV dependency lockfile
+├── Dockerfile                      # Docker container configuration
+├── docker-compose.yml              # Docker Compose setup
 ├── README.md                       # This file
 └── CONTRIBUTE.md                   # Development and contribution guide
 ```

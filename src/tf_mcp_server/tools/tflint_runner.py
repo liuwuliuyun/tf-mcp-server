@@ -7,7 +7,7 @@ import json
 import subprocess
 import tempfile
 from typing import Dict, Any, Optional, List
-from ..core.utils import resolve_workspace_path
+from ..core.utils import resolve_workspace_path, get_docker_path_tip
 
 
 class TFLintRunner:
@@ -224,7 +224,7 @@ plugin "azurerm" {
         if not os.path.exists(folder_path):
             return {
                 'success': False,
-                'error': f'Workspace folder does not exist: {folder_path}',
+                'error': f'Workspace folder does not exist: {folder_path}{get_docker_path_tip(workspace_folder)}',
                 'issues': [],
                 'summary': {
                     'total_issues': 0,
@@ -237,7 +237,11 @@ plugin "azurerm" {
         if not os.path.isdir(folder_path):
             return {
                 'success': False,
-                'error': f'Workspace path is not a directory: {folder_path}',
+                'error': (
+                    f'Workspace path is not a directory: {folder_path}\n\n'
+                    f'Tip: Ensure the path points to a directory, not a file.\n'
+                    f'     When running in Docker, use relative paths from /workspace'
+                ),
                 'issues': [],
                 'summary': {
                     'total_issues': 0,

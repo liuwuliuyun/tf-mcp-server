@@ -4,6 +4,7 @@ Conftest runner for Azure Verified Modules (AVM) policy validation.
 
 import os
 import json
+import logging
 import subprocess
 import tempfile
 from typing import Dict, Any, Optional, List
@@ -11,16 +12,84 @@ from pathlib import Path
 from ..core.utils import (
     strip_ansi_escape_sequences,
     resolve_workspace_path,
+    get_docker_path_tip,
 )
 
+# Set up logger
+logger = logging.getLogger(__name__)
 
 class ConftestAVMRunner:
     """Conftest runner for Azure Verified Modules policy validation."""
     
     def __init__(self):
-        """Initialize the Conftest AVM runner."""
+        """Initialize the Conftest AVM runner with local policy cache."""
         self.conftest_executable = self._find_conftest_executable()
-        self.avm_policy_repo = "git::https://github.com/Azure/policy-library-avm.git//policy"
+        self.avm_policy_repo_url = "https://github.com/Azure/policy-library-avm.git"
+        
+        # Initialize cache directory for policies
+        self.policy_cache_dir = self._get_policy_cache_dir()
+        self._ensure_policy_cache()
+        
+        # Set policy folders based on cached location
+        self.policy_base_path = self.policy_cache_dir / "policy"
+        self.policy_sets = {
+            "all": self.policy_base_path,
+            "Azure-Proactive-Resiliency-Library-v2": self.policy_base_path / "Azure-Proactive-Resiliency-Library-v2",
+            "avmsec": self.policy_base_path / "avmsec"
+        }
+    
+    def _get_policy_cache_dir(self) -> Path:
+        """Get the cache directory path for AVM policies."""
+        # Get the path to src/data relative to this file
+        current_file = Path(__file__)
+        # Navigate to src/data from src/tf_mcp_server/tools/
+        data_dir = current_file.parent.parent.parent / "data" / "avm_policy_cache"
+        return data_dir
+    
+    def _ensure_policy_cache(self) -> None:
+        """Ensure the policy cache is initialized by cloning the repository if needed."""
+        try:
+            # Check if the policy cache directory exists and has content
+            if self.policy_cache_dir.exists() and (self.policy_cache_dir / "policy").exists():
+                logger.info(f"AVM policy cache found at {self.policy_cache_dir}")
+                # Check if it's a git repo and try to update it
+                if (self.policy_cache_dir / ".git").exists():
+                    try:
+                        logger.info("Updating cached AVM policies...")
+                        result = subprocess.run(['git', 'pull'], 
+                                              cwd=str(self.policy_cache_dir),
+                                              capture_output=True, 
+                                              text=True, 
+                                              timeout=60)
+                        if result.returncode == 0:
+                            logger.info("AVM policy cache updated successfully")
+                        else:
+                            logger.warning(f"Failed to update policy cache: {result.stderr}")
+                    except Exception as e:
+                        logger.warning(f"Could not update policy cache: {str(e)}")
+            else:
+                # Clone the repository
+                logger.info(f"Cloning AVM policy repository to {self.policy_cache_dir}...")
+                self.policy_cache_dir.mkdir(parents=True, exist_ok=True)
+                
+                result = subprocess.run(['git', 'clone', self.avm_policy_repo_url, str(self.policy_cache_dir)], 
+                                      capture_output=True, 
+                                      text=True, 
+                                      timeout=120)
+                
+                if result.returncode == 0:
+                    logger.info("AVM policy repository cloned successfully")
+                else:
+                    error_msg = strip_ansi_escape_sequences(result.stderr)
+                    logger.error(f"Failed to clone AVM policy repository: {error_msg}")
+                    raise RuntimeError(f"Failed to clone AVM policy repository: {error_msg}")
+                    
+        except FileNotFoundError:
+            logger.error("Git executable not found. Please ensure git is installed and in PATH.")
+            raise RuntimeError("Git is required to download AVM policies. Please install git.")
+        except Exception as e:
+            logger.error(f"Error initializing policy cache: {str(e)}")
+            raise
     
     def _find_conftest_executable(self) -> str:
         """Find the conftest executable in the system PATH."""
@@ -75,6 +144,101 @@ class ConftestAVMRunner:
                 "installation_help": self._get_installation_help()
             }
     
+    async def get_policy_cache_status(self) -> Dict[str, Any]:
+        """
+        Get the status of the local AVM policy cache.
+        
+        Returns:
+            Cache status information including path, size, and last update time
+        """
+        try:
+            if not self.policy_cache_dir.exists():
+                return {
+                    "cached": False,
+                    "cache_path": str(self.policy_cache_dir),
+                    "status": "Policy cache not initialized. It will be created on first use."
+                }
+            
+            policy_path = self.policy_cache_dir / "policy"
+            if not policy_path.exists():
+                return {
+                    "cached": False,
+                    "cache_path": str(self.policy_cache_dir),
+                    "status": "Policy cache directory exists but policy folder is missing."
+                }
+            
+            # Get information about the cached policies
+            available_policy_sets = [p.name for p in policy_path.iterdir() if p.is_dir()]
+            
+            # Get git info if available
+            git_info = {}
+            if (self.policy_cache_dir / ".git").exists():
+                try:
+                    # Get last commit info
+                    result = subprocess.run(['git', 'log', '-1', '--format=%H|%aI|%s'], 
+                                          cwd=str(self.policy_cache_dir),
+                                          capture_output=True, 
+                                          text=True, 
+                                          timeout=10)
+                    if result.returncode == 0:
+                        commit_hash, commit_date, commit_msg = result.stdout.strip().split('|', 2)
+                        git_info = {
+                            "last_commit_hash": commit_hash[:8],
+                            "last_commit_date": commit_date,
+                            "last_commit_message": commit_msg
+                        }
+                except Exception as e:
+                    logger.debug(f"Could not get git info: {str(e)}")
+            
+            return {
+                "cached": True,
+                "cache_path": str(self.policy_cache_dir),
+                "policy_sets": available_policy_sets,
+                "git_info": git_info,
+                "status": f"Policy cache is available with {len(available_policy_sets)} policy sets"
+            }
+            
+        except Exception as e:
+            return {
+                "cached": False,
+                "error": f"Error checking policy cache status: {str(e)}",
+                "cache_path": str(self.policy_cache_dir)
+            }
+    
+    async def update_policy_cache(self, force: bool = False) -> Dict[str, Any]:
+        """
+        Update the local AVM policy cache by pulling the latest changes from GitHub.
+        
+        Args:
+            force: If True, removes existing cache and re-clones the repository
+            
+        Returns:
+            Update status and information
+        """
+        try:
+            if force and self.policy_cache_dir.exists():
+                logger.info(f"Force update requested, removing existing cache at {self.policy_cache_dir}")
+                import shutil
+                shutil.rmtree(self.policy_cache_dir)
+            
+            # Re-initialize the cache (will clone or update)
+            self._ensure_policy_cache()
+            
+            return {
+                "success": True,
+                "message": "Policy cache updated successfully",
+                "cache_path": str(self.policy_cache_dir)
+            }
+            
+        except Exception as e:
+            error_msg = strip_ansi_escape_sequences(str(e))
+            return {
+                "success": False,
+                "error": f"Failed to update policy cache: {error_msg}",
+                "cache_path": str(self.policy_cache_dir)
+            }
+
+    
     def _get_installation_help(self) -> Dict[str, str]:
         """Get installation instructions for Conftest."""
         return {
@@ -124,18 +288,32 @@ class ConftestAVMRunner:
                 plan_file.write(terraform_plan_json)
                 plan_file_path = plan_file.name
             
-            # Build conftest command
-            cmd = [self.conftest_executable, 'test', '--all-namespaces', '--update']
+            # Build conftest command - no --update flag since we use local cached policies
+            cmd = [self.conftest_executable, 'test', '--all-namespaces']
             
-            # Add policy source based on policy_set
-            if policy_set == "all":
-                cmd.append(self.avm_policy_repo)
-            elif policy_set == "Azure-Proactive-Resiliency-Library-v2":
-                cmd.append(f"{self.avm_policy_repo}/Azure-Proactive-Resiliency-Library-v2")
-            elif policy_set == "avmsec":
-                cmd.append(f"{self.avm_policy_repo}/avmsec")
+            # Add policy source based on policy_set using cached local paths
+            if policy_set in self.policy_sets:
+                policy_path = self.policy_sets[policy_set]
+                if not policy_path.exists():
+                    return {
+                        'success': False,
+                        'error': f'Policy set "{policy_set}" not found at {policy_path}. Try reinitializing the policy cache.',
+                        'violations': [],
+                        'summary': {'total_violations': 0, 'failures': 0, 'warnings': 0}
+                    }
+                cmd.extend(['-p', str(policy_path)])
             else:
-                cmd.append(f"{self.avm_policy_repo}/{policy_set}")
+                # Try custom policy set path
+                custom_policy_path = self.policy_base_path / policy_set
+                if custom_policy_path.exists():
+                    cmd.extend(['-p', str(custom_policy_path)])
+                else:
+                    return {
+                        'success': False,
+                        'error': f'Unknown policy set "{policy_set}". Available: {", ".join(self.policy_sets.keys())}',
+                        'violations': [],
+                        'summary': {'total_violations': 0, 'failures': 0, 'warnings': 0}
+                    }
             
             # Handle severity filtering for avmsec
             exception_content = None
@@ -161,7 +339,7 @@ class ConftestAVMRunner:
             # Add the plan file
             cmd.append(plan_file_path)
             
-            # Run conftest
+            # Run conftest with local cached policies
             result = subprocess.run(cmd, 
                                   capture_output=True, 
                                   text=True, 
@@ -524,7 +702,7 @@ exception contains rules if {
             if not workspace_path.exists():
                 return {
                     'success': False,
-                    'error': f'Workspace folder "{workspace_folder}" does not exist at {workspace_path}',
+                    'error': f'Workspace folder "{workspace_folder}" does not exist at {workspace_path}{get_docker_path_tip(workspace_folder)}',
                     'violations': [],
                     'summary': {'total_violations': 0, 'failures': 0, 'warnings': 0}
                 }
@@ -532,7 +710,11 @@ exception contains rules if {
             if not workspace_path.is_dir():
                 return {
                     'success': False,
-                    'error': f'"{workspace_folder}" is not a directory',
+                    'error': (
+                        f'"{workspace_folder}" is not a directory: {workspace_path}\n\n'
+                        f'Tip: Ensure the path points to a directory, not a file.\n'
+                        f'     When running in Docker, use relative paths from /workspace'
+                    ),
                     'violations': [],
                     'summary': {'total_violations': 0, 'failures': 0, 'warnings': 0}
                 }
@@ -542,7 +724,12 @@ exception contains rules if {
             if not tf_files:
                 return {
                     'success': False,
-                    'error': f'No .tf files found in workspace folder "{workspace_folder}"',
+                    'error': (
+                        f'No .tf files found in workspace folder "{workspace_folder}"\n\n'
+                        f'Tip: Ensure your Terraform files are in the workspace folder.\n'
+                        f'     Default Docker mount: -v ${{workspaceFolder}}:/workspace\n'
+                        f'     Your files should be accessible at /workspace/your-folder'
+                    ),
                     'violations': [],
                     'summary': {'total_violations': 0, 'failures': 0, 'warnings': 0}
                 }
@@ -666,7 +853,7 @@ exception contains rules if {
             if not workspace_path.exists():
                 return {
                     'success': False,
-                    'error': f'Workspace folder "{folder_name}" does not exist at {workspace_path}',
+                    'error': f'Workspace folder "{folder_name}" does not exist at {workspace_path}{get_docker_path_tip(folder_name)}',
                     'violations': [],
                     'summary': {'total_violations': 0, 'failures': 0, 'warnings': 0}
                 }
@@ -674,7 +861,11 @@ exception contains rules if {
             if not workspace_path.is_dir():
                 return {
                     'success': False,
-                    'error': f'"{folder_name}" is not a directory',
+                    'error': (
+                        f'"{folder_name}" is not a directory: {workspace_path}\n\n'
+                        f'Tip: Ensure the path points to a directory, not a file.\n'
+                        f'     When running in Docker, use relative paths from /workspace'
+                    ),
                     'violations': [],
                     'summary': {'total_violations': 0, 'failures': 0, 'warnings': 0}
                 }
@@ -687,7 +878,12 @@ exception contains rules if {
                 if not tf_files:
                     return {
                         'success': False,
-                        'error': f'No .tf files or plan files found in workspace folder "{folder_name}"',
+                        'error': (
+                            f'No .tf files or plan files found in workspace folder "{folder_name}"\n\n'
+                            f'Tip: Ensure your Terraform files are in the workspace folder.\n'
+                            f'     Default Docker mount: -v ${{workspaceFolder}}:/workspace\n'
+                            f'     Your files should be accessible at /workspace/your-folder'
+                        ),
                         'violations': [],
                         'summary': {'total_violations': 0, 'failures': 0, 'warnings': 0}
                     }
