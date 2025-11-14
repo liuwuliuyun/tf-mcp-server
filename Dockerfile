@@ -25,6 +25,9 @@ RUN tdnf update -y && tdnf install -y \
     azure-cli \
     && tdnf clean all
 
+# Install Azure CLI Resource Graph extension
+RUN az extension add --name resource-graph
+
 # Install Terraform (latest version)
 RUN TERRAFORM_VERSION=$(curl -s "https://api.github.com/repos/hashicorp/terraform/releases/latest" | jq -r '.tag_name' | cut -c 2-) \
     && ARCH=$(uname -m) \
