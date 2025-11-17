@@ -86,6 +86,86 @@ class AztfexportRunner:
                 'command': ' '.join(command)
             }
     
+    async def _run_command_with_logging(self, command: List[str], cwd: Optional[str] = None, operation_name: str = "Operation") -> Dict[str, Any]:
+        """
+        Run a command asynchronously with real-time progress logging.
+        
+        Args:
+            command: Command and arguments to execute
+            cwd: Working directory for the command
+            operation_name: Name of the operation for logging purposes
+            
+        Returns:
+            Dictionary with exit_code, stdout, stderr
+        """
+        logger.info(f"{operation_name}: Starting command: {' '.join(command)}")
+        
+        try:
+            process = await asyncio.create_subprocess_exec(
+                *command,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
+                cwd=cwd
+            )
+            
+            stdout_lines = []
+            stderr_lines = []
+            
+            async def read_stream(stream, line_buffer, stream_name):
+                """Read stream line by line and log progress."""
+                while True:
+                    line = await stream.readline()
+                    if not line:
+                        break
+                    
+                    decoded_line = line.decode('utf-8', errors='ignore').rstrip()
+                    line_buffer.append(decoded_line)
+                    
+                    # Log important progress messages
+                    if decoded_line:
+                        # Log significant events from aztfexport
+                        lower_line = decoded_line.lower()
+                        if any(keyword in lower_line for keyword in [
+                            'exporting', 'importing', 'processing', 'querying',
+                            'discovering', 'completed', 'generating', 'writing',
+                            'resource', 'progress'
+                        ]):
+                            logger.info(f"{operation_name} [{stream_name}]: {decoded_line}")
+                        elif 'error' in lower_line or 'failed' in lower_line or 'warning' in lower_line:
+                            logger.warning(f"{operation_name} [{stream_name}]: {decoded_line}")
+            
+            # Read stdout and stderr concurrently
+            await asyncio.gather(
+                read_stream(process.stdout, stdout_lines, 'stdout'),
+                read_stream(process.stderr, stderr_lines, 'stderr')
+            )
+            
+            # Wait for process to complete
+            await process.wait()
+            
+            result = {
+                'exit_code': process.returncode,
+                'stdout': '\n'.join(stdout_lines),
+                'stderr': '\n'.join(stderr_lines),
+                'command': ' '.join(command)
+            }
+            
+            if process.returncode == 0:
+                logger.info(f"{operation_name}: Completed successfully")
+            else:
+                logger.error(f"{operation_name}: Failed with exit code {process.returncode}")
+            
+            return result
+            
+        except Exception as e:
+            logger.error(f"{operation_name}: Exception occurred: {str(e)}")
+            return {
+                'exit_code': -1,
+                'stdout': '',
+                'stderr': f'Failed to execute command: {str(e)}',
+                'command': ' '.join(command)
+            }
+    
     async def check_installation(self) -> Dict[str, Any]:
         """
         Check aztfexport installation and get version information.
@@ -243,7 +323,9 @@ class AztfexportRunner:
         try:
             # Create a temporary directory for initial export
             temp_dir = Path(tempfile.mkdtemp(prefix="aztfexport_tmp_"))
-            logger.info(f"Exporting to temporary directory: {temp_dir}")
+            logger.info(f"Starting export of resource: {resource_id}")
+            logger.info(f"Using temporary directory: {temp_dir}")
+            logger.info(f"Provider: {provider.value}, Parallelism: {parallelism}")
             
             # Build command
             command = ['aztfexport', 'resource']
@@ -264,6 +346,7 @@ class AztfexportRunner:
             
             if dry_run:
                 command.append('--dry-run')
+                logger.info("Running in dry-run mode (no files will be created)")
             
             if include_role_assignment:
                 command.append('--include-role-assignment')
@@ -276,8 +359,13 @@ class AztfexportRunner:
             # Add resource ID
             command.append(resource_id)
             
-            # Execute command in temporary directory
-            result = await self._run_command(command, str(temp_dir))
+            # Execute command in temporary directory with progress logging
+            logger.info("Executing aztfexport command...")
+            result = await self._run_command_with_logging(
+                command, 
+                str(temp_dir),
+                operation_name=f"Export Resource ({resource_id})"
+            )
             
             # Get final output directory
             work_dir = self._get_output_directory(output_folder_name)
@@ -349,7 +437,9 @@ class AztfexportRunner:
         try:
             # Create a temporary directory for initial export
             temp_dir = Path(tempfile.mkdtemp(prefix="aztfexport_tmp_"))
-            logger.info(f"Exporting to temporary directory: {temp_dir}")
+            logger.info(f"Starting export of resource group: {resource_group_name}")
+            logger.info(f"Using temporary directory: {temp_dir}")
+            logger.info(f"Provider: {provider.value}, Parallelism: {parallelism}")
             
             # Build command
             command = ['aztfexport', 'resource-group']
@@ -364,12 +454,15 @@ class AztfexportRunner:
             # Add options
             if name_pattern:
                 command.extend(['--name-pattern', name_pattern])
+                logger.info(f"Using name pattern: {name_pattern}")
             
             if type_pattern:
                 command.extend(['--type-pattern', type_pattern])
+                logger.info(f"Using type pattern: {type_pattern}")
             
             if dry_run:
                 command.append('--dry-run')
+                logger.info("Running in dry-run mode (no files will be created)")
             
             if include_role_assignment:
                 command.append('--include-role-assignment')
@@ -382,8 +475,13 @@ class AztfexportRunner:
             # Add resource group name
             command.append(resource_group_name)
             
-            # Execute command in temporary directory
-            result = await self._run_command(command, str(temp_dir))
+            # Execute command in temporary directory with progress logging
+            logger.info("Executing aztfexport command...")
+            result = await self._run_command_with_logging(
+                command, 
+                str(temp_dir),
+                operation_name=f"Export Resource Group ({resource_group_name})"
+            )
             
             # Get final output directory
             work_dir = self._get_output_directory(output_folder_name)
@@ -455,7 +553,10 @@ class AztfexportRunner:
         try:
             # Create a temporary directory for initial export
             temp_dir = Path(tempfile.mkdtemp(prefix="aztfexport_tmp_"))
-            logger.info(f"Exporting to temporary directory: {temp_dir}")
+            logger.info(f"Starting export with Azure Resource Graph query")
+            logger.info(f"Query: {query}")
+            logger.info(f"Using temporary directory: {temp_dir}")
+            logger.info(f"Provider: {provider.value}, Parallelism: {parallelism}")
             
             # Build command
             command = ['aztfexport', 'query']
@@ -470,12 +571,15 @@ class AztfexportRunner:
             # Add options
             if name_pattern:
                 command.extend(['--name-pattern', name_pattern])
+                logger.info(f"Using name pattern: {name_pattern}")
             
             if type_pattern:
                 command.extend(['--type-pattern', type_pattern])
+                logger.info(f"Using type pattern: {type_pattern}")
             
             if dry_run:
                 command.append('--dry-run')
+                logger.info("Running in dry-run mode (no files will be created)")
             
             if include_role_assignment:
                 command.append('--include-role-assignment')
@@ -488,8 +592,13 @@ class AztfexportRunner:
             # Add query
             command.append(query)
             
-            # Execute command in temporary directory
-            result = await self._run_command(command, str(temp_dir))
+            # Execute command in temporary directory with progress logging
+            logger.info("Executing aztfexport command...")
+            result = await self._run_command_with_logging(
+                command, 
+                str(temp_dir),
+                operation_name=f"Export Query"
+            )
             
             # Get final output directory
             work_dir = self._get_output_directory(output_folder_name)
