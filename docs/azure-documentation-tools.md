@@ -326,6 +326,27 @@ Get output definitions for a module version.
 }
 ```
 
+## Feature Verification
+
+### `check_azurerm_feature_availability`
+
+This tool helps verify if specific features are supported by the AzureRM provider or if you need to use AzAPI. It generates a guide for checking both AzureRM and AzAPI documentation to make an informed decision.
+
+**Parameters:**
+- `resource_type` (required): The AzureRM resource type
+- `features` (required): List of features/arguments to check
+
+**Example:**
+```json
+{
+  "tool": "check_azurerm_feature_availability",
+  "arguments": {
+    "resource_type": "azurerm_linux_virtual_machine",
+    "features": ["identity", "os_disk.caching"]
+  }
+}
+```
+
 ---
 
 ## 💡 Tips and Best Practices

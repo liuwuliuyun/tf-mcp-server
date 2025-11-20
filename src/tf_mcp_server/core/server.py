@@ -1440,6 +1440,15 @@ def create_server(config: Config) -> FastMCP:
                                 "Utilize new resource arguments for better configuration"
                             ]
                         },
+                        "feature_availability": {
+                            "title": "Feature Availability and Provider Selection",
+                            "recommendations": [
+                                "Always check feature availability in AzureRM provider documentation before implementation",
+                                "Use the `check_azurerm_feature_availability` tool to verify if specific resource properties are supported",
+                                "If a resource property or feature is not supported in AzureRM, use AzAPI to manage the entire resource",
+                                "Use get_azurerm_provider_documentation tool to verify current resource capabilities and arguments"
+                            ]
+                        },
                         "resource_configuration": {
                             "title": "Resource Configuration",
                             "recommendations": [
@@ -1795,6 +1804,40 @@ def create_server(config: Config) -> FastMCP:
             logger.error(f"Error getting Azure best practices: {e}")
             return f"Error: Failed to retrieve Azure best practices: {str(e)}"
     
+    @mcp.tool("check_azurerm_feature_availability")
+    def check_azurerm_feature_availability(
+        resource_type: str = Field(..., description="The AzureRM resource type (e.g., azurerm_linux_virtual_machine)"),
+        features: list[str] = Field(..., description="List of features/arguments to check (e.g., ['identity', 'os_disk.caching'])")
+    ) -> str:
+        """
+        Generates a prompt for the AI to verify if specific features are supported by the AzureRM provider.
+
+        This tool does not programmatically check features. Instead, it returns a detailed instruction
+        for the AI to perform the check using documentation tools.
+
+        Args:
+            resource_type: The AzureRM resource type
+            features: List of features (arguments) to check.
+
+        Returns:
+            A prompt string instructing the AI how to verify feature availability.
+        """
+        features_list = ", ".join(features)
+        return f"""
+To verify if the features '{features_list}' are supported by the AzureRM resource '{resource_type}', please follow these steps:
+
+1. **Check AzureRM Documentation**: Use the `get_azurerm_provider_documentation` tool to retrieve the schema and arguments for `{resource_type}`. Look for the specific arguments corresponding to the requested features.
+
+2. **Check AzAPI Documentation**: Use the `get_azapi_provider_documentation` tool to find the corresponding Azure Resource Manager (ARM) resource type. AzAPI documentation covers all available ARM properties.
+
+3. **Compare and Conclude**:
+   - If the features exist in the AzureRM documentation, you can use the `{resource_type}` resource in the AzureRM provider.
+   - If the features exist in the AzAPI documentation (ARM schema) but are MISSING from the AzureRM documentation, it means the AzureRM provider does not yet support these features.
+   - In this case, you should use the `azapi_resource` or `azapi_update_resource` from the AzAPI provider to manage this resource, as it allows full access to the ARM API.
+
+Please perform these checks now and report your findings.
+"""
+
     return mcp
 
 
