@@ -1,13 +1,14 @@
-"""
-Configuration management for Azure Terraform MCP Server.
-"""
+"""Configuration management for Azure Terraform MCP Server."""
 
 import os
 import json
+import logging
 from pathlib import Path
 from typing import Dict, Any, Optional
 from pydantic import BaseModel, Field
 from httpx import Client
+
+logger = logging.getLogger(__name__)
 
 
 class ServerConfig(BaseModel):
@@ -82,27 +83,27 @@ def load_azapi_schema() -> Dict[str, Any]:
         try:
             with open(latest_schema_file, 'r', encoding='utf-8') as f:
                 schema_data = json.load(f)
-                print(f"Loaded AzAPI schemas from {latest_schema_file}")
+                logger.info(f"Loaded AzAPI schemas from {latest_schema_file}")
                 return schema_data
         except json.JSONDecodeError as e:
-            print(f"Warning: Invalid JSON in {latest_schema_file}: {e}")
+            logger.warning(f"Invalid JSON in {latest_schema_file}: {e}")
         except UnicodeDecodeError as e:
-            print(f"Warning: Encoding error in {latest_schema_file}: {e}")
+            logger.warning(f"Encoding error in {latest_schema_file}: {e}")
     
     # If no versioned file exists, try to load or generate schemas
     try:
-        print("No local versioned schema found. Checking for updates...")
+        logger.info("No local versioned schema found. Checking for updates...")
         schema_data =generator.load_or_generate_schemas()
         
         if schema_data:
-            print(f"Successfully loaded/generated AzAPI schemas")
+            logger.info("Successfully loaded/generated AzAPI schemas")
             return schema_data
     except Exception as e:
-        print(f"Warning: Failed to load/generate AzAPI schemas: {e}")
+        logger.warning(f"Failed to load/generate AzAPI schemas: {e}")
     
     # Fallback: try to download from GitHub
     try:
-        print("Falling back to downloading schema from GitHub...")
+        logger.info("Falling back to downloading schema from GitHub...")
         schema_data = _download_azapi_schema()
         
         # Save the downloaded schema to local file for future use
@@ -110,19 +111,19 @@ def load_azapi_schema() -> Dict[str, Any]:
             # Save with a fallback version name
             fallback_file = get_data_dir() / "azapi_schemas_fallback.json"
             _save_schema_to_file(fallback_file, schema_data)
-            print(f"Successfully downloaded and saved schema to {fallback_file}")
+            logger.info(f"Successfully downloaded and saved schema to {fallback_file}")
             return schema_data
     except Exception as e:
-        print(f"Warning: Failed to download schema from GitHub: {e}")
+        logger.warning(f"Failed to download schema from GitHub: {e}")
     
-    print("Warning: AzAPI schema not available. AzAPI functionality will be limited.")
+    logger.warning("AzAPI schema not available. AzAPI functionality will be limited.")
     return {}
 
 
 def _download_azapi_schema() -> Dict[str, Any]:
     """Download AzAPI schema from GitHub."""
     github_url = "https://raw.githubusercontent.com/liuwuliuyun/azapi_schema/refs/heads/main/azapi_schemas.json"
-    
+
     with Client(timeout=30.0) as client:
         response = client.get(github_url)
         response.raise_for_status()
