@@ -648,11 +648,9 @@ class CoverageAuditor:
             # For resource-group scope, also include the resource group itself
             # The resource group is not returned in the resources query (it only returns resources within the RG)
             if scope == "resource-group" and scope_value:
-                rg_query = f"ResourceContainers | where type =~ 'microsoft.resources/resourcegroups' and name =~ '{scope_value}' | project id, name, type, location, resourceGroup=name"
-                
                 rg_command = [
-                    'az', 'graph', 'query',
-                    '-q', rg_query,
+                    'az', 'group', 'show',
+                    '--name', scope_value,
                     '--output', 'json'
                 ]
                 
@@ -665,12 +663,18 @@ class CoverageAuditor:
                 rg_stdout, rg_stderr = await rg_process.communicate()
                 
                 if rg_process.returncode == 0:
-                    rg_result = json.loads(rg_stdout.decode())
-                    rg_resources = rg_result.get('data', [])
-                    if rg_resources:
-                        # Add the resource group to the beginning of the list
-                        resources = rg_resources + resources
-                        logger.info(f"Added resource group '{scope_value}' to the resources list")
+                    rg_data = json.loads(rg_stdout.decode())
+                    # Format the resource group to match the ARG query result format
+                    rg_resource = {
+                        'id': rg_data.get('id', ''),
+                        'name': rg_data.get('name', ''),
+                        'type': 'microsoft.resources/resourcegroups',
+                        'location': rg_data.get('location', ''),
+                        'resourceGroup': rg_data.get('name', '')
+                    }
+                    # Add the resource group to the beginning of the list
+                    resources = [rg_resource] + resources
+                    logger.info(f"Added resource group '{scope_value}' to the resources list")
                 else:
                     logger.warning(f"Failed to query resource group itself: {rg_stderr.decode()}")
             
