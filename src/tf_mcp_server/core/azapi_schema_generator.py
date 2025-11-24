@@ -14,8 +14,6 @@ from pathlib import Path
 from typing import Dict, Any, Optional
 from httpx import Client
 
-from .config import get_data_dir
-
 
 logger = logging.getLogger(__name__)
 
@@ -393,7 +391,7 @@ class AzAPISchemaGenerator:
     """Main class for generating AzAPI schemas."""
     
     def __init__(self):
-        self.data_dir = get_data_dir()
+        self.data_dir = Path(__file__).parent.parent.parent / "data"
         self.current_version = None
         
     def _get_schema_file(self, version: str) -> Path:
@@ -424,15 +422,19 @@ class AzAPISchemaGenerator:
         
         return sorted(versions, key=version_key, reverse=True)[0]
     
-    def _check_latest_github_version(self) -> str:
-        """Check the latest version available on GitHub."""
+    def _check_latest_github_version(self) -> Optional[str]:
+        """Check the latest provider version available on GitHub."""
         api_url = "https://api.github.com/repos/Azure/terraform-provider-azapi/releases/latest"
         
-        with Client(timeout=60.0, follow_redirects=True) as client:
-            response = client.get(api_url)
-            response.raise_for_status()
-            release_info = response.json()
-            return release_info["name"]  # This will be something like "v2.6.1"
+        try:
+            with Client(timeout=60.0, follow_redirects=True) as client:
+                response = client.get(api_url)
+                response.raise_for_status()
+                release_info = response.json()
+                return release_info["name"]  # This will be something like "v2.6.1"
+        except Exception as e:
+            logger.warning(f"Failed to check latest GitHub version: {e}")
+            return None
             
     def generate_schemas(self, tag: str = "latest") -> Dict[str, str]:
         """Generate AzAPI schemas from GitHub repository."""
@@ -488,15 +490,20 @@ class AzAPISchemaGenerator:
         logger.info(f"Saved schemas to {schema_file}")
         
     def load_or_generate_schemas(self, force_regenerate: bool = False) -> Dict[str, str]:
-        """Load existing schemas or generate new ones based on version checking."""
+        """Load existing schemas or generate new ones based on version checking.
         
-        # Check latest GitHub version
+        This method focuses on generating schemas from provider source code.
+        For normal usage, use load_with_version_check() which tries prebuilt schemas first.
+        """
+        
+        # Check latest GitHub version from provider releases
         latest_github_version = self._check_latest_github_version()
         latest_local_version = self._get_latest_local_version()
         
         # If we have a local version and it matches the latest GitHub version, load it
         if (not force_regenerate and 
             latest_local_version and 
+            latest_github_version and
             latest_local_version == latest_github_version.lstrip('v')):
             
             schema_file = self._get_schema_file(f"v{latest_local_version}")
@@ -510,7 +517,7 @@ class AzAPISchemaGenerator:
                 logger.warning(f"Failed to load existing schemas: {e}")
                 
         # Generate new schemas (either forced or new version available)
-        if latest_local_version != latest_github_version.lstrip('v'):
+        if latest_github_version and latest_local_version != latest_github_version.lstrip('v'):
             logger.info(f"New version available: {latest_github_version} (local: {latest_local_version or 'none'})")
             
         return self.generate_schemas("latest")
@@ -521,13 +528,81 @@ class AzAPISchemaGenerator:
         if latest_version:
             return self._get_schema_file(f"v{latest_version}")
         return None
+    
+    def load_with_version_check(self) -> Dict[str, str]:
+        """Load AzAPI schemas with intelligent version checking and caching.
+        
+        Logic flow:
+        1. Check GitHub for latest provider version
+        2. Check local cache - if version matches latest, use local
+        3. If version mismatch or no local file, generate from provider source
+        4. If generation fails, fallback to any local cached version
+        """
+        local_schema_data = None
+        
+        # Step 1: Check for latest provider version on GitHub
+        logger.info("Checking GitHub for latest AzAPI provider version...")
+        remote_version = self._check_latest_github_version()
+        if remote_version:
+            logger.info(f"Latest provider version: {remote_version}")
+        else:
+            logger.warning("Failed to check remote provider version")
+        
+        # Step 2: Check local cache
+        latest_schema_file = self.get_latest_schema_file()
+        if latest_schema_file and latest_schema_file.exists():
+            try:
+                with open(latest_schema_file, 'r', encoding='utf-8') as f:
+                    local_schema_data = json.load(f)
+                    local_version = local_schema_data.get('version', 'unknown')
+                    logger.info(f"Found local schema file: {latest_schema_file} (version: {local_version})")
+                    
+                    # If versions match, use local cache
+                    if remote_version and local_version == remote_version:
+                        logger.info(f"Local version matches provider version {remote_version}. Using cached schema.")
+                        return local_schema_data
+            except (json.JSONDecodeError, UnicodeDecodeError) as e:
+                logger.warning(f"Error reading local schema file {latest_schema_file}: {e}")
+                local_schema_data = None
+        
+        # Step 3: Generate schemas from provider source if version mismatch or no local cache
+        if remote_version:
+            try:
+                logger.info(f"Generating schemas for provider version {remote_version}...")
+                schema_data = self.generate_schemas("latest")
+                if schema_data:
+                    logger.info("Successfully generated AzAPI schemas from provider source")
+                    return schema_data
+            except Exception as e:
+                logger.warning(f"Failed to generate schemas from provider source: {e}")
+        
+        # Step 4: Fallback to local cached version if available
+        if local_schema_data:
+            logger.info(f"Using cached local schema version {local_schema_data.get('version', 'unknown')}")
+            return local_schema_data
+        
+        logger.warning("AzAPI schema not available. AzAPI functionality will be limited.")
+        return {}
 
 
 # Main functions for integration
 def initialize_azapi_schemas(force_regenerate: bool = False) -> Dict[str, str]:
-    """Initialize AzAPI schemas on server startup."""
+    """Initialize AzAPI schemas on server startup.
+    
+    Args:
+        force_regenerate: If True, force regeneration from provider source
+    
+    Returns:
+        Dictionary mapping resource types to their schema documentation
+    """
     generator = AzAPISchemaGenerator()
-    return generator.load_or_generate_schemas(force_regenerate)
+    
+    if force_regenerate:
+        # Force generation from provider source
+        return generator.load_or_generate_schemas(force_regenerate=True)
+    else:
+        # Use intelligent version checking with local caching
+        return generator.load_with_version_check()
 
 
 def get_azapi_schema(resource_type: str, schemas: Dict[str, str]) -> str:

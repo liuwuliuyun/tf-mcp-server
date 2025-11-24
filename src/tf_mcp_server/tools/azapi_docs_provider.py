@@ -5,7 +5,7 @@ AzAPI provider documentation tools for Azure Terraform MCP Server.
 from typing import Dict, Any
 from httpx import AsyncClient
 
-from ..core.config import load_azapi_schema
+from ..core.azapi_schema_generator import AzAPISchemaGenerator
 
 
 class AzAPIDocumentationProvider:
@@ -13,7 +13,7 @@ class AzAPIDocumentationProvider:
     
     def __init__(self):
         """Initialize the AzAPI documentation provider."""
-        self.azapi_schema = load_azapi_schema()
+        self.azapi_schema = AzAPISchemaGenerator().load_with_version_check()
     
     async def search_azapi_provider_docs(
         self, 
