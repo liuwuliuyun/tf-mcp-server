@@ -6,9 +6,8 @@ import os
 import json
 from pathlib import Path
 from typing import Dict, Any, Optional
-import asyncio
 from pydantic import BaseModel, Field
-from httpx import AsyncClient
+from httpx import Client
 
 
 class ServerConfig(BaseModel):
@@ -93,7 +92,7 @@ def load_azapi_schema() -> Dict[str, Any]:
     # If no versioned file exists, try to load or generate schemas
     try:
         print("No local versioned schema found. Checking for updates...")
-        schema_data = asyncio.run(generator.load_or_generate_schemas())
+        schema_data =generator.load_or_generate_schemas()
         
         if schema_data:
             print(f"Successfully loaded/generated AzAPI schemas")
@@ -104,7 +103,7 @@ def load_azapi_schema() -> Dict[str, Any]:
     # Fallback: try to download from GitHub
     try:
         print("Falling back to downloading schema from GitHub...")
-        schema_data = asyncio.run(_download_azapi_schema())
+        schema_data = _download_azapi_schema()
         
         # Save the downloaded schema to local file for future use
         if schema_data:
@@ -120,12 +119,12 @@ def load_azapi_schema() -> Dict[str, Any]:
     return {}
 
 
-async def _download_azapi_schema() -> Dict[str, Any]:
+def _download_azapi_schema() -> Dict[str, Any]:
     """Download AzAPI schema from GitHub."""
     github_url = "https://raw.githubusercontent.com/liuwuliuyun/azapi_schema/refs/heads/main/azapi_schemas.json"
     
-    async with AsyncClient(timeout=30.0) as client:
-        response = await client.get(github_url)
+    with Client(timeout=30.0) as client:
+        response = client.get(github_url)
         response.raise_for_status()
         return response.json()
 

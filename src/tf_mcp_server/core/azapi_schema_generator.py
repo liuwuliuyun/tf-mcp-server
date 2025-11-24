@@ -12,7 +12,7 @@ import os
 import tempfile
 from pathlib import Path
 from typing import Dict, Any, Optional
-import asyncio
+from httpx import Client
 
 from .config import get_data_dir
 
@@ -33,16 +33,15 @@ class GitHubLoader:
         except Exception as e:
             logger.error(f"Failed to create download directory {self.download_dir}: {e}")
             raise
-    async def download_latest_release(self) -> Path:
+    def download_latest_release(self) -> Path:
         """Download and extract the latest release."""
         import tarfile
-        from httpx import AsyncClient
         
         # Get release info
         api_url = f"https://api.github.com/repos/{self.owner}/{self.repo}/releases/{self.tag}"
         
-        async with AsyncClient(timeout=60.0, follow_redirects=True) as client:
-            response = await client.get(api_url)
+        with Client(timeout=60.0, follow_redirects=True) as client:
+            response = client.get(api_url)
             response.raise_for_status()
             release_info = response.json()
                 
@@ -53,7 +52,7 @@ class GitHubLoader:
             # Download if not exists
             if not dest_path.exists():
                 logger.info(f"Downloading {tarball_name} from {tarball_url}")
-                download_response = await client.get(tarball_url)
+                download_response = client.get(tarball_url)
                 download_response.raise_for_status()
                 with open(dest_path, 'wb') as f:
                     f.write(download_response.content)
@@ -425,30 +424,28 @@ class AzAPISchemaGenerator:
         
         return sorted(versions, key=version_key, reverse=True)[0]
     
-    async def _check_latest_github_version(self) -> str:
+    def _check_latest_github_version(self) -> str:
         """Check the latest version available on GitHub."""
-        from httpx import AsyncClient
-        
         api_url = "https://api.github.com/repos/Azure/terraform-provider-azapi/releases/latest"
         
-        async with AsyncClient(timeout=60.0, follow_redirects=True) as client:
-            response = await client.get(api_url)
+        with Client(timeout=60.0, follow_redirects=True) as client:
+            response = client.get(api_url)
             response.raise_for_status()
             release_info = response.json()
             return release_info["name"]  # This will be something like "v2.6.1"
             
-    async def generate_schemas(self, tag: str = "latest") -> Dict[str, str]:
+    def generate_schemas(self, tag: str = "latest") -> Dict[str, str]:
         """Generate AzAPI schemas from GitHub repository."""
         logger.info(f"Generating AzAPI schemas for tag: {tag}")
         
         try:
             # Download AzAPI provider repository
             loader = GitHubLoader("Azure", "terraform-provider-azapi", tag)
-            repo_dir = await loader.download_latest_release()
+            repo_dir = loader.download_latest_release()
             
             # Get the actual version from the release info
             if tag == "latest":
-                self.current_version = await self._check_latest_github_version()
+                self.current_version = self._check_latest_github_version()
             else:
                 self.current_version = tag
             
@@ -467,7 +464,7 @@ class AzAPISchemaGenerator:
                 schema_docs[resource_type] = schema.as_documentation()
                 
             # Save to file with version
-            await self._save_schemas(schema_docs)
+            self._save_schemas(schema_docs)
             
             logger.info(f"Generated {len(schema_docs)} AzAPI schemas")
             return schema_docs
@@ -476,7 +473,7 @@ class AzAPISchemaGenerator:
             logger.error(f"Failed to generate AzAPI schemas: {e}")
             raise
             
-    async def _save_schemas(self, schemas: Dict[str, str]) -> None:
+    def _save_schemas(self, schemas: Dict[str, str]) -> None:
         """Save schemas to JSON file with version."""
         self.data_dir.mkdir(parents=True, exist_ok=True)
         
@@ -490,11 +487,11 @@ class AzAPISchemaGenerator:
             
         logger.info(f"Saved schemas to {schema_file}")
         
-    async def load_or_generate_schemas(self, force_regenerate: bool = False) -> Dict[str, str]:
+    def load_or_generate_schemas(self, force_regenerate: bool = False) -> Dict[str, str]:
         """Load existing schemas or generate new ones based on version checking."""
         
         # Check latest GitHub version
-        latest_github_version = await self._check_latest_github_version()
+        latest_github_version = self._check_latest_github_version()
         latest_local_version = self._get_latest_local_version()
         
         # If we have a local version and it matches the latest GitHub version, load it
@@ -516,7 +513,7 @@ class AzAPISchemaGenerator:
         if latest_local_version != latest_github_version.lstrip('v'):
             logger.info(f"New version available: {latest_github_version} (local: {latest_local_version or 'none'})")
             
-        return await self.generate_schemas("latest")
+        return self.generate_schemas("latest")
     
     def get_latest_schema_file(self) -> Optional[Path]:
         """Get the path to the latest versioned schema file."""
@@ -527,10 +524,10 @@ class AzAPISchemaGenerator:
 
 
 # Main functions for integration
-async def initialize_azapi_schemas(force_regenerate: bool = False) -> Dict[str, str]:
+def initialize_azapi_schemas(force_regenerate: bool = False) -> Dict[str, str]:
     """Initialize AzAPI schemas on server startup."""
     generator = AzAPISchemaGenerator()
-    return await generator.load_or_generate_schemas(force_regenerate)
+    return generator.load_or_generate_schemas(force_regenerate)
 
 
 def get_azapi_schema(resource_type: str, schemas: Dict[str, str]) -> str:
@@ -558,11 +555,9 @@ def get_azapi_parent(resource_type: str) -> str:
 
 if __name__ == "__main__":
     # For testing
-    import asyncio
-    
-    async def test():
+    def test():
         generator = AzAPISchemaGenerator()
-        schemas = await generator.generate_schemas()
+        schemas = generator.generate_schemas()
         print(f"Generated {len(schemas)} schemas")
         
-    asyncio.run(test())
+    test()
