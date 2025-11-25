@@ -97,6 +97,44 @@ For detailed installation instructions including:
 
 For detailed configuration options including environment variables, configuration files, and Azure authentication setup, see the [Installation Guide](docs/installation.md#configuration).
 
+## Telemetry
+
+This tool collects **anonymous usage telemetry** to help improve quality and performance. We collect:
+
+- ✅ Tool usage counts and performance metrics
+- ✅ Anonymous user ID (randomly generated UUID)
+- ✅ Error types and success rates
+
+We **DO NOT** collect:
+- ❌ Personal information or identifiers
+- ❌ File paths, resource names, or configuration content
+- ❌ Azure subscription IDs or credentials
+
+### Opt-Out
+
+Telemetry is **optional** and can be disabled anytime:
+
+```bash
+# Disable telemetry via environment variable
+export TELEMETRY_ENABLED=false
+```
+
+Or add to your `.vscode/mcp.json`:
+
+```json
+{
+  "servers": {
+    "tf-mcp-server": {
+      "env": {
+        "TELEMETRY_ENABLED": "false"
+      }
+    }
+  }
+}
+```
+
+**📖 For complete details, see [Telemetry Documentation](docs/telemetry.md)**
+
 ### Available Tools
 
 The server provides comprehensive tools across multiple categories. For complete tool reference with examples, see the [API Reference](docs/api-reference.md).

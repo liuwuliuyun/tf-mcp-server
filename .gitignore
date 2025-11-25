@@ -28,3 +28,7 @@ workspace/
 
 # avm data cache
 __avm_data_cache__/
+
+# Telemetry configuration
+.telemetry_config.json
+.tf_mcp_server/
