@@ -14,15 +14,11 @@ This directory contains comprehensive documentation for the Azure Terraform MCP 
 - **[Terraform State Management](terraform-state-management.md)** - Safe resource renaming and state operations
 - **[Terraform Coverage Audit](terraform-coverage-audit.md)** - Audit Terraform coverage of Azure resources and identify gaps
 - **[Azure Best Practices](azure-best-practices-tool.md)** - Get Azure and Terraform best practices with code cleanup guidance
-- **[Source Code Analysis](terraform-golang-source-tools.md)** - Terraform and Golang source code analysis
 
 ### 🛡️ Security & Validation
 - **[TFLint Integration](tflint-integration.md)** - Static analysis for Terraform code
 - **[Conftest AVM Validation](conftest-avm-validation.md)** - Policy-based security validation
 - **[Security Policies](security-policies.md)** - Available security and compliance policies
-
-### 🔄 Azure Integration
-- **[Azure Export (aztfexport)](aztfexport-integration.md)** - Export existing Azure resources to Terraform
 - **[Azure Authentication](azure-authentication.md)** - Configure Azure service principal authentication
 
 ### 🐳 Deployment & Operations
@@ -42,8 +38,6 @@ The latest version includes:
 - **🧹 Code Cleanup Workflow**: Transform exported Terraform code to production-ready with best practices guidance
 - **📋 Enhanced Best Practices**: New "code-cleanup" action for aztfexport with detailed resource naming and refactoring guidance
 - **🔐 Variables vs Locals Guidance**: Clear recommendations on when to use variables versus locals
-- **Enhanced Terraform Source Code Analysis**: Query provider implementations directly
-- **Golang Source Code Access**: Read Go source code from Terraform providers  
 - **Improved Azure Best Practices**: Comprehensive recommendations for Azure resources
 - **Better Error Handling**: More detailed error messages and validation
 - **Updated Dependencies**: Latest FastMCP framework and improved performance
@@ -63,7 +57,6 @@ The latest version includes:
 3. **Code Cleanup** → [State Management Guide](terraform-state-management.md)
 4. **Coverage Audit** → [Coverage Audit Guide](terraform-coverage-audit.md)
 5. **Security Validation** → [Conftest Validation](conftest-avm-validation.md)
-6. **Code Analysis** → [Source Code Analysis](terraform-golang-source-tools.md)
 
 ## 🤝 Contributing
 

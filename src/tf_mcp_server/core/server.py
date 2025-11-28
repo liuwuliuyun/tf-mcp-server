@@ -4,11 +4,13 @@ Main server implementation for Azure Terraform MCP Server.
 
 import json
 import logging
+import atexit
 from typing import Dict, Any
 from pydantic import Field
 from fastmcp import FastMCP
 
 from .config import Config
+from .telemetry import get_telemetry_manager, track_tool_call
 from ..tools.avm_docs_provider import get_avm_documentation_provider, ExpectedException
 from ..tools.azurerm_docs_provider import get_azurerm_documentation_provider
 from ..tools.azapi_docs_provider import get_azapi_documentation_provider
@@ -17,8 +19,6 @@ from ..tools.tflint_runner import get_tflint_runner
 from ..tools.conftest_avm_runner import get_conftest_avm_runner
 from ..tools.aztfexport_runner import get_aztfexport_runner
 from ..tools.coverage_auditor import get_coverage_auditor
-
-from ..tools.golang_source_provider import get_golang_source_provider
 
 logger = logging.getLogger(__name__)
 
@@ -35,6 +35,18 @@ def create_server(config: Config) -> FastMCP:
     """
     mcp = FastMCP("Azure Terraform MCP Server", version="0.1.0")
 
+    # Initialize telemetry
+    telemetry_manager = get_telemetry_manager()
+    telemetry_manager.configure(
+        connection_string=config.telemetry.connection_string,
+        user_id=config.telemetry.user_id,
+        enabled=config.telemetry.enabled,
+        sample_rate=config.telemetry.sample_rate
+    )
+    
+    # Register shutdown handler
+    atexit.register(telemetry_manager.shutdown)
+
     # Get service instances
     avm_doc_provider = get_avm_documentation_provider()
     azurerm_doc_provider = get_azurerm_documentation_provider()
@@ -44,13 +56,13 @@ def create_server(config: Config) -> FastMCP:
     conftest_avm_runner = get_conftest_avm_runner()
     aztfexport_runner = get_aztfexport_runner()
     coverage_auditor = get_coverage_auditor(terraform_runner, aztfexport_runner)
-    golang_source_provider = get_golang_source_provider()
 
     # ==========================================
     # DOCUMENTATION TOOLS
     # ==========================================
 
     @mcp.tool("get_avm_modules")
+    @track_tool_call("get_avm_modules")
     def get_avm_modules() -> str:
         """Retrieves all available Azure verified modules.
 
@@ -70,6 +82,7 @@ def create_server(config: Config) -> FastMCP:
             return "failed to retrieve available modules"
 
     @mcp.tool("get_avm_latest_version")
+    @track_tool_call("get_avm_latest_version")
     def get_avm_latest_version(module_name: str) -> str:
         """Retrieves the latest version of a specified Azure verified module.
 
@@ -89,6 +102,7 @@ def create_server(config: Config) -> FastMCP:
             return "failed to retrieve the latest module version"
 
     @mcp.tool("get_avm_versions")
+    @track_tool_call("get_avm_versions")
     def get_avm_versions(module_name: str) -> str:
         """Retrieves all available versions of a specified Azure verified module.
 
@@ -107,6 +121,7 @@ def create_server(config: Config) -> FastMCP:
             return "failed to retrieve available module versions"
 
     @mcp.tool("get_avm_variables")
+    @track_tool_call("get_avm_variables")
     def get_avm_variables(module_name: str, module_version: str) -> str:
         """Retrieves the variables of a specified Azure verified module. The variables describe the schema of the module's configuration.
 
@@ -127,6 +142,7 @@ def create_server(config: Config) -> FastMCP:
             return "failed to retrieve module variables"
 
     @mcp.tool("get_avm_outputs")
+    @track_tool_call("get_avm_outputs")
     def get_avm_outputs(module_name: str, module_version: str) -> str:
         """Retrieves the outputs of a specified Azure verified module. The outputs can be used to assign values to other resources or modules in Terraform.
 
@@ -147,6 +163,7 @@ def create_server(config: Config) -> FastMCP:
             return "failed to retrieve module outputs"
 
     @mcp.tool("get_azurerm_provider_documentation")
+    @track_tool_call("get_azurerm_provider_documentation")
     async def get_azurerm_provider_documentation(
         resource_type_name: str,
         doc_type: str = Field(
@@ -276,6 +293,7 @@ def create_server(config: Config) -> FastMCP:
             }
 
     @mcp.tool("get_azapi_provider_documentation")
+    @track_tool_call("get_azapi_provider_documentation")
     async def get_azapi_provider_documentation(resource_type_name: str) -> str:
         """
         Retrieve documentation for a specific AzAPI resource type in Terraform.
@@ -331,6 +349,7 @@ def create_server(config: Config) -> FastMCP:
     # ==========================================
 
     @mcp.tool("run_terraform_command")
+    @track_tool_call("run_terraform_command")
     async def run_terraform_command(
         command: str = Field(
             ..., description="Terraform command to execute (init, plan, apply, destroy, validate, fmt, state)"),
@@ -514,6 +533,7 @@ def create_server(config: Config) -> FastMCP:
     # ==========================================
 
     @mcp.tool("check_tflint_installation")
+    @track_tool_call("check_tflint_installation")
     async def check_tflint_installation() -> Dict[str, Any]:
         """
         Check if TFLint is installed and get version information.
@@ -540,6 +560,7 @@ def create_server(config: Config) -> FastMCP:
             }
 
     @mcp.tool("run_tflint_workspace_analysis")
+    @track_tool_call("run_tflint_workspace_analysis")
     async def run_tflint_workspace_analysis(
         workspace_folder: str,
         output_format: str = Field(
@@ -605,6 +626,7 @@ def create_server(config: Config) -> FastMCP:
             }
 
     @mcp.tool("run_conftest_workspace_validation")
+    @track_tool_call("run_conftest_workspace_validation")
     async def run_conftest_workspace_validation(
         workspace_folder: str,
         policy_set: str = Field(
@@ -660,6 +682,7 @@ def create_server(config: Config) -> FastMCP:
             }
 
     @mcp.tool("run_conftest_workspace_plan_validation")
+    @track_tool_call("run_conftest_workspace_plan_validation")
     async def run_conftest_workspace_plan_validation(
         folder_name: str,
         policy_set: str = Field(
@@ -716,6 +739,7 @@ def create_server(config: Config) -> FastMCP:
             }
 
     @mcp.tool("check_conftest_installation")
+    @track_tool_call("check_conftest_installation")
     async def check_conftest_installation() -> Dict[str, Any]:
         """
         Check if Conftest is installed and get version information.
@@ -742,6 +766,7 @@ def create_server(config: Config) -> FastMCP:
     # ==========================================
 
     @mcp.tool("check_aztfexport_installation")
+    @track_tool_call("check_aztfexport_installation")
     async def check_aztfexport_installation() -> Dict[str, Any]:
         """
         Check if Azure Export for Terraform (aztfexport) is installed and get version information.
@@ -760,6 +785,7 @@ def create_server(config: Config) -> FastMCP:
             }
 
     @mcp.tool("export_azure_resource")
+    @track_tool_call("export_azure_resource")
     async def export_azure_resource(
         resource_id: str = Field(...,
                                  description="Azure resource ID to export"),
@@ -836,6 +862,7 @@ def create_server(config: Config) -> FastMCP:
             }
 
     @mcp.tool("export_azure_resource_group")
+    @track_tool_call("export_azure_resource_group")
     async def export_azure_resource_group(
         resource_group_name: str = Field(...,
                                          description="Name of the resource group to export"),
@@ -912,6 +939,7 @@ def create_server(config: Config) -> FastMCP:
             }
 
     @mcp.tool("export_azure_resources_by_query")
+    @track_tool_call("export_azure_resources_by_query")
     async def export_azure_resources_by_query(
         query: str = Field(...,
                            description="Azure Resource Graph query (WHERE clause)"),
@@ -994,6 +1022,7 @@ def create_server(config: Config) -> FastMCP:
             }
 
     @mcp.tool("get_aztfexport_config")
+    @track_tool_call("get_aztfexport_config")
     async def get_aztfexport_config(
         key: str = Field(
             "", description="Specific config key to retrieve (optional)")
@@ -1023,6 +1052,7 @@ def create_server(config: Config) -> FastMCP:
             }
 
     @mcp.tool("set_aztfexport_config")
+    @track_tool_call("set_aztfexport_config")
     async def set_aztfexport_config(
         key: str = Field(..., description="Configuration key to set"),
         value: str = Field(..., description="Configuration value to set")
@@ -1058,6 +1088,7 @@ def create_server(config: Config) -> FastMCP:
     # ==========================================
 
     @mcp.tool("audit_terraform_coverage")
+    @track_tool_call("audit_terraform_coverage")
     async def audit_terraform_coverage(
         workspace_folder: str = Field(..., description="Terraform workspace to audit"),
         scope: str = Field(..., description="Audit scope: 'resource-group', 'subscription', 'query'"),
@@ -1148,179 +1179,12 @@ def create_server(config: Config) -> FastMCP:
                 'error': f'Failed to audit coverage: {str(e)}'
             }
 
-
-    # ==========================================
-    # TERRAFORM SOURCE CODE QUERY TOOLS
-    # ==========================================
-    
-    @mcp.tool("get_terraform_source_providers")
-    def get_terraform_source_providers() -> Dict[str, Any]:
-        """
-        Get all supported Terraform provider names available for source code query.
-        
-        Returns a list of provider names that have been indexed and are available
-        for golang source code analysis.
-        
-        Returns:
-            Dictionary with supported providers list
-        """
-        try:
-            providers = golang_source_provider.get_supported_providers()
-            return {
-                "supported_providers": providers,
-                "total_count": len(providers),
-                "description": "Terraform providers available for source code analysis"
-            }
-            
-        except Exception as e:
-            logger.error(f"Error getting supported providers: {e}")
-            return {
-                "error": f"Failed to get supported providers: {str(e)}",
-                "supported_providers": []
-            }
-    
-    @mcp.tool("query_terraform_source_code")
-    async def query_terraform_source_code(
-        block_type: str = Field(..., description="Terraform block type: resource, data, ephemeral"),
-        terraform_type: str = Field(..., description="Terraform type (e.g., azurerm_resource_group)"),
-        entrypoint_name: str = Field(..., description="Function/method name (create, read, update, delete, schema, etc.)"),
-        tag: str = Field(default="", description="Version tag (optional)")
-    ) -> str:
-        """
-        Read Terraform provider source code for a given Terraform block.
-        
-        Use this tool to understand how Terraform providers implement specific resources,
-        how they call APIs, and to debug issues related to specific Terraform resources.
-        
-        Args:
-            block_type: The terraform block type
-            terraform_type: The terraform resource/data type
-            entrypoint_name: The function or method name to read
-            tag: Optional version tag
-            
-        Returns:
-            Source code as string
-        """
-        try:
-            source_code = await golang_source_provider.query_terraform_source_code(
-                block_type=block_type,
-                terraform_type=terraform_type,
-                entrypoint_name=entrypoint_name,
-                tag=tag if tag else None
-            )
-            return source_code
-            
-        except Exception as e:
-            logger.error(f"Error querying terraform source code: {e}")
-            return f"Error: Failed to query terraform source code: {str(e)}"
-
-    # ==========================================
-    # GOLANG SOURCE CODE ANALYSIS TOOLS
-    # ==========================================
-    
-    @mcp.tool("get_golang_namespaces")
-    def get_golang_namespaces() -> Dict[str, Any]:
-        """
-        Get all indexed golang namespaces available for source code analysis.
-        
-        Returns a list of golang namespaces/packages that have been indexed
-        and are available for source code retrieval.
-        
-        Returns:
-            Dictionary with supported namespaces
-        """
-        try:
-            namespaces = golang_source_provider.get_supported_namespaces()
-            return {
-                "supported_namespaces": namespaces,
-                "total_count": len(namespaces),
-                "description": "Golang namespaces available for source code analysis"
-            }
-            
-        except Exception as e:
-            logger.error(f"Error getting supported namespaces: {e}")
-            return {
-                "error": f"Failed to get supported namespaces: {str(e)}",
-                "supported_namespaces": []
-            }
-    
-    @mcp.tool("get_golang_namespace_tags")
-    async def get_golang_namespace_tags(
-        namespace: str = Field(..., description="Golang namespace to get tags for")
-    ) -> Dict[str, Any]:
-        """
-        Get all supported tags/versions for a specific golang namespace.
-        
-        Use this tool to discover available versions/tags for a specific golang
-        namespace before analyzing code from a particular version.
-        
-        Args:
-            namespace: The golang namespace to query
-            
-        Returns:
-            Dictionary with supported tags for the namespace
-        """
-        try:
-            tags = await golang_source_provider.get_supported_tags(namespace)
-            return {
-                "namespace": namespace,
-                "supported_tags": tags,
-                "total_count": len(tags),
-                "latest_tag": tags[0] if tags else "unknown"
-            }
-            
-        except Exception as e:
-            logger.error(f"Error getting supported tags: {e}")
-            return {
-                "error": f"Failed to get supported tags: {str(e)}",
-                "namespace": namespace,
-                "supported_tags": []
-            }
-    
-    @mcp.tool("query_golang_source_code")
-    async def query_golang_source_code(
-        namespace: str = Field(..., description="Golang namespace to query"),
-        symbol: str = Field(..., description="Symbol type: func, method, type, var"),
-        name: str = Field(..., description="Name of the symbol to read"),
-        receiver: str = Field(default="", description="Method receiver type (required for methods)"),
-        tag: str = Field(default="", description="Version tag (optional)")
-    ) -> str:
-        """
-        Read golang source code for given type, variable, constant, function or method definition.
-        
-        Use this tool when you need to see function, method, type, or variable definitions
-        while reading golang source code, understand how Terraform providers expand or
-        flatten structs, or debug issues related to specific Terraform resources.
-        
-        Args:
-            namespace: The golang namespace/package
-            symbol: The symbol type (func, method, type, var)
-            name: The name of the symbol
-            receiver: The receiver type (for methods only)
-            tag: Version tag
-            
-        Returns:
-            Source code as string
-        """
-        try:
-            source_code = await golang_source_provider.query_golang_source_code(
-                namespace=namespace,
-                symbol=symbol,
-                name=name,
-                receiver=receiver if receiver else None,
-                tag=tag if tag else None
-            )
-            return source_code
-            
-        except Exception as e:
-            logger.error(f"Error querying golang source code: {e}")
-            return f"Error: Failed to query golang source code: {str(e)}"
-    
     # ==========================================
     # AZURE BEST PRACTICES TOOL
     # ==========================================
 
     @mcp.tool("get_azure_best_practices")
+    @track_tool_call("get_azure_best_practices")
     def get_azure_best_practices(
         resource: str = Field(
             default="general",

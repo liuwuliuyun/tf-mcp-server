@@ -373,5 +373,4 @@ Get output definitions for a module version.
 ## 🔗 Related Tools
 
 - **[Best Practices](azure-best-practices-tool.md)**: Get Azure-specific best practices
-- **[Source Code Analysis](terraform-golang-source-tools.md)**: Understand provider implementation
 - **[Azure Export](aztfexport-integration.md)**: Export existing resources to Terraform

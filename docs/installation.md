@@ -408,7 +408,6 @@ After installation:
    - [Azure Export Integration](aztfexport-integration.md) - Export existing resources
 
 6. **🔍 Advanced Usage**:
-   - [Source Code Analysis](terraform-golang-source-tools.md) - Analyze provider implementations
    - [Azure Best Practices](azure-best-practices-tool.md) - Get Azure recommendations
    - [TFLint Integration](tflint-integration.md) - Static code analysis
 
