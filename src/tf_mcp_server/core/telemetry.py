@@ -93,8 +93,13 @@ class TelemetryManager:
             return
         
         try:
-            # Configure Azure Monitor with OpenTelemetry
-            from azure.monitor.opentelemetry import configure_azure_monitor
+            # Use Azure Monitor exporters directly (not the auto-instrumenting package)
+            # This gives us full control - we only collect what we explicitly track
+            from azure.monitor.opentelemetry.exporter import AzureMonitorTraceExporter, AzureMonitorMetricExporter
+            from opentelemetry.sdk.trace.export import BatchSpanProcessor
+            from opentelemetry.sdk.metrics.export import PeriodicExportingMetricReader
+            from opentelemetry.sdk.metrics import MeterProvider as SDKMeterProvider
+            from opentelemetry.sdk.trace import TracerProvider as SDKTracerProvider
 
             # Create resource attributes
             resource = Resource.create({
@@ -103,11 +108,29 @@ class TelemetryManager:
                 "user.id": user_id,
             })
 
-            # Configure Azure Monitor
-            configure_azure_monitor(
-                connection_string=connection_string,
-                resource=resource,
+            # Configure trace provider with batching
+            # We ONLY collect spans created via our @track_tool_call decorator
+            # No automatic instrumentation of HTTP libraries, logging, etc.
+            trace_exporter = AzureMonitorTraceExporter(connection_string=connection_string)
+            span_processor = BatchSpanProcessor(
+                trace_exporter,
+                schedule_delay_millis=60000,  # Export every 60 seconds (vs default 5 seconds)
+                max_export_batch_size=512,
+                max_queue_size=2048,
             )
+            trace_provider = SDKTracerProvider(resource=resource)
+            trace_provider.add_span_processor(span_processor)
+            trace.set_tracer_provider(trace_provider)
+
+            # Configure metrics provider
+            # We ONLY collect metrics from our explicit tool tracking
+            metric_exporter = AzureMonitorMetricExporter(connection_string=connection_string)
+            metric_reader = PeriodicExportingMetricReader(
+                metric_exporter,
+                export_interval_millis=60000,  # Export every 60 seconds
+            )
+            meter_provider = SDKMeterProvider(resource=resource, metric_readers=[metric_reader])
+            metrics.set_meter_provider(meter_provider)
  
             # Get tracer and meter
             self.tracer = trace.get_tracer("tf-mcp-server", "0.1.0")
@@ -116,8 +139,15 @@ class TelemetryManager:
             # Create metrics
             self._create_metrics()
 
-            # Track user heartbeat
-            self._track_heartbeat()
+            # Disable automatic instrumentation of libraries
+            # We only want to collect our explicit tool call telemetry, not HTTP requests, etc.
+            self._disable_auto_instrumentation()
+
+            # Suppress Azure SDK HTTP logging to reduce noise
+            logging.getLogger("azure.core.pipeline.policies.http_logging_policy").setLevel(logging.WARNING)
+            logging.getLogger("azure.monitor.opentelemetry").setLevel(logging.WARNING)
+            logging.getLogger("azure.core.pipeline.policies").setLevel(logging.WARNING)
+            logging.getLogger("httpx").setLevel(logging.WARNING)
 
             logger.info(f"Azure Monitor telemetry configured successfully (user_id: {user_id[:8]}...)")
 
@@ -158,6 +188,36 @@ class TelemetryManager:
         except Exception as e:
             logger.error(f"Failed to create metrics: {e}")
     
+    def _disable_auto_instrumentation(self) -> None:
+        """
+        Disable automatic collection of application logs as traces.
+        
+        We only want our explicit tool call telemetry, not all application logging.
+        This prevents logger.info/debug calls from being sent to Application Insights.
+        """
+        try:
+            # Disable any logging handler that might be sending logs to Application Insights
+            # The Azure Monitor SDK can automatically add handlers to capture logs
+            import logging
+            root_logger = logging.getLogger()
+            
+            # Remove any Azure Monitor handlers from the root logger
+            for handler in root_logger.handlers[:]:
+                handler_class = handler.__class__.__name__
+                if 'AzureMonitor' in handler_class or 'ApplicationInsights' in handler_class:
+                    root_logger.removeHandler(handler)
+                    logger.debug(f"Removed auto-instrumented handler: {handler_class}")
+            
+            # Also check our specific logger
+            app_logger = logging.getLogger("tf_mcp_server")
+            for handler in app_logger.handlers[:]:
+                handler_class = handler.__class__.__name__
+                if 'AzureMonitor' in handler_class or 'ApplicationInsights' in handler_class:
+                    app_logger.removeHandler(handler)
+                    
+        except Exception as e:
+            logger.debug(f"Error disabling auto-instrumentation: {e}")
+    
     def _track_heartbeat(self) -> None:
         """Track user heartbeat for MAU calculation."""
         if not self.tracer or not self.enabled:
@@ -172,8 +232,9 @@ class TelemetryManager:
                     "user.id": self.user_id or "unknown",
                     "date": datetime.now(UTC).date().isoformat()
                 })
+                logger.info(f"Telemetry heartbeat collected for user {self.user_id[:8] if self.user_id else 'unknown'}...")
         except Exception as e:
-            logger.debug(f"Failed to track heartbeat: {e}")
+            logger.warning(f"Failed to track heartbeat: {e}")
     
     def track_tool_call(
         self,
@@ -218,9 +279,13 @@ class TelemetryManager:
 
             if not success and self.tool_error_counter:
                 self.tool_error_counter.add(1, attrs)
+            
+            # Log successful telemetry collection
+            status = "success" if success else f"error ({error_type})"
+            logger.info(f"Telemetry collected: tool={tool_name}, status={status}, duration={duration_ms:.2f}ms")
 
         except Exception as e:
-            logger.debug(f"Failed to track tool call: {e}")
+            logger.warning(f"Failed to track tool call: {e}")
     
     def track_exception(
         self,
@@ -251,7 +316,7 @@ class TelemetryManager:
                     span.set_attribute(key, str(value))
 
         except Exception as e:
-            logger.debug(f"Failed to track exception: {e}")
+            logger.warning(f"Failed to track exception: {e}")
     
     def shutdown(self) -> None:
         """Shutdown telemetry and flush any pending data."""

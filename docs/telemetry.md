@@ -48,12 +48,16 @@ Telemetry helps us:
 
 ## Technology Used
 
-We use **Azure Monitor OpenTelemetry** to collect and transmit telemetry data:
+We use **Azure Monitor OpenTelemetry Exporters** to collect and transmit telemetry data:
 
 - **OpenTelemetry Standard**: Industry-standard observability framework (CNCF project)
 - **Azure Application Insights**: Microsoft's application performance management service
+- **Explicit Tracking Only**: We only collect data from our `@track_tool_call` decorator - no automatic instrumentation
+- **No Application Logs**: Your logger.info/debug statements are NOT collected
+- **No HTTP Tracing**: HTTP requests from libraries like httpx are NOT collected
 - **Secure Transmission**: All data is encrypted in transit using HTTPS
 - **Data Retention**: Data is retained according to Azure Application Insights default policies (90 days)
+- **Batched Exports**: Telemetry is exported every 60 seconds to minimize network overhead
 
 ## How to Opt Out
 
@@ -158,7 +162,7 @@ If you're a project maintainer with access to Application Insights, here are som
 ### Tool Call Counts
 
 ```kql
-traces
+customMetrics
 | where customDimensions.["tool.name"] != ""
 | summarize CallCount = count() by ToolName = tostring(customDimensions.["tool.name"])
 | order by CallCount desc
