@@ -20,8 +20,6 @@ from ..tools.conftest_avm_runner import get_conftest_avm_runner
 from ..tools.aztfexport_runner import get_aztfexport_runner
 from ..tools.coverage_auditor import get_coverage_auditor
 
-from ..tools.golang_source_provider import get_golang_source_provider
-
 logger = logging.getLogger(__name__)
 
 
@@ -58,7 +56,6 @@ def create_server(config: Config) -> FastMCP:
     conftest_avm_runner = get_conftest_avm_runner()
     aztfexport_runner = get_aztfexport_runner()
     coverage_auditor = get_coverage_auditor(terraform_runner, aztfexport_runner)
-    golang_source_provider = get_golang_source_provider()
 
     # ==========================================
     # DOCUMENTATION TOOLS
@@ -1182,179 +1179,6 @@ def create_server(config: Config) -> FastMCP:
                 'error': f'Failed to audit coverage: {str(e)}'
             }
 
-
-    # ==========================================
-    # TERRAFORM SOURCE CODE QUERY TOOLS
-    # ==========================================
-    
-    @mcp.tool("get_terraform_source_providers")
-    @track_tool_call("get_terraform_source_providers")
-    def get_terraform_source_providers() -> Dict[str, Any]:
-        """
-        Get all supported Terraform provider names available for source code query.
-        
-        Returns a list of provider names that have been indexed and are available
-        for golang source code analysis.
-        
-        Returns:
-            Dictionary with supported providers list
-        """
-        try:
-            providers = golang_source_provider.get_supported_providers()
-            return {
-                "supported_providers": providers,
-                "total_count": len(providers),
-                "description": "Terraform providers available for source code analysis"
-            }
-            
-        except Exception as e:
-            logger.error(f"Error getting supported providers: {e}")
-            return {
-                "error": f"Failed to get supported providers: {str(e)}",
-                "supported_providers": []
-            }
-    
-    @mcp.tool("query_terraform_source_code")
-    @track_tool_call("query_terraform_source_code")
-    async def query_terraform_source_code(
-        block_type: str = Field(..., description="Terraform block type: resource, data, ephemeral"),
-        terraform_type: str = Field(..., description="Terraform type (e.g., azurerm_resource_group)"),
-        entrypoint_name: str = Field(..., description="Function/method name (create, read, update, delete, schema, etc.)"),
-        tag: str = Field(default="", description="Version tag (optional)")
-    ) -> str:
-        """
-        Read Terraform provider source code for a given Terraform block.
-        
-        Use this tool to understand how Terraform providers implement specific resources,
-        how they call APIs, and to debug issues related to specific Terraform resources.
-        
-        Args:
-            block_type: The terraform block type
-            terraform_type: The terraform resource/data type
-            entrypoint_name: The function or method name to read
-            tag: Optional version tag
-            
-        Returns:
-            Source code as string
-        """
-        try:
-            source_code = await golang_source_provider.query_terraform_source_code(
-                block_type=block_type,
-                terraform_type=terraform_type,
-                entrypoint_name=entrypoint_name,
-                tag=tag if tag else None
-            )
-            return source_code
-            
-        except Exception as e:
-            logger.error(f"Error querying terraform source code: {e}")
-            return f"Error: Failed to query terraform source code: {str(e)}"
-
-    # ==========================================
-    # GOLANG SOURCE CODE ANALYSIS TOOLS
-    # ==========================================
-    
-    @mcp.tool("get_golang_namespaces")
-    @track_tool_call("get_golang_namespaces")
-    def get_golang_namespaces() -> Dict[str, Any]:
-        """
-        Get all indexed golang namespaces available for source code analysis.
-        
-        Returns a list of golang namespaces/packages that have been indexed
-        and are available for source code retrieval.
-        
-        Returns:
-            Dictionary with supported namespaces
-        """
-        try:
-            namespaces = golang_source_provider.get_supported_namespaces()
-            return {
-                "supported_namespaces": namespaces,
-                "total_count": len(namespaces),
-                "description": "Golang namespaces available for source code analysis"
-            }
-            
-        except Exception as e:
-            logger.error(f"Error getting supported namespaces: {e}")
-            return {
-                "error": f"Failed to get supported namespaces: {str(e)}",
-                "supported_namespaces": []
-            }
-    
-    @mcp.tool("get_golang_namespace_tags")
-    @track_tool_call("get_golang_namespace_tags")
-    async def get_golang_namespace_tags(
-        namespace: str = Field(..., description="Golang namespace to get tags for")
-    ) -> Dict[str, Any]:
-        """
-        Get all supported tags/versions for a specific golang namespace.
-        
-        Use this tool to discover available versions/tags for a specific golang
-        namespace before analyzing code from a particular version.
-        
-        Args:
-            namespace: The golang namespace to query
-            
-        Returns:
-            Dictionary with supported tags for the namespace
-        """
-        try:
-            tags = await golang_source_provider.get_supported_tags(namespace)
-            return {
-                "namespace": namespace,
-                "supported_tags": tags,
-                "total_count": len(tags),
-                "latest_tag": tags[0] if tags else "unknown"
-            }
-            
-        except Exception as e:
-            logger.error(f"Error getting supported tags: {e}")
-            return {
-                "error": f"Failed to get supported tags: {str(e)}",
-                "namespace": namespace,
-                "supported_tags": []
-            }
-    
-    @mcp.tool("query_golang_source_code")
-    @track_tool_call("query_golang_source_code")
-    async def query_golang_source_code(
-        namespace: str = Field(..., description="Golang namespace to query"),
-        symbol: str = Field(..., description="Symbol type: func, method, type, var"),
-        name: str = Field(..., description="Name of the symbol to read"),
-        receiver: str = Field(default="", description="Method receiver type (required for methods)"),
-        tag: str = Field(default="", description="Version tag (optional)")
-    ) -> str:
-        """
-        Read golang source code for given type, variable, constant, function or method definition.
-        
-        Use this tool when you need to see function, method, type, or variable definitions
-        while reading golang source code, understand how Terraform providers expand or
-        flatten structs, or debug issues related to specific Terraform resources.
-        
-        Args:
-            namespace: The golang namespace/package
-            symbol: The symbol type (func, method, type, var)
-            name: The name of the symbol
-            receiver: The receiver type (for methods only)
-            tag: Version tag
-            
-        Returns:
-            Source code as string
-        """
-        try:
-            source_code = await golang_source_provider.query_golang_source_code(
-                namespace=namespace,
-                symbol=symbol,
-                name=name,
-                receiver=receiver if receiver else None,
-                tag=tag if tag else None
-            )
-            return source_code
-            
-        except Exception as e:
-            logger.error(f"Error querying golang source code: {e}")
-            return f"Error: Failed to query golang source code: {str(e)}"
-    
     # ==========================================
     # AZURE BEST PRACTICES TOOL
     # ==========================================

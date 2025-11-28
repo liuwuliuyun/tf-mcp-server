@@ -169,13 +169,6 @@ The server provides comprehensive tools across multiple categories. For complete
 #### Coverage Audit Tools
 - **`audit_terraform_coverage`**: Audit Terraform coverage of Azure resources, compare state against Azure Resource Graph to identify gaps, orphaned resources, and get actionable recommendations
 
-#### Source Code Analysis Tools
-- **`get_terraform_source_providers`**: Get supported providers for source code analysis
-- **`query_terraform_source_code`**: Read Terraform provider source code implementations
-- **`get_golang_namespaces`**: Get available golang namespaces for analysis
-- **`get_golang_namespace_tags`**: Get supported version tags for a golang namespace
-- **`query_golang_source_code`**: Read golang source code for functions, methods, types, and variables
-
 #### Best Practices Tools
 - **`get_azure_best_practices`**: Get comprehensive Azure and Terraform best practices for specific resources and actions
   - Supports AzureRM 4.x and AzAPI 2.x recommendations
@@ -204,7 +197,6 @@ For comprehensive guides and examples:
 - **[TFLint Integration](docs/tflint-integration.md)** - Static analysis for Terraform code quality
 - **[Conftest AVM Validation](docs/conftest-avm-validation.md)** - Policy-based security validation with Azure policies
 - **[Azure Export Integration](docs/aztfexport-integration.md)** - Export existing Azure resources to Terraform
-- **[Source Code Analysis](docs/terraform-golang-source-tools.md)** - Terraform and Golang source code analysis
 - **[Azure Best Practices](docs/azure-best-practices-tool.md)** - Get Azure-specific recommendations and code cleanup guidance
 
 ### Example Usage
@@ -240,7 +232,6 @@ tf-mcp-server/
 │           ├── aztfexport_runner.py     # Azure Export for Terraform (aztfexport) integration
 │           ├── conftest_avm_runner.py   # Conftest policy validation runner
 │           ├── coverage_auditor.py      # Terraform coverage audit tool
-│           ├── golang_source_provider.py # Golang source code analysis provider
 │           ├── terraform_runner.py      # Terraform command execution and state management
 │           └── tflint_runner.py         # TFLint static analysis runner
 ├── tests/                          # Test suite

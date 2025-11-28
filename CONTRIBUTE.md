@@ -82,9 +82,6 @@ MCP_HOST=localhost
 MCP_PORT=8000
 MCP_DEBUG=true
 
-# GitHub Authentication (optional, for Golang source code analysis)
-GITHUB_TOKEN=your_github_personal_access_token
-
 # Azure Authentication (optional, for aztfexport and Azure operations)
 AZURE_CLIENT_ID=your_client_id
 AZURE_CLIENT_SECRET=your_client_secret  
@@ -97,7 +94,6 @@ For Windows PowerShell users, set environment variables like:
 $env:MCP_DEBUG="true"
 $env:MCP_HOST="localhost"
 $env:MCP_PORT="8000"
-$env:GITHUB_TOKEN="your_github_token"  # Optional for source code analysis
 ```
 
 ### 4. Verify Installation
@@ -489,24 +485,6 @@ hcl = 'resource"azurerm_storage_account""test"{name="test"}'
 formatted = await runner.execute_terraform_command("fmt", hcl)
 ```
 
-#### Testing Golang Source Code Analysis
-```python
-# Test Golang source code analysis
-from tf_mcp_server.tools.golang_source_provider import GolangSourceProvider
-
-provider = GolangSourceProvider()
-namespaces = provider.get_supported_namespaces()
-providers = provider.get_supported_providers()
-
-# Query source code
-result = await provider.query_golang_source_code(
-    namespace="github.com/hashicorp/terraform-provider-azurerm/internal",
-    symbol="StorageAccount",
-    name="storageaccounts",
-    tag="latest"
-)
-```
-
 #### Testing Azure Best Practices
 ```python
 # Test Azure best practices retrieval  
@@ -548,14 +526,7 @@ The server provides the following 25 MCP tools (as defined in `src/tf_mcp_server
 - `get_aztfexport_config` - Get aztfexport configuration settings
 - `set_aztfexport_config` - Set aztfexport configuration settings
 
-**Golang Source Code Analysis Tools:**
-- `get_terraform_source_providers` - Get a list of supported Terraform providers for source code analysis
-- `query_terraform_source_code` - Query Terraform provider source code using provider and resource name
-- `get_golang_namespaces` - Get all supported golang namespaces for source code analysis
-- `get_golang_namespace_tags` - Get supported tags/versions for a specific golang namespace
-- `query_golang_source_code` - Query golang source code using namespace, symbol, and name
-
-**Azure Best Practices Tools:**
+**Azure Best Practices Tools:****
 - `get_azure_best_practices` - Get Azure and Terraform best practices for specific resources and actions
 
 When adding new tools, follow the established patterns and ensure they integrate well with existing functionality.
@@ -568,8 +539,7 @@ The MCP tools are organized into logical categories:
 2. **Terraform Command Tools** - Execute Terraform operations and commands
 3. **Security & Analysis Tools** - Validate configurations against security policies
 4. **Azure Export Tools** - Export existing Azure resources to Terraform code
-5. **Golang Source Code Analysis Tools** - Analyze Terraform provider source code
-6. **Azure Best Practices Tools** - Provide recommendations and best practices
+5. **Azure Best Practices Tools** - Provide recommendations and best practices
 
 ### Adding New Tool Categories
 
@@ -594,18 +564,6 @@ When adding support for new Azure resources:
 6. **Consider Azure Verified Module (AVM) support** if there's a corresponding verified module
 7. **Update documentation tools** to handle new resource types or attributes
 8. **Add TFLint rules** if Azure-specific validation is needed
-9. **Update Golang source code analysis** if new provider functionality needs to be analyzed
-
-### Adding Golang Source Code Analysis Support
-
-When adding support for new Terraform providers in source code analysis:
-
-1. **Update provider index mapping** in `golang_source_provider.py`
-2. **Add remote index configuration** for the provider's GitHub repository
-3. **Ensure proper namespace mapping** between provider name and GitHub location
-4. **Add authentication support** if the provider repository requires it
-5. **Test with various query patterns** to ensure proper source code retrieval
-6. **Update supported providers list** and documentation
 
 ### Adding Security Policies
 
@@ -620,12 +578,6 @@ When adding new security policies:
 ### External Dependencies and Authentication
 
 Some tools require external authentication:
-
-#### GitHub Authentication (Optional)
-For Golang source code analysis tools to work optimally:
-- **Create a GitHub Personal Access Token** with `public_repo` permissions
-- **Set environment variable**: `GITHUB_TOKEN=your_token`
-- **Without token**: Tools will work but with rate limiting
 
 #### Azure Authentication (Optional)  
 For Azure export and resource analysis tools:
@@ -651,7 +603,6 @@ For enhanced security analysis:
 - Minimize external API calls (implement rate limiting where needed)
 - Use efficient data structures
 - Profile code for performance bottlenecks
-- Consider GitHub API rate limits for source code analysis
 - Implement proper error handling and timeouts for external services
 
 ### Project Structure Notes
@@ -682,7 +633,7 @@ Key directories:
   - `terraform_runner.py` - Terraform command execution
   - `tflint_runner.py` - TFLint static analysis runner
   - `conftest_avm_runner.py` - Conftest policy validation runner
-  - `golang_source_provider.py` - Golang source code analysis provider
+  - `coverage_auditor.py` - Terraform coverage audit tool
 - `src/data/` - Static data files and schemas
   - `azapi_schemas_v2.6.1.json` - AzAPI resource schemas
 - `tests/` - Test files matching the source structure
