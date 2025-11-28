@@ -575,6 +575,27 @@ Get comprehensive Azure and Terraform best practices for specific resources and 
 }
 ```
 
+### `check_azurerm_feature_availability`
+
+Generates a prompt for the AI to verify if specific features are supported by the AzureRM provider.
+
+**Parameters:**
+- `resource_type` (required): The AzureRM resource type (e.g., "azurerm_linux_virtual_machine")
+- `features` (required): List of features/arguments to check
+
+**Returns:** A prompt string instructing the AI how to verify feature availability.
+
+**Example:**
+```json
+{
+  "tool": "check_azurerm_feature_availability",
+  "arguments": {
+    "resource_type": "azurerm_linux_virtual_machine",
+    "features": ["identity", "os_disk.caching"]
+  }
+}
+```
+
 ---
 
 ## Error Handling

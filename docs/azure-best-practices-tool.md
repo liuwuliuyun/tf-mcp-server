@@ -10,6 +10,7 @@ This tool delivers context-aware best practices recommendations for:
 - Managing state files safely
 - Security hardening and compliance
 - Provider-specific optimizations (AzureRM 4.x, AzAPI 2.x)
+- Feature availability checks and provider selection
 
 ## 📋 Tool Reference
 
