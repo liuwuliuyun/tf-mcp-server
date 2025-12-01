@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "tf-mcp-server"
-version = "0.1.0"
+version = "0.6.0"
 description = "Azure Terraform MCP Server - A comprehensive Model Context Protocol server for Azure Terraform operations"
 readme = "README.md"
 requires-python = ">=3.11"
