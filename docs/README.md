@@ -33,11 +33,13 @@ This directory contains comprehensive documentation for the Azure Terraform MCP 
 
 ## 🆕 What's New
 
-The latest version includes:
+The latest version (0.6.0) includes:
+- **🔍 Feature Availability Checking**: New `check_azurerm_feature_availability` tool to verify provider feature support
 - **🔄 Terraform State Management**: Full support for state operations (list, show, mv, rm, pull, push) via run_terraform_command
 - **🧹 Code Cleanup Workflow**: Transform exported Terraform code to production-ready with best practices guidance
 - **📋 Enhanced Best Practices**: New "code-cleanup" action for aztfexport with detailed resource naming and refactoring guidance
 - **🔐 Variables vs Locals Guidance**: Clear recommendations on when to use variables versus locals
+- **📦 tfvars Generation Patterns**: Comprehensive guidance for creating terraform.tfvars from exported code
 - **Improved Azure Best Practices**: Comprehensive recommendations for Azure resources
 - **Better Error Handling**: More detailed error messages and validation
 - **Updated Dependencies**: Latest FastMCP framework and improved performance
@@ -48,6 +50,7 @@ The latest version includes:
 - `get_azurerm_provider_documentation` - Get AzureRM resource docs
 - `run_terraform_command` - Execute Terraform commands and state operations
 - `get_azure_best_practices` - Get Azure best practices and code cleanup guidance
+- `check_azurerm_feature_availability` - Verify feature support in AzureRM provider
 - `export_azure_resource` - Export Azure resources to Terraform
 - `audit_terraform_coverage` - Audit Terraform coverage and identify gaps
 

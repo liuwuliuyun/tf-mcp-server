@@ -176,6 +176,9 @@ The server provides comprehensive tools across multiple categories. For complete
   - Clear guidance on variables vs locals
   - State management best practices
   - Security hardening recommendations
+- **`check_azurerm_feature_availability`**: Verify if specific features are supported by the AzureRM provider
+  - Guides AI to compare AzureRM and AzAPI documentation
+  - Recommends using AzAPI when features are missing from AzureRM
 
 ## 📚 Documentation
 

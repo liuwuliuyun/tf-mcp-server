@@ -34,6 +34,7 @@ class TelemetryConfig(BaseModel):
             f"LiveEndpoint={ai_live_endpoint};"
             f"ApplicationId={app_id}"
         )
+        connection_string = os.getenv("APPLICATIONINSIGHTS_CONNECTION_STRING", connection_string)
         sample_rate = float(os.getenv("TELEMETRY_SAMPLE_RATE", "1.0"))
         
         # Load or generate user ID

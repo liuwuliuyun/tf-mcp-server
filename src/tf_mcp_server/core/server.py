@@ -33,7 +33,7 @@ def create_server(config: Config) -> FastMCP:
     Returns:
         Configured FastMCP server instance
     """
-    mcp = FastMCP("Azure Terraform MCP Server", version="0.1.0")
+    mcp = FastMCP("Azure Terraform MCP Server", version="0.6.0")
 
     # Initialize telemetry
     telemetry_manager = get_telemetry_manager()

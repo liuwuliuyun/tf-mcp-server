@@ -201,7 +201,25 @@ The tool specifically highlights that in AzAPI 2.x:
 - Use HCL objects directly: `body = { properties = { enabled = true } }`
 - Instead of: `body = jsonencode({ properties = { enabled = true } })`
 
-### 3. **Comprehensive Coverage**
+### 3. **Feature Availability Checking**
+
+Use `check_azurerm_feature_availability` to verify if specific features are supported:
+```json
+{
+  "tool": "check_azurerm_feature_availability",
+  "arguments": {
+    "resource_type": "azurerm_linux_virtual_machine",
+    "features": ["identity", "os_disk.caching"]
+  }
+}
+```
+
+This tool guides the AI to:
+1. Check AzureRM documentation for the feature
+2. Check AzAPI documentation for the corresponding ARM resource
+3. Recommend using AzAPI if the feature is missing from AzureRM
+
+### 4. **Comprehensive Coverage**
 - Infrastructure organization and naming conventions
 - State management best practices
 - Security fundamentals
@@ -209,11 +227,18 @@ The tool specifically highlights that in AzAPI 2.x:
 - Deployment strategies
 - Monitoring and observability
 
-### 4. **Structured Output**
+### 5. **Structured Output**
 - Clear categorization of recommendations
 - Numbered lists for easy reference
 - Links to additional resources
 - Context-specific advice based on resource type and action
+
+### 6. **tfvars Generation Guidance**
+The code-cleanup action includes detailed patterns for creating terraform.tfvars:
+- Identify values to extract from exported code
+- Create proper variable definitions with types and descriptions
+- Build environment-specific tfvars files (dev, staging, prod)
+- Handle sensitive values securely with Key Vault references
 
 ## Available Parameters
 

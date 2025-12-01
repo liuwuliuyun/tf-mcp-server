@@ -365,59 +365,105 @@ Check Azure Export for Terraform installation status.
 Export a single Azure resource to Terraform configuration.
 
 **Parameters:**
-- `resource_id` (required): Azure resource ID
-- `output_folder_name` (optional): Output folder name
-- `provider` (optional): Terraform provider ("azurerm" or "azapi", default: "azurerm")
-- `resource_name` (optional): Terraform resource name
-- `dry_run` (optional): Perform dry run (default: false)
+- `resource_id` (required): Azure resource ID to export (e.g., `/subscriptions/.../providers/Microsoft.Storage/storageAccounts/myaccount`)
+- `output_folder_name` (optional): Output folder name (created under workspace root, auto-generated if not specified)
+- `provider` (optional): Terraform provider - `"azurerm"` (default) or `"azapi"`
+- `resource_name` (optional): Custom resource name in generated Terraform
+- `resource_type` (optional): Custom resource type in generated Terraform
+- `dry_run` (optional): Perform dry run without creating files (default: false)
+- `include_role_assignment` (optional): Include role assignments (default: false)
+- `parallelism` (optional): Number of parallel operations 1-50 (default: 10)
+- `continue_on_error` (optional): Continue if some resources fail (default: false)
 
-**Returns:** Export results
+**Returns:** Export result with generated files, status, and any errors
+
+**Example:**
+```json
+{
+  "tool": "export_azure_resource",
+  "arguments": {
+    "resource_id": "/subscriptions/12345678-1234-1234-1234-123456789012/resourceGroups/my-rg/providers/Microsoft.Storage/storageAccounts/mystorageaccount",
+    "provider": "azurerm",
+    "output_folder_name": "exported-storage"
+  }
+}
+```
 
 ### `export_azure_resource_group`
 
 Export an entire Azure resource group to Terraform configuration.
 
 **Parameters:**
-- `resource_group_name` (required): Resource group name
-- `output_folder_name` (optional): Output folder name
-- `provider` (optional): Terraform provider (default: "azurerm")
+- `resource_group_name` (required): Name of the resource group (not the full ID, just the name)
+- `output_folder_name` (optional): Output folder name (created under workspace root, auto-generated if not specified)
+- `provider` (optional): Terraform provider - `"azurerm"` (default) or `"azapi"`
+- `name_pattern` (optional): Pattern for resource naming in Terraform
+- `type_pattern` (optional): Pattern for filtering resource types
+- `dry_run` (optional): Perform dry run without creating files (default: false)
 - `include_role_assignment` (optional): Include role assignments (default: false)
-- `parallelism` (optional): Number of parallel operations (default: 10)
-- `continue_on_error` (optional): Continue on errors (default: false)
+- `parallelism` (optional): Number of parallel operations 1-50 (default: 10)
+- `continue_on_error` (optional): Continue if some resources fail (default: false)
 
-**Returns:** Export results
+**Returns:** Export result with generated files, status, and any errors
+
+**Example:**
+```json
+{
+  "tool": "export_azure_resource_group",
+  "arguments": {
+    "resource_group_name": "my-production-rg",
+    "provider": "azurerm",
+    "continue_on_error": true
+  }
+}
+```
 
 ### `export_azure_resources_by_query`
 
 Export Azure resources using Azure Resource Graph queries.
 
 **Parameters:**
-- `query` (required): Azure Resource Graph query
-- `output_folder_name` (optional): Output folder name
-- `provider` (optional): Terraform provider (default: "azurerm")
-- `name_pattern` (optional): Resource naming pattern
-- `dry_run` (optional): Perform dry run (default: false)
+- `query` (required): Azure Resource Graph WHERE clause (e.g., `"type =~ 'Microsoft.Storage/storageAccounts' and location == 'eastus'"`)
+- `output_folder_name` (optional): Output folder name (created under workspace root, auto-generated if not specified)
+- `provider` (optional): Terraform provider - `"azurerm"` (default) or `"azapi"`
+- `name_pattern` (optional): Pattern for resource naming in Terraform
+- `type_pattern` (optional): Pattern for filtering resource types
+- `dry_run` (optional): Perform dry run without creating files (default: false)
+- `include_role_assignment` (optional): Include role assignments (default: false)
+- `parallelism` (optional): Number of parallel operations 1-50 (default: 10)
+- `continue_on_error` (optional): Continue if some resources fail (default: false)
 
-**Returns:** Export results
+**Returns:** Export result with generated files, status, and any errors
+
+**Example:**
+```json
+{
+  "tool": "export_azure_resources_by_query",
+  "arguments": {
+    "query": "type =~ 'Microsoft.Compute/virtualMachines' and location == 'westus2'",
+    "provider": "azurerm"
+  }
+}
+```
 
 ### `get_aztfexport_config`
 
 Get aztfexport configuration settings.
 
 **Parameters:**
-- `key` (optional): Specific config key to retrieve
+- `key` (optional): Specific config key to retrieve (common keys: `installation_id`, `telemetry_enabled`)
 
-**Returns:** Configuration settings
+**Returns:** Configuration settings or all configuration if key not specified
 
 ### `set_aztfexport_config`
 
 Set aztfexport configuration settings.
 
 **Parameters:**
-- `key` (required): Configuration key
-- `value` (required): Configuration value
+- `key` (required): Configuration key to set (e.g., `telemetry_enabled`)
+- `value` (required): Configuration value to set (e.g., `false` to disable telemetry)
 
-**Returns:** Update status
+**Returns:** Operation result indicating success or failure
 
 ---
 
@@ -538,11 +584,27 @@ Analyzes your Azure environment and compares it against your Terraform state to 
 
 Get comprehensive Azure and Terraform best practices for specific resources and actions.
 
-**Parameters:**
-- `resource` (required): Resource type ("general", "azurerm", "azapi", "security", "compute", "database", "storage", "monitoring")
-- `action` (optional): Action type ("code-generation", "deployment", "security") (default: "code-generation")
+**Description:**  
+Provides context-aware best practices recommendations for working with Azure resources using Terraform, including provider-specific recommendations, security guidelines, and optimization tips.
 
-**Returns:** Formatted best practices recommendations
+**Parameters:**
+- `resource` (optional): Resource type or area (default: `"general"`)
+  - Options: `general`, `azurerm`, `azapi`, `azuread`, `aztfexport`, `security`, `networking`, `storage`, `compute`, `database`, `monitoring`, `deployment`
+- `action` (optional): Action type (default: `"code-generation"`)
+  - Options: `code-generation`, `code-cleanup`, `deployment`, `configuration`, `security`, `performance`, `cost-optimization`
+
+**Special Combination: `resource="aztfexport"` + `action="code-cleanup"`**
+
+Returns detailed guidance for making exported Terraform code production-ready:
+- Resource naming and renaming with terraform state mv
+- Variables vs locals usage patterns
+- tfvars file generation patterns
+- Code structure and organization
+- Production readiness improvements
+- Security hardening
+- State file management
+
+**Returns:** Formatted markdown with categorized best practices and recommendations
 
 **Examples:**
 ```json
@@ -551,6 +613,16 @@ Get comprehensive Azure and Terraform best practices for specific resources and 
   "arguments": {
     "resource": "general",
     "action": "code-generation"
+  }
+}
+```
+
+```json
+{
+  "tool": "get_azure_best_practices",
+  "arguments": {
+    "resource": "aztfexport",
+    "action": "code-cleanup"
   }
 }
 ```
@@ -575,15 +647,24 @@ Get comprehensive Azure and Terraform best practices for specific resources and 
 }
 ```
 
+**See Also:**
+- [Azure Best Practices Guide](azure-best-practices-tool.md)
+
 ### `check_azurerm_feature_availability`
 
 Generates a prompt for the AI to verify if specific features are supported by the AzureRM provider.
 
+**Description:**
+This tool does not programmatically check features. Instead, it returns a detailed instruction for the AI to perform the check using documentation tools. It guides the AI to compare AzureRM and AzAPI documentation to determine feature availability.
+
 **Parameters:**
 - `resource_type` (required): The AzureRM resource type (e.g., "azurerm_linux_virtual_machine")
-- `features` (required): List of features/arguments to check
+- `features` (required): List of features/arguments to check (e.g., ["identity", "os_disk.caching"])
 
-**Returns:** A prompt string instructing the AI how to verify feature availability.
+**Returns:** A prompt string instructing the AI how to verify feature availability by:
+1. Checking AzureRM documentation using `get_azurerm_provider_documentation`
+2. Checking AzAPI documentation for the corresponding ARM resource type
+3. Comparing to determine if features exist in AzureRM or only in AzAPI
 
 **Example:**
 ```json
@@ -591,10 +672,19 @@ Generates a prompt for the AI to verify if specific features are supported by th
   "tool": "check_azurerm_feature_availability",
   "arguments": {
     "resource_type": "azurerm_linux_virtual_machine",
-    "features": ["identity", "os_disk.caching"]
+    "features": ["identity", "os_disk.caching", "additional_capabilities"]
   }
 }
 ```
+
+**Use Cases:**
+- Verifying if a specific VM feature is available in AzureRM
+- Determining whether to use AzureRM or AzAPI for a resource
+- Checking for newly released Azure features in providers
+
+**See Also:**
+- [Azure Best Practices Tool](azure-best-practices-tool.md)
+- [Azure Documentation Tools](azure-documentation-tools.md)
 
 ---
 
