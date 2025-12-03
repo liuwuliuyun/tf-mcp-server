@@ -49,8 +49,18 @@ class TelemetryConfig(BaseModel):
     
     @staticmethod
     def _load_or_generate_user_id() -> str:
-        """Load existing user ID or generate a new one."""
-        config_file = Path.home() / ".tf_mcp_server" / ".telemetry_config.json"
+        """Load existing user ID or generate a new one.
+        
+        The config file is stored in the workspace root (MCP_WORKSPACE_ROOT) if available,
+        which is typically a mounted volume that persists across container restarts.
+        Falls back to home directory if workspace root is not available.
+        """
+        # Prefer workspace root (mounted volume) for persistence across container restarts
+        workspace_root = os.getenv("MCP_WORKSPACE_ROOT")
+        if workspace_root and Path(workspace_root).exists():
+            config_file = Path(workspace_root) / ".tf_mcp_server" / ".telemetry_config.json"
+        else:
+            config_file = Path.home() / ".tf_mcp_server" / ".telemetry_config.json"
         
         if config_file.exists():
             try:

@@ -171,7 +171,7 @@ customMetrics
 ### Error Rates by Tool
 
 ```kql
-traces
+customMetrics
 | where customDimensions.["tool.name"] != ""
 | summarize
     Total = count(),
