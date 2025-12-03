@@ -391,8 +391,24 @@ class AzAPISchemaGenerator:
     """Main class for generating AzAPI schemas."""
     
     def __init__(self):
-        self.data_dir = Path(__file__).parent.parent.parent / "data"
+        self.data_dir = self._get_cache_dir()
         self.current_version = None
+    
+    def _get_cache_dir(self) -> Path:
+        """Get the cache directory for AzAPI schemas.
+        
+        Uses MCP_WORKSPACE_ROOT/.tf_mcp_server if available (for Docker persistence),
+        otherwise falls back to the source data directory.
+        """
+        # Prefer workspace root (mounted volume) for persistence across container restarts
+        workspace_root = os.getenv("MCP_WORKSPACE_ROOT")
+        if workspace_root and Path(workspace_root).exists():
+            cache_dir = Path(workspace_root) / ".tf_mcp_server" / "azapi_cache"
+            cache_dir.mkdir(parents=True, exist_ok=True)
+            return cache_dir
+        
+        # Fallback to source data directory for local development
+        return Path(__file__).parent.parent.parent / "data"
         
     def _get_schema_file(self, version: str) -> Path:
         """Get the schema file path for a specific version."""
@@ -548,22 +564,24 @@ class AzAPISchemaGenerator:
         else:
             logger.warning("Failed to check remote provider version")
         
-        # Step 2: Check local cache
+        # Step 2: Check local cache - version is in filename, not file content
+        latest_local_version = self._get_latest_local_version()
         latest_schema_file = self.get_latest_schema_file()
-        if latest_schema_file and latest_schema_file.exists():
-            try:
-                with open(latest_schema_file, 'r', encoding='utf-8') as f:
-                    local_schema_data = json.load(f)
-                    local_version = local_schema_data.get('version', 'unknown')
-                    logger.info(f"Found local schema file: {latest_schema_file} (version: {local_version})")
-                    
-                    # If versions match, use local cache
-                    if remote_version and local_version == remote_version:
-                        logger.info(f"Local version matches provider version {remote_version}. Using cached schema.")
-                        return local_schema_data
-            except (json.JSONDecodeError, UnicodeDecodeError) as e:
-                logger.warning(f"Error reading local schema file {latest_schema_file}: {e}")
-                local_schema_data = None
+        
+        if latest_schema_file and latest_schema_file.exists() and latest_local_version:
+            local_version = f"v{latest_local_version}"
+            logger.info(f"Found local schema file: {latest_schema_file} (version: {local_version})")
+            
+            # If versions match, use local cache
+            if remote_version and local_version == remote_version:
+                try:
+                    with open(latest_schema_file, 'r', encoding='utf-8') as f:
+                        local_schema_data = json.load(f)
+                    logger.info(f"Local version matches provider version {remote_version}. Using cached schema.")
+                    return local_schema_data
+                except (json.JSONDecodeError, UnicodeDecodeError) as e:
+                    logger.warning(f"Error reading local schema file {latest_schema_file}: {e}")
+                    local_schema_data = None
         
         # Step 3: Generate schemas from provider source if version mismatch or no local cache
         if remote_version:
@@ -577,9 +595,14 @@ class AzAPISchemaGenerator:
                 logger.warning(f"Failed to generate schemas from provider source: {e}")
         
         # Step 4: Fallback to local cached version if available
-        if local_schema_data:
-            logger.info(f"Using cached local schema version {local_schema_data.get('version', 'unknown')}")
-            return local_schema_data
+        if latest_schema_file and latest_schema_file.exists():
+            try:
+                with open(latest_schema_file, 'r', encoding='utf-8') as f:
+                    local_schema_data = json.load(f)
+                logger.info(f"Using cached local schema version v{latest_local_version}")
+                return local_schema_data
+            except Exception as e:
+                logger.warning(f"Failed to load fallback schema: {e}")
         
         logger.warning("AzAPI schema not available. AzAPI functionality will be limited.")
         return {}

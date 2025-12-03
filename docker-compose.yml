@@ -16,7 +16,7 @@ services:
       # - ARM_SUBSCRIPTION_ID=your-subscription-id
       # - ARM_TENANT_ID=your-tenant-id
     volumes:
-      # Mount Terraform workspace if needed
+      # Mount Terraform workspace - also used for caching AzAPI schemas in .tf_mcp_server/
       - ./terraform-workspace:/workspace
       # Mount logs directory
       - ./logs:/app/logs
