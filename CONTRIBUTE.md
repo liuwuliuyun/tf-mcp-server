@@ -15,7 +15,7 @@ Thank you for your interest in contributing to the Azure Terraform MCP Server! T
 ## Getting Started
 
 ### Prerequisites
-- Python 3.11 or higher
+- Python 3.12 or higher
 - Git
 - Basic understanding of:
   - Terraform and HCL

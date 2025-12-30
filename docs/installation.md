@@ -7,8 +7,8 @@ This guide provides detailed installation instructions for the Azure Terraform M
 | Method | Best For | Setup Time | What You Need |
 |--------|----------|------------|---------------|
 | **🐳 Docker** | VS Code MCP integration | 2 minutes | Docker + VS Code |
-| **⚡ UV** | Development, customization | 5 minutes | Python 3.11+ |
-| **🐍 Pip** | Traditional Python setup | 5 minutes | Python 3.11+ |
+| **⚡ UV** | Development, customization | 5 minutes | Python 3.12+ |
+| **🐍 Pip** | Traditional Python setup | 5 minutes | Python 3.12+ |
 
 ### 📋 What's the Difference?
 
@@ -25,7 +25,7 @@ This guide provides detailed installation instructions for the Azure Terraform M
 - (Optional) Azure Service Principal for full functionality
 
 **What's included automatically:**
-- Python 3.11+ runtime
+- Python 3.12+ runtime
 - All Python dependencies
 - aztfexport (latest version)
 - Terraform CLI
@@ -76,7 +76,7 @@ Add this to your VS Code `mcp.json`:
 ```
 
 **📦 What's in the Docker image:**
-- **Runtime**: Python 3.11+, all dependencies
+- **Runtime**: Python 3.12+, all dependencies
 - **Tools**: aztfexport, Terraform CLI  
 - **Transport**: FastMCP stdio for VS Code integration
 

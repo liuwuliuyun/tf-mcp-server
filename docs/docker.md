@@ -430,7 +430,7 @@ The server requires access to your Terraform files via volume mounting:
 
 The Docker image includes the following tools:
 
-- **Python 3.11+** - Runtime environment
+- **Python 3.12+** - Runtime environment
 - **Terraform** - Infrastructure as Code tool
 - **aztfexport** - Azure Export for Terraform
 - **Azure Terraform MCP Server** - The main application
