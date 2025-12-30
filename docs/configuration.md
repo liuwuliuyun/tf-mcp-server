@@ -38,8 +38,6 @@ The server supports multiple configuration approaches:
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `TERRAFORM_VERSION` | Preferred Terraform version | `latest` |
-| `TFLINT_VERSION` | Preferred TFLint version | `latest` |
-| `CONFTEST_VERSION` | Preferred Conftest version | `latest` |
 | `AZTFEXPORT_VERSION` | Preferred aztfexport version | `latest` |
 
 ---
@@ -65,8 +63,6 @@ ARM_TENANT_ID=your-tenant-id
 
 # Optional Tool Versions
 TERRAFORM_VERSION=1.6.0
-TFLINT_VERSION=0.48.0
-CONFTEST_VERSION=0.46.0
 ```
 
 ### VS Code MCP Configuration
@@ -332,48 +328,11 @@ python -m tf_mcp_server | jq .
 
 ## ⚙️ Tool-Specific Configuration
 
-### TFLint Configuration
-
-Create `.tflint.hcl` in your workspace:
-```hcl
-config {
-  module = false
-}
-
-plugin "azurerm" {
-  enabled = true
-  version = "0.24.0"
-  source  = "github.com/terraform-linters/tflint-ruleset-azurerm"
-}
-
-rule "azurerm_resource_missing_tags" {
-  enabled = true
-  tags = ["Environment", "Project", "Owner"]
-}
-```
-
-### Conftest Configuration
-
-The server includes pre-configured policies, but you can customize:
-```bash
-# Custom policy directory
-export CONFTEST_POLICY_DIR="/path/to/custom/policies"
-```
-
 ### aztfexport Configuration
 
 ```bash
 # Disable telemetry
 aztfexport config set telemetry_enabled false
-
-# Or via tool
-{
-  "tool": "set_aztfexport_config",
-  "arguments": {
-    "key": "telemetry_enabled",
-    "value": "false"
-  }
-}
 ```
 
 ---
@@ -403,25 +362,18 @@ docker run --rm ghcr.io/liuwuliuyun/tf-mcp-server:latest --version
 ### Common Validation Commands
 
 ```json
-# Test basic functionality
+# Test basic functionality - documentation
 {
-  "tool": "get_avm_modules",
-  "arguments": {}
+  "tool": "get_azurerm_provider_documentation",
+  "arguments": {
+    "resource_type_name": "storage_account"
+  }
 }
 
 # Test Azure authentication
 {
   "tool": "check_aztfexport_installation", 
   "arguments": {}
-}
-
-# Test workspace operations
-{
-  "tool": "run_terraform_command",
-  "arguments": {
-    "command": "version",
-    "workspace_folder": "."
-  }
 }
 ```
 

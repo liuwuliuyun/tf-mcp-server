@@ -5,10 +5,9 @@ A Model Context Protocol (MCP) server for Azure Terraform operations, providing 
 ## Overview
 
 This MCP server provides support for Azure Terraform development, including:
-- Azure provider documentation retrieval of AzureRM, AzAPI and Azure Verified Module(AVM)
-- HCL code validation and static analysis with TFLint
-- Security scanning and compliance checking
-- Best practices guidance
+- Azure provider documentation retrieval for AzureRM and AzAPI
+- Azure resource export to Terraform using aztfexport
+- Terraform coverage auditing to identify infrastructure gaps
 - Resource analysis and recommendations
 
 ## Features
@@ -16,34 +15,18 @@ This MCP server provides support for Azure Terraform development, including:
 ### 🔍 Documentation & Discovery
 - **Azure Provider Docs**: Comprehensive documentation retrieval for AzureRM resources
 - **AzAPI Schema**: Schema lookup for Azure API resources
-- **Azure Verified Modules (AVM)**: Discovery and documentation for verified Terraform modules including module listings, versions, variables, and outputs
 - **Resource Documentation**: Detailed arguments, attributes, and examples
 
-### 🛡️ Security & Compliance
-- **Security Scanning**: Built-in security rule validation for Azure resources
-- **Azure Verified Modules (AVM) Policies**: Integration with Conftest and Azure Policy Library AVM for comprehensive policy validation
-- **Best Practices**: Azure-specific best practices and recommendations
-
-### 🔧 Development Tools
-- **Unified Terraform Commands**: Single tool to execute all Terraform commands (init, plan, apply, destroy, validate, fmt) plus full state management (list, show, mv, rm, pull, push)
-- **State Management**: Safe resource renaming and state manipulation using proper Terraform commands
-- **HCL Validation**: Syntax validation and error reporting for Terraform code
-- **HCL Formatting**: Automatic code formatting for Terraform configurations
-- **TFLint Integration**: Static analysis with TFLint including Azure ruleset support for Terraform workspaces
+### 🚀 Azure Resource Export
 - **Azure Export for Terraform (aztfexport)**: Export existing Azure resources to Terraform configuration and state
-- **Code Cleanup Workflow**: Transform exported code into production-ready infrastructure as code
+- **Resource Export**: Export individual Azure resources
+- **Resource Group Export**: Export entire resource groups
+- **Query-based Export**: Export resources using Azure Resource Graph queries
 
-### 📋 Schema & Provider Analysis
-- **Terraform Schema Query**: Query fine-grained schema information for any Terraform provider
-- **Provider Item Discovery**: List all available resources, data sources, and functions for providers
-- **Provider Support Discovery**: Find which providers are available for analysis
-- **Dynamic Schema Loading**: Support for all providers in the Terraform Registry
-
-### 🔍 Golang Source Code Analysis
-- **Golang Namespace Discovery**: Find available golang packages for source code analysis
-- **Version/Tag Support**: Query specific versions of provider source code
-- **Source Code Retrieval**: Read golang source code for functions, methods, types, and variables
-- **Terraform Implementation Analysis**: Understand how Terraform resources are implemented in Go
+### 📊 Infrastructure Analysis
+- **Terraform Coverage Audit**: Audit Terraform coverage of Azure resources
+- **Gap Analysis**: Identify Azure resources not under Terraform management
+- **Orphan Detection**: Find Terraform resources that no longer exist in Azure
 
 ### 🚀 Integration
 - **MCP Protocol**: Full Model Context Protocol compliance for AI assistant integration
@@ -137,48 +120,20 @@ Or add to your `.vscode/mcp.json`:
 
 ### Available Tools
 
-The server provides comprehensive tools across multiple categories. For complete tool reference with examples, see the [API Reference](docs/api-reference.md).
+The server provides tools for Azure Terraform development. For complete tool reference with examples, see the [API Reference](docs/api-reference.md).
 
 #### Documentation Tools
 - **`get_azurerm_provider_documentation`**: Retrieve specific AzureRM resource or data source documentation with optional argument/attribute lookup
 - **`get_azapi_provider_documentation`**: Retrieve AzAPI resource schemas and documentation
-- **`get_avm_modules`**: Retrieve all available Azure Verified Modules with descriptions and source information
-- **`get_avm_latest_version`**: Get the latest version of a specific Azure Verified Module
-- **`get_avm_versions`**: Get all available versions of a specific Azure Verified Module
-- **`get_avm_variables`**: Retrieve the input variables schema for a specific AVM module version
-- **`get_avm_outputs`**: Retrieve the output definitions for a specific AVM module version
-
-#### Terraform Command Tools
-- **`run_terraform_command`**: Execute Terraform CLI commands (init, plan, apply, destroy, validate, fmt) and state management operations (list, show, mv, rm, pull, push) inside a workspace folder
-
-#### Security & Validation Tools
-- **`check_conftest_installation`**: Check Conftest installation status and get version information
-- **`run_conftest_workspace_validation`**: Validate Terraform files in a workspace folder against Azure security policies
-- **`run_conftest_workspace_plan_validation`**: Validate Terraform plan files against Azure security policies
-- **`check_tflint_installation`**: Check TFLint installation status and get version information
-- **`run_tflint_workspace_analysis`**: Run TFLint static analysis on workspace folders containing Terraform files
 
 #### Azure Export Tools
 - **`check_aztfexport_installation`**: Check Azure Export for Terraform (aztfexport) installation status and version
 - **`export_azure_resource`**: Export a single Azure resource to Terraform configuration using aztfexport
 - **`export_azure_resource_group`**: Export an entire Azure resource group and its resources to Terraform configuration
 - **`export_azure_resources_by_query`**: Export Azure resources using Azure Resource Graph queries to Terraform configuration
-- **`get_aztfexport_config`**: Get aztfexport configuration settings
-- **`set_aztfexport_config`**: Set aztfexport configuration settings
 
 #### Coverage Audit Tools
 - **`audit_terraform_coverage`**: Audit Terraform coverage of Azure resources, compare state against Azure Resource Graph to identify gaps, orphaned resources, and get actionable recommendations
-
-#### Best Practices Tools
-- **`get_azure_best_practices`**: Get comprehensive Azure and Terraform best practices for specific resources and actions
-  - Supports AzureRM 4.x and AzAPI 2.x recommendations
-  - Special "code-cleanup" action for aztfexport workflow
-  - Clear guidance on variables vs locals
-  - State management best practices
-  - Security hardening recommendations
-- **`check_azurerm_feature_availability`**: Verify if specific features are supported by the AzureRM provider
-  - Guides AI to compare AzureRM and AzAPI documentation
-  - Recommends using AzAPI when features are missing from AzureRM
 
 ## 📚 Documentation
 
@@ -192,15 +147,9 @@ For comprehensive guides and examples:
 
 ### Feature Guides
 
-- **[Azure Documentation Tools](docs/azure-documentation-tools.md)** - AzureRM, AzAPI, and AVM documentation access
-- **[Terraform Commands](docs/terraform-commands.md)** - Execute Terraform operations and state management
-- **[Terraform State Management](docs/terraform-state-management.md)** - Safe resource renaming and state operations
+- **[Azure Documentation Tools](docs/azure-documentation-tools.md)** - AzureRM and AzAPI documentation access
 - **[Terraform Coverage Audit](docs/terraform-coverage-audit.md)** - Audit Terraform coverage and identify infrastructure gaps
-- **[Security Policies](docs/security-policies.md)** - Policy-based validation and compliance
-- **[TFLint Integration](docs/tflint-integration.md)** - Static analysis for Terraform code quality
-- **[Conftest AVM Validation](docs/conftest-avm-validation.md)** - Policy-based security validation with Azure policies
 - **[Azure Export Integration](docs/aztfexport-integration.md)** - Export existing Azure resources to Terraform
-- **[Azure Best Practices](docs/azure-best-practices-tool.md)** - Get Azure-specific recommendations and code cleanup guidance
 
 ### Example Usage
 
@@ -229,27 +178,18 @@ tf-mcp-server/
 │       │   └── utils.py            # Shared utility functions
 │       └── tools/                  # Tool implementations
 │           ├── __init__.py
-│           ├── avm_docs_provider.py     # Azure Verified Modules documentation provider
 │           ├── azapi_docs_provider.py   # AzAPI documentation provider  
 │           ├── azurerm_docs_provider.py # AzureRM documentation provider
 │           ├── aztfexport_runner.py     # Azure Export for Terraform (aztfexport) integration
-│           ├── conftest_avm_runner.py   # Conftest policy validation runner
 │           ├── coverage_auditor.py      # Terraform coverage audit tool
-│           ├── terraform_runner.py      # Terraform command execution and state management
-│           └── tflint_runner.py         # TFLint static analysis runner
+│           └── terraform_runner.py      # Terraform command execution
 ├── tests/                          # Test suite
 │   ├── __init__.py
 │   ├── conftest.py                 # Test configuration
-│   ├── test_*.py                   # Unit tests
-│   └── integration/                # Integration tests
+│   └── test_*.py                   # Unit tests
 ├── tfsample/                       # Sample Terraform configurations
 ├── workspace/                      # Default workspace directory for operations
-├── policy/                         # Security and compliance policies
-│   ├── avmsec/                     # Azure security policies (AVM Security)
-│   ├── Azure-Proactive-Resiliency-Library-v2/ # Azure resiliency policies  
-│   └── common/                     # Common policy utilities
 ├── docs/                           # Comprehensive documentation
-├── examples/                       # Usage examples and workflows
 ├── pyproject.toml                  # Project configuration (UV/pip)
 ├── uv.lock                         # UV dependency lockfile
 ├── Dockerfile                      # Docker container configuration

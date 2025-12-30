@@ -26,12 +26,9 @@ This guide provides detailed installation instructions for the Azure Terraform M
 
 **What's included automatically:**
 - Python 3.11+ runtime
-- All Python dependencies  
-- TFLint (latest version)
-- Conftest (latest version)
+- All Python dependencies
 - aztfexport (latest version)
 - Terraform CLI
-- All security policies and configurations
 
 ### 1️⃣ Basic Setup (No Azure needed)
 Perfect for trying out documentation features:
@@ -80,8 +77,7 @@ Add this to your VS Code `mcp.json`:
 
 **📦 What's in the Docker image:**
 - **Runtime**: Python 3.11+, all dependencies
-- **Tools**: TFLint, Conftest, aztfexport, Terraform CLI  
-- **Policies**: Pre-loaded security validation rules
+- **Tools**: aztfexport, Terraform CLI  
 - **Transport**: FastMCP stdio for VS Code integration
 
 **💡 Pro Tip**: For direct API access (not VS Code), see our [Docker guide](docker.md) for HTTP server setup.
@@ -203,38 +199,6 @@ Once you have the Docker command ready, configure VS Code MCP integration by cre
 
 **Only needed for UV/Pip installations - Docker has these built-in!**
 
-### TFLint (Static Analysis)
-
-**Windows (Chocolatey):**
-```powershell
-choco install tflint
-```
-
-**macOS (Homebrew):**
-```bash
-brew install tflint
-```
-
-**Linux:**
-```bash
-curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
-```
-
-### Conftest (Policy Validation)
-
-**Windows (Scoop):**
-```powershell
-scoop install conftest
-```
-
-**macOS (Homebrew):**
-```bash
-brew install conftest
-```
-
-**Manual Download:**
-Download from: https://github.com/open-policy-agent/conftest/releases
-
 ### Azure Export for Terraform (aztfexport)
 
 **Windows (Chocolatey):**
@@ -337,15 +301,12 @@ For comprehensive troubleshooting information, see the [Troubleshooting Guide](t
 4. **Limited Functionality Without Authentication**
    
    **Works without Azure auth:**
-   - AzureRM/AzAPI/AVM documentation
-   - Terraform source code analysis
-   - TFLint static analysis
-   - Terraform command execution (with local auth)
+   - AzureRM/AzAPI documentation
+   - Terraform coverage audit (local state)
    
    **Requires Azure authentication:**
    - Azure resource export (aztfexport)
-   - Azure-specific best practices
-   - Conftest policy validation with Azure context
+   - Terraform coverage audit (Azure resource queries)
 
 ### Debug Mode
 
@@ -397,31 +358,19 @@ After installation:
    - Test with basic Azure operations
 
 4. **🧪 Test the Integration**:
-   - Try basic tools like `get_avm_modules`
    - Test documentation lookup with `get_azurerm_provider_documentation`
-   - Validate workspace with `run_terraform_command`
+   - Test Azure export with `check_aztfexport_installation`
 
 5. **🎯 Explore Key Features**:
-   - [Azure Documentation Tools](azure-documentation-tools.md) - AzureRM, AzAPI, AVM docs
-   - [Terraform Commands](terraform-commands.md) - Execute Terraform operations
-   - [Security Policies](security-policies.md) - Policy-based validation
+   - [Azure Documentation Tools](azure-documentation-tools.md) - AzureRM and AzAPI docs
    - [Azure Export Integration](aztfexport-integration.md) - Export existing resources
-
-6. **🔍 Advanced Usage**:
-   - [Azure Best Practices](azure-best-practices-tool.md) - Get Azure recommendations
-   - [TFLint Integration](tflint-integration.md) - Static code analysis
+   - [Terraform Coverage Audit](terraform-coverage-audit.md) - Audit Terraform coverage
 
 ### Quick Verification
 
 Test your installation with these commands:
 
 ```json
-// Test basic functionality (no Azure auth needed)
-{
-  "tool": "get_avm_modules",
-  "arguments": {}
-}
-
 // Test Azure documentation (no Azure auth needed)  
 {
   "tool": "get_azurerm_provider_documentation",
@@ -443,14 +392,11 @@ Test your installation with these commands:
 - **📚 Documentation**: Check the [docs](README.md) directory for comprehensive guides
 - **❓ Troubleshooting**: See the [Troubleshooting Guide](troubleshooting.md) for common issues
 - **🐛 Issues**: Report bugs on the [GitHub repository](https://github.com/liuwuliuyun/tf-mcp-server/issues)
-- **💬 Discussions**: Join community discussions for help and tips
 
 ### What's Next?
 
 Once you have the server running:
 
 - **🏗️ Export Existing Resources**: Use aztfexport to convert existing Azure infrastructure to Terraform
-- **🛡️ Implement Security Policies**: Set up automated policy validation with Conftest
-- **📊 Analyze Code Quality**: Use TFLint for static analysis and best practices
-- **🔍 Explore Implementations**: Use source code analysis to understand how Terraform providers work
-- **⚡ Optimize Workflows**: Integrate the tools into your CI/CD pipelines
+- **📊 Audit Terraform Coverage**: Use the coverage audit tool to identify gaps in Terraform management
+- **📖 Explore Documentation**: Use documentation tools to understand AzureRM and AzAPI resources

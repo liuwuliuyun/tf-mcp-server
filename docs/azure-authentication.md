@@ -4,8 +4,8 @@
 
 The Azure Terraform MCP Server can operate in different modes depending on your Azure authentication setup:
 
-- **🔓 No Authentication**: Basic documentation retrieval, HCL formatting, and static analysis work without Azure credentials
-- **🔐 With Authentication**: Full functionality including Terraform plan execution, Azure resource analysis, and Conftest policy validation
+- **🔓 No Authentication**: Basic documentation retrieval for AzureRM and AzAPI providers
+- **🔐 With Authentication**: Full functionality including Azure resource export, Terraform coverage audit, and Azure Resource Graph queries
 
 ### Authentication Methods
 

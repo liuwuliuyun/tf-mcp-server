@@ -408,7 +408,6 @@ For detailed limitations, see the [official aztfexport documentation](https://le
 
 The aztfexport integration works well with other tools in the MCP server:
 
-- Use `run_terraform_command` to run Terraform (init/plan/apply/fmt) inside the exported workspace directory
-- Use `run_tflint_workspace_analysis` to lint the generated Terraform code
-- Use `run_conftest_workspace_validation` to check compliance and security policies
-```
+- Use `audit_terraform_coverage` to identify Azure resources not under Terraform management
+- Use `get_azurerm_provider_documentation` to get documentation for exported resource types
+- Use `get_azapi_provider_documentation` to explore AzAPI resource schemas

@@ -48,22 +48,6 @@ RUN AZTFEXPORT_VERSION=$(curl -s "https://api.github.com/repos/Azure/aztfexport/
     && rm aztfexport.zip \
     && aztfexport --version
 
-# Install TFLint
-RUN curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
-RUN tflint --version
-
-
-# Install Conftest (latest version)
-RUN CONFTEST_VERSION=$(curl -s "https://api.github.com/repos/open-policy-agent/conftest/releases/latest" | jq -r '.tag_name' | cut -c 2-) \
-    && ARCH=$(uname -m) \
-    && if [ "$ARCH" = "x86_64" ]; then ARCH="x86_64"; elif [ "$ARCH" = "aarch64" ]; then ARCH="arm64"; fi \
-    && SYSTEM=$(uname) \
-    && wget "https://github.com/open-policy-agent/conftest/releases/download/v${CONFTEST_VERSION}/conftest_${CONFTEST_VERSION}_${SYSTEM}_${ARCH}.tar.gz" \
-    && tar xzf conftest_${CONFTEST_VERSION}_${SYSTEM}_${ARCH}.tar.gz \
-    && mv conftest /usr/local/bin \
-    && rm conftest_${CONFTEST_VERSION}_${SYSTEM}_${ARCH}.tar.gz \
-    && conftest --version
-
 # Create non-root user for security
 RUN groupadd -r mcpuser && useradd -r -g mcpuser mcpuser
 

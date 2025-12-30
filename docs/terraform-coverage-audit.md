@@ -465,10 +465,7 @@ audit_result = audit_terraform_coverage(...)
 for resource in audit_result['missing_resources']:
     export_azure_resource(resource_id=resource['resource_id'])
 
-# Step 3: Run security validation
-run_conftest_workspace_validation(workspace_folder="...")
-
-# Step 4: Clean up orphaned resources
+# Step 3: Clean up orphaned resources
 for orphaned in audit_result['orphaned_resources']:
     # Review manually before removing
     # terraform state rm {orphaned['terraform_address']}
@@ -513,7 +510,6 @@ For detailed API specifications, see [API Reference](api-reference.md#audit_terr
 - **export_azure_resource**: Export individual Azure resources to Terraform
 - **export_azure_resource_group**: Export entire resource groups
 - **export_azure_resources_by_query**: Bulk export using Azure Resource Graph queries
-- **run_terraform_command**: Manage Terraform state operations
 
 ## Support
 

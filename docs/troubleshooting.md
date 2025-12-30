@@ -34,10 +34,12 @@ This guide helps you diagnose and resolve common issues with the Azure Terraform
 
 #### Diagnosis
 ```json
-# Test basic tool call
+# Test basic tool call - documentation lookup
 {
-  "tool": "get_avm_modules",
-  "arguments": {}
+  "tool": "get_azurerm_provider_documentation",
+  "arguments": {
+    "resource_type_name": "storage_account"
+  }
 }
 ```
 
@@ -149,60 +151,29 @@ docker run --rm -it \
 
 ---
 
-### 3. Terraform Command Failures
+### 3. Tool-Specific Issues
 
-#### Symptoms
-- Terraform init/plan/apply fails
-- "Terraform not found" errors
-- Provider installation issues
+#### aztfexport Issues
 
-#### Diagnosis
+**Symptoms:**
+- Export commands fail
+- Resource not found errors
+- Authentication issues
+
+**Solutions:**
 ```json
-# Test Terraform installation
+# Test aztfexport installation
 {
-  "tool": "run_terraform_command",
-  "arguments": {
-    "command": "version",
-    "workspace_folder": "."
-  }
-}
-```
-
-#### Solutions
-
-**Workspace Issues:**
-```bash
-# Verify workspace structure
-ls -la workspace/
-# Should contain .tf files
-
-# Create minimal test workspace
-mkdir -p workspace/test
-cat > workspace/test/main.tf << EOF
-terraform {
-  required_providers {
-    azurerm = {
-      source  = "hashicorp/azurerm"
-      version = "~> 4.0"
-    }
-  }
+  "tool": "check_aztfexport_installation",
+  "arguments": {}
 }
 
-provider "azurerm" {
-  features {}
-}
-EOF
-```
-
-**Provider Installation:**
-```json
-# Initialize with upgrade
+# Test with simple resource export
 {
-  "tool": "run_terraform_command",
+  "tool": "export_azure_resource",
   "arguments": {
-    "command": "init",
-    "workspace_folder": "workspace/test",
-    "upgrade": true
+    "resource_id": "/subscriptions/your-sub-id/resourceGroups/test-rg",
+    "dry_run": true
   }
 }
 ```
@@ -251,87 +222,6 @@ docker run --rm -it \
 
 ---
 
-### 5. Tool-Specific Issues
-
-#### TFLint Issues
-
-**Symptoms:**
-- TFLint analysis fails
-- Rules not loading
-- Plugin errors
-
-**Solutions:**
-```bash
-# Test TFLint installation in container
-docker run --rm -it ghcr.io/liuwuliuyun/tf-mcp-server:latest tflint --version
-
-# Check TFLint configuration
-cat > .tflint.hcl << EOF
-config {
-  module = false
-}
-
-plugin "azurerm" {
-  enabled = true
-  version = "0.24.0"
-  source  = "github.com/terraform-linters/tflint-ruleset-azurerm"
-}
-EOF
-```
-
-#### Conftest Issues
-
-**Symptoms:**
-- Policy validation fails
-- Policies not found
-- Rego syntax errors
-
-**Solutions:**
-```json
-# Test Conftest installation
-{
-  "tool": "check_conftest_installation",
-  "arguments": {}
-}
-
-# Test with minimal policy
-{
-  "tool": "run_conftest_workspace_validation",
-  "arguments": {
-    "workspace_folder": "workspace/test",
-    "policy_set": "avmsec",
-    "severity_filter": "high"
-  }
-}
-```
-
-#### aztfexport Issues
-
-**Symptoms:**
-- Export commands fail
-- Resource not found errors
-- Authentication issues
-
-**Solutions:**
-```json
-# Test aztfexport installation
-{
-  "tool": "check_aztfexport_installation",
-  "arguments": {}
-}
-
-# Test with simple resource export
-{
-  "tool": "export_azure_resource",
-  "arguments": {
-    "resource_id": "/subscriptions/your-sub-id/resourceGroups/test-rg",
-    "dry_run": true
-  }
-}
-```
-
----
-
 ## 🐛 Debug Mode
 
 ### Enable Debug Logging
@@ -365,9 +255,9 @@ export LOG_LEVEL=DEBUG
 **Look for these log patterns:**
 ```
 DEBUG: Server starting with config...
-DEBUG: Tool call received: get_avm_modules
+DEBUG: Tool call received: get_azurerm_provider_documentation
 DEBUG: Azure authentication successful
-ERROR: Failed to execute terraform command
+ERROR: Failed to retrieve documentation
 ```
 
 ### Collect Debug Information

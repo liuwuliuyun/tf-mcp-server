@@ -485,49 +485,22 @@ hcl = 'resource"azurerm_storage_account""test"{name="test"}'
 formatted = await runner.execute_terraform_command("fmt", hcl)
 ```
 
-#### Testing Azure Best Practices
-```python
-# Test Azure best practices retrieval  
-from tf_mcp_server.core.server import create_server
-from tf_mcp_server.core.config import Config
-
-# This tool is defined directly in the server, so you would test it through the MCP interface
-# or by examining the implementation in src/tf_mcp_server/core/server.py
-```
-
 ### Current MCP Tools
 
-The server provides the following 25 MCP tools (as defined in `src/tf_mcp_server/core/server.py`):
+The server provides the following 7 MCP tools (as defined in `src/tf_mcp_server/core/server.py`):
 
 **Documentation Tools:**
 - `get_azurerm_provider_documentation` - Get detailed AzureRM resource/data source documentation with optional argument/attribute lookup
 - `get_azapi_provider_documentation` - Get AzAPI resource schemas and documentation
-- `get_avm_modules` - Retrieve all available Azure Verified Modules with descriptions
-- `get_avm_latest_version` - Get the latest version of a specific Azure Verified Module
-- `get_avm_versions` - Get all available versions of a specific Azure Verified Module
-- `get_avm_variables` - Retrieve input variables schema for a specific AVM module version
-- `get_avm_outputs` - Retrieve output definitions for a specific AVM module version
-
-**Terraform Command Tools:**
-- `run_terraform_command` - Execute any Terraform command (init, plan, apply, destroy, validate, fmt) within existing workspace directories
-
-**Security & Analysis Tools:**
-- `check_conftest_installation` - Check Conftest installation status and get version information
-- `run_conftest_workspace_validation` - Validate Terraform workspaces against Azure security policies and best practices using Conftest
-- `run_conftest_workspace_plan_validation` - Validate Terraform plan files against Azure security policies and best practices using Conftest
-- `run_tflint_workspace_analysis` - Run TFLint static analysis on Terraform workspaces with Azure plugin support
-- `check_tflint_installation` - Check TFLint installation status and get version information
 
 **Azure Export Tools (aztfexport Integration):**
 - `check_aztfexport_installation` - Check Azure Export for Terraform (aztfexport) installation status and version
 - `export_azure_resource` - Export a single Azure resource to Terraform configuration using aztfexport
 - `export_azure_resource_group` - Export an entire Azure resource group and its resources to Terraform configuration
 - `export_azure_resources_by_query` - Export Azure resources using Azure Resource Graph queries to Terraform configuration
-- `get_aztfexport_config` - Get aztfexport configuration settings
-- `set_aztfexport_config` - Set aztfexport configuration settings
 
-**Azure Best Practices Tools:****
-- `get_azure_best_practices` - Get Azure and Terraform best practices for specific resources and actions
+**Coverage Audit Tools:**
+- `audit_terraform_coverage` - Audit Terraform coverage of Azure resources and identify infrastructure gaps
 
 When adding new tools, follow the established patterns and ensure they integrate well with existing functionality.
 
@@ -536,10 +509,8 @@ When adding new tools, follow the established patterns and ensure they integrate
 The MCP tools are organized into logical categories:
 
 1. **Documentation Tools** - Provide access to Azure/Terraform documentation and schemas
-2. **Terraform Command Tools** - Execute Terraform operations and commands
-3. **Security & Analysis Tools** - Validate configurations against security policies
-4. **Azure Export Tools** - Export existing Azure resources to Terraform code
-5. **Azure Best Practices Tools** - Provide recommendations and best practices
+2. **Azure Export Tools** - Export existing Azure resources to Terraform code
+3. **Coverage Audit Tools** - Analyze Terraform state against Azure resources
 
 ### Adding New Tool Categories
 
@@ -559,21 +530,7 @@ When adding support for new Azure resources:
 1. **Research the resource** in Azure documentation and Terraform provider docs
 2. **Check existing patterns** in the codebase for similar resources
 3. **Add schema information** to `src/data/azapi_schemas_v2.6.1.json` if working with AzAPI resources
-4. **Update security scanning rules** in `policy/avmsec/` if security policies need to be added
-5. **Add best practices** and recommendations for the resource type in analysis tools
-6. **Consider Azure Verified Module (AVM) support** if there's a corresponding verified module
-7. **Update documentation tools** to handle new resource types or attributes
-8. **Add TFLint rules** if Azure-specific validation is needed
-
-### Adding Security Policies
-
-When adding new security policies:
-
-1. **Add Conftest policies** to `policy/avmsec/` following the naming convention
-2. **Include both azurerm and azapi variants** for broad coverage  
-3. **Add mock test data** with `.mock.json` files
-4. **Follow severity classifications** (high, medium, low, info)
-5. **Document policy rationale** and remediation steps
+4. **Update documentation tools** to handle new resource types or attributes
 
 ### External Dependencies and Authentication
 
@@ -590,10 +547,8 @@ Required for Terraform command tools:
 - **Install Terraform CLI**: Download from [terraform.io](https://terraform.io)
 - **Verify installation**: `terraform --version`
 
-#### Optional Security Tools
-For enhanced security analysis:
-- **TFLint**: Install from [github.com/terraform-linters/tflint](https://github.com/terraform-linters/tflint)
-- **Conftest**: Install from [conftest.dev](https://conftest.dev)
+#### Optional Tools
+For full functionality:
 - **aztfexport**: Install from [github.com/Azure/aztfexport](https://github.com/Azure/aztfexport)
 
 ### Performance Considerations
@@ -619,7 +574,7 @@ The project uses:
 
 Key directories:
 - `src/tf_mcp_server/core/` - Core server functionality and all MCP tool definitions
-  - `server.py` - Main FastMCP server with all 25 MCP tools
+  - `server.py` - Main FastMCP server with all MCP tools
   - `config.py` - Configuration management
   - `models.py` - Data models and types
   - `terraform_executor.py` - Terraform execution utilities
@@ -627,19 +582,13 @@ Key directories:
   - `utils.py` - Shared utility functions
 - `src/tf_mcp_server/tools/` - Individual tool implementations
   - `azurerm_docs_provider.py` - AzureRM documentation provider
-  - `azapi_docs_provider.py` - AzAPI documentation provider  
-  - `avm_docs_provider.py` - Azure Verified Modules provider
+  - `azapi_docs_provider.py` - AzAPI documentation provider
   - `aztfexport_runner.py` - Azure Export for Terraform (aztfexport) integration
   - `terraform_runner.py` - Terraform command execution
-  - `tflint_runner.py` - TFLint static analysis runner
-  - `conftest_avm_runner.py` - Conftest policy validation runner
   - `coverage_auditor.py` - Terraform coverage audit tool
 - `src/data/` - Static data files and schemas
   - `azapi_schemas_v2.6.1.json` - AzAPI resource schemas
 - `tests/` - Test files matching the source structure
-- `policy/` - Security and compliance policy definitions
-  - `avmsec/` - Azure security policies for Conftest
-  - `Azure-Proactive-Resiliency-Library-v2/` - Azure resiliency policies
 - `tfsample/` - Sample Terraform configurations for testing
 
 ## Adding New Features

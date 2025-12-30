@@ -173,7 +173,7 @@ docker run --rm -i `
   ghcr.io/liuwuliuyun/tf-mcp-server:latest
 ```
 
-This setup allows tools like TFLint, Conftest, and aztfexport to resolve relative paths against `/workspaces/projects`.
+This setup allows tools like aztfexport to resolve relative paths against `/workspaces/projects`.
 
 ### Testing the MCP Server
 
@@ -182,7 +182,7 @@ To test if the server is working correctly with MCP:
 1. **Test basic functionality:**
    ```bash
    # Run a simple command that should work without Azure auth
-   echo '{"method":"get_avm_modules","params":{}}' | \
+   echo '{"method":"get_azurerm_provider_documentation","params":{"resource_type_name":"storage_account"}}' | \
    docker run --rm -i ghcr.io/liuwuliuyun/tf-mcp-server:latest
    ```
 
@@ -322,8 +322,6 @@ The container includes health checks that verify dependencies are available:
 ```bash
 # Check if image has required tools
 docker run --rm ghcr.io/liuwuliuyun/tf-mcp-server:latest which terraform
-docker run --rm ghcr.io/liuwuliuyun/tf-mcp-server:latest which tflint
-docker run --rm ghcr.io/liuwuliuyun/tf-mcp-server:latest which conftest
 docker run --rm ghcr.io/liuwuliuyun/tf-mcp-server:latest which aztfexport
 ```
 
@@ -420,18 +418,12 @@ The server requires access to your Terraform files via volume mounting:
 ```bash
 # Mount logs directory (for debugging)
 -v "./logs:/app/logs"
-
-# Mount custom policy files
--v "./custom-policies:/app/custom-policies:ro"
 ```
 
 **Windows PowerShell:**
 ```powershell
 # Mount logs directory (for debugging)
 -v ".\logs:/app/logs"
-
-# Mount custom policy files
--v ".\custom-policies:/app/custom-policies:ro"
 ```
 
 ## Included Tools
@@ -440,8 +432,7 @@ The Docker image includes the following tools:
 
 - **Python 3.11+** - Runtime environment
 - **Terraform** - Infrastructure as Code tool
-- **TFLint** - Terraform linter and static analysis
-- **Conftest** - Policy testing tool for structured configuration data
+- **aztfexport** - Azure Export for Terraform
 - **Azure Terraform MCP Server** - The main application
 
 ### Tool Versions
@@ -449,8 +440,7 @@ The Docker image includes the following tools:
 | Tool | Version |
 |------|---------|
 | Terraform | latest |
-| TFLint | latest |
-| Conftest | latest |
+| aztfexport | latest |
 
 > **Note:** The Dockerfile installs the latest available versions of these tools at build time. Actual versions may differ from those listed above. For reproducibility, consider pinning tool versions in the Dockerfile.
 
@@ -462,8 +452,6 @@ For debugging, you can run commands inside the container:
 ```bash
 # Check tool versions
 docker run --rm ghcr.io/liuwuliuyun/tf-mcp-server:latest terraform version
-docker run --rm ghcr.io/liuwuliuyun/tf-mcp-server:latest tflint --version
-docker run --rm ghcr.io/liuwuliuyun/tf-mcp-server:latest conftest --version
 docker run --rm ghcr.io/liuwuliuyun/tf-mcp-server:latest aztfexport version
 
 # Get a shell for debugging
@@ -479,7 +467,7 @@ docker run --rm -it ghcr.io/liuwuliuyun/tf-mcp-server:latest /bin/bash
    **All platforms (same commands):**
    ```bash
    # Check if server starts correctly
-   echo '{"method":"get_avm_modules","params":{}}' | \
+   echo '{"method":"get_azurerm_provider_documentation","params":{"resource_type_name":"storage_account"}}' | \
    docker run --rm -i ghcr.io/liuwuliuyun/tf-mcp-server:latest
    
    # Check container logs
@@ -764,7 +752,6 @@ docker run --rm -i `
 
 Important data to backup:
 - Application logs in `logs/` directory
-- Custom policies in `policy/` directory
 - Terraform state files (if stored locally)
 - Container configuration commands
 
