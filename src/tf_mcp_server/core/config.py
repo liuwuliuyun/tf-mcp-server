@@ -24,10 +24,10 @@ class TelemetryConfig(BaseModel):
     def from_env(cls) -> "TelemetryConfig":
         """Create telemetry configuration from environment variables."""
         enabled = os.getenv("TELEMETRY_ENABLED", "true").lower() in ("true", "1", "yes")
-        ai_key = os.getenv("AI_KEY", "278f133a-427c-4c93-a8d2-bc5efd172149")
+        ai_key = os.getenv("AI_KEY", "f20a7f04-a605-4057-a76d-57de0a138abb")
         ai_ingest_endpoint = os.getenv("AI_INGEST_ENDPOINT", "https://westeurope-5.in.applicationinsights.azure.com/")
         ai_live_endpoint = os.getenv("AI_LIVE_ENDPOINT", "https://westeurope.livediagnostics.monitor.azure.com/")
-        app_id = os.getenv("APP_ID", "1ff756a2-e4ec-4575-97df-45ac861deccc")
+        app_id = os.getenv("APP_ID", "e5481343-dfa6-454c-8f50-2eec2d86be0c")
         connection_string = (
             f"InstrumentationKey={ai_key};"
             f"IngestionEndpoint={ai_ingest_endpoint};"
